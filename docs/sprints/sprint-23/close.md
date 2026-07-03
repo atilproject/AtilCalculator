@@ -3,7 +3,7 @@
 > **Status:** 📝 **PRE-DRAFT** (cycle ~#3435, 2026-07-03) — pending owner verdicts on Issue #769 (3 categories) + Issue #740 close-out + 3 docs PR squash. Will be finalized post-#778/#779/#780 squash wave + owner verdict cascade.
 >
 > **Author:** orchestrator (pre-draft, awaiting owner verdicts + post-squash state)
-> **Source:** [Sprint 23 plan](./plan.md) (PR #780, frozen cycle ~#3070 author) + cluster-squash closure (cycle ~#3417) + Issue #740 PM disposition + Issue #769 PM disposition
+> **Source:** Sprint 23 plan (PR #780, frozen cycle ~#3070 author) + cluster-squash closure (cycle ~#3417) + Issue #740 PM disposition + Issue #769 PM disposition
 
 ## Sprint 23 at a glance
 
@@ -82,13 +82,13 @@ PR #778 branched from stale main `8d9540b` (pre-cluster-squash). vs origin/main 
 
 ### Fix 2: PR #780 forward cross-PR link (cycle ~#3430)
 
-PR #780 Lint & Test FAILURE on markdown link `[close.md shipped](../sprint-22/close.md)` referencing PR #778 content (not on PR #780 branch).
+PR #780 Lint & Test FAILURE on markdown link `close.md shipped → ../sprint-22/close.md` referencing PR #778 content (not on PR #780 branch).
 
 **Fix**: commit `866d087` replaces markdown link with PR reference `see PR #778`. Force-pushed. All 5/5 CI green.
 
 ### Fix 3: PR #778 inverse cross-PR link (cycle ~#3431)
 
-PR #778 Lint & Test FAILURE on inverse markdown link `[../sprint-23/plan.md](../sprint-23/plan.md)` referencing PR #780 content (not on PR #778 branch).
+PR #778 Lint & Test FAILURE on inverse markdown link `../sprint-23/plan.md → ../sprint-23/plan.md` referencing PR #780 content (not on PR #778 branch).
 
 **Fix**: commit `47a93bd` replaces markdown link with PR reference `PR #780 (ships post-this-PR)`. Force-pushed. All 5/5 CI green.
 

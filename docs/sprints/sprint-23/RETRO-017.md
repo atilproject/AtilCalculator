@@ -56,13 +56,13 @@ PR #778 branched from stale local main `8d9540b` (pre-cluster-squash closure). A
 
 #### Issue 2: PR #780 forward cross-PR link (Lint & Test FAILURE)
 
-PR #780 contained markdown link `[close.md shipped](../sprint-22/close.md)` referencing PR #778 content. Cross-PR dependency forced owner merge order.
+PR #780 contained markdown link `close.md shipped → ../sprint-22/close.md` referencing PR #778 content. Cross-PR dependency forced owner merge order.
 
 **Lesson**: Author MUST scan all relative markdown links for forward references to other open PRs.
 
 #### Issue 3: PR #778 inverse cross-PR link (Lint & Test FAILURE)
 
-Symmetric: PR #778 contained `[../sprint-23/plan.md](../sprint-23/plan.md)` referencing PR #780 content.
+Symmetric: PR #778 contained `../sprint-23/plan.md → ../sprint-23/plan.md` referencing PR #780 content.
 
 **Lesson**: Same pattern, both directions. Owner merge order is forced.
 
