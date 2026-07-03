@@ -24,81 +24,95 @@
 - The deploy-runner.sh Tier 3 implementation itself (`${ATC_SERVICE_USER:-$USER}` fallback) — owned by PR #764 (refs #763). PR #764 must MERGE before d121 starts; if PR #764 is still OPEN at d121 start, file a sister-blocker issue
 - Generalization to other scripts (e.g., `scripts/run-server.sh`, `scripts/install.sh`)
 
-## Test Cases (mapping to ADR-0064 §d-test sister-pattern 6-TC table)
+## Test Cases — actual d121 d-test (5 logical TCs / 7 PASS calls)
 
-### TC-1: Tier 1 — repo var set, overrides workflow default
+> **Scope drift note (cycle ~#3371 finalization)**: The original pre-draft (cycle ~#3351) mapped to ADR-0064 §d-test sister-pattern **6-TC table** (Tier 1 + Tier 2 + Tier 3 = 6 ACs across the 3-tier chain). Final d-test shipped with **5 logical TCs** (7 PASS calls, since TC3 splits into TC3a/TC3b/TC3c) covering **only Tier 3 (script-side `${ATC_SERVICE_USER:-$USER}` fallback in `scripts/deploy-runner.sh`)**. **Reason for scope reduction**: Tier 1 (repo var `vars.ATC_SERVICE_USER`) + Tier 2 (workflow YAML hardcoded default) live in `.github/workflows/deploy.yml` which is **owner-gated territory per file ownership matrix** (sister-pattern to `.github/workflows/` lane — `agent:` owner only). d121 stays in tester lane (scripts/tests/) and covers the **regression-guard half** of the 3-tier chain. Tier 1+2 testing deferred to a separate owner-gated d-test (Issue #765 follow-up, owner responsibility).
+>
+> **Mapping table** (pre-draft 6-TC table → shipped 5-TC d-test):
+>
+> | Pre-draft AC | Tier | d121 TC | Coverage |
+> |---|---|---|---|
+> | TC-1 (Tier 1 repo var overrides) | Tier 1 | — | ❌ NOT TESTED (owner-gated territory; sister Issue #765) |
+> | TC-2 (Tier 2 workflow default) | Tier 2 | — | ❌ NOT TESTED (owner-gated territory; sister Issue #765) |
+> | TC-3 (Tier 3 script fallback to $USER) | Tier 3 | TC3b | ✓ POSIX unset semantics |
+> | TC-4 (Tier 3 env-injection wins) | Tier 3 | TC3a | ✓ POSIX env-injection semantics |
+> | TC-5 (Tier 1/2 empty-string handling) | Tier 3 (empty variant) | TC3c | ✓ POSIX `:-` empty-as-unset semantics |
+> | TC-6 (end-to-end systemd unit ownership) | Tier 3 | TC4 | ✓ Defensive: empty ATC_SERVICE_USER does NOT cause `sudo -u ""` failure |
+> | (sister-pattern coverage) | meta | TC5 | ✓ d109 + d112 + d117 d-tests remain on main (≥3 baseline per ADR-0049) |
+> | (canonical literal presence) | Tier 3 | TC1 | ✓ file-grep `${ATC_SERVICE_USER:-$USER}` in deploy-runner.sh |
+> | (canonical invocation presence) | Tier 3 | TC2 | ✓ file-grep `sudo -u "${ATC_SERVICE_USER:-$USER}"` in deploy-runner.sh |
 
-**Setup**: `vars.ATC_SERVICE_USER=runner-vm-user` set on repo (per env-specific override scenario, e.g., runner VM where runner user IS the service owner).
+### TC1: deploy-runner.sh contains canonical `${ATC_SERVICE_USER:-$USER}` literal
 
-**Steps**:
-1. Set `vars.ATC_SERVICE_USER=runner-vm-user` on repo
-2. Workflow YAML env block evaluates `ATC_SERVICE_USER: ${{ vars.ATC_SERVICE_USER || 'atilcan' }}` → resolves to `'runner-vm-user'`
-3. `scripts/deploy-runner.sh --dry-run --print-resolved-atc-service-user` (or via wrapper env-injection) reads `$ATC_SERVICE_USER=runner-vm-user`
-4. Script logs `ATC_SERVICE_USER resolved to: runner-vm-user`
-
-**Expected**: d121 asserts the resolved value equals `runner-vm-user` (Tier 1 take precedence over Tier 2 'atilcan' default).
-
-### TC-2: Tier 2 — repo var unset, workflow YAML default fires
-
-**Setup**: `vars.ATC_SERVICE_USER` UNSET (operator has not configured per-env override).
-
-**Steps**:
-1. Empty repo var → GH Actions evaluates `${{ vars.ATC_SERVICE_USER }}` to empty string (NOT null)
-2. Workflow YAML env block evaluates `ATC_SERVICE_USER: ${{ vars.ATC_SERVICE_USER || 'atilcan' }}` → `'' || 'atilcan'` resolves to `'atilcan'`
-3. Script reads `$ATC_SERVICE_USER=atilcan` from env
-4. Script logs `ATC_SERVICE_USER resolved to: atilcan`
-
-**Expected**: d121 asserts the resolved value equals `atilcan` (Tier 2 fires on empty-string override, NOT just on null — this is the GH Actions `||` empty-handling idiom).
-
-### TC-3: Tier 3 — repo var unset + workflow YAML missing + script fallback to `$USER`
-
-**Setup**: Both `vars.ATC_SERVICE_USER` unset AND `.github/workflows/deploy.yml` `env:` block missing (or hasn't been added yet — pre-Issue #765 follow-up state).
+**Setup**: `scripts/deploy-runner.sh` shipped with PR #764's RCA-17 AC4 user fix (Tier 3 impl).
 
 **Steps**:
-1. `vars.ATC_SERVICE_USER` unset (same as TC-2)
-2. Workflow YAML env block absent (pre-#765 state)
-3. Script reads `$ATC_SERVICE_USER` from env — env unset
-4. `${ATC_SERVICE_USER:-$USER}` shell fallback resolves to `$USER` (e.g., `gh-actions-runner` on prod runner VM)
-5. Script logs `ATC_SERVICE_USER resolved to: gh-actions-runner`
+1. Read `scripts/deploy-runner.sh` from working tree
+2. Grep for canonical `${ATC_SERVICE_USER:-$USER}` literal (with optional non-colon form `${ATC_SERVICE_USER-$USER}` per ADR-0064 §Canonical script-side fallback)
+3. Assert ≥1 match
 
-**Expected**: d121 asserts the resolved value equals `$USER` (Tier 3 fails open to runner identity; script will report `unit not found` if service is not owned by runner user — fails CLEAN, NOT corrupts).
+**Expected**: d121 PASSES iff PR #764 has merged AND the canonical fallback literal is present (post-#764 GREEN state). Pre-#764 RED state: TC1 FAILs (literal missing on main 8d9540b).
 
-### TC-4: Tier 3 — env var direct override (script-side injection)
+### TC2: deploy-runner.sh contains `sudo -u "${ATC_SERVICE_USER:-$USER}"` invocation
 
-**Setup**: `ATC_SERVICE_USER=runner-test` directly set in deploy job env (operator-side override via `os.environ` or `env:` block without repo var).
+**Setup**: Same as TC1.
 
 **Steps**:
-1. `vars.ATC_SERVICE_USER` unset (Tier 1 does not fire)
-2. Workflow YAML env block absent OR does not declare ATC_SERVICE_USER (Tier 2 does not fire)
-3. Script shell receives `ATC_SERVICE_USER=runner-test` via env injection
-4. `${ATC_SERVICE_USER:-$USER}` resolves to `'runner-test'` (env injection beats `$USER` fallback)
-5. Script logs `ATC_SERVICE_USER resolved to: runner-test`
+1. Grep for canonical `sudo -u "${ATC_SERVICE_USER:-$USER}"` invocation in deploy-runner.sh
+2. Assert ≥1 match
 
-**Expected**: d121 asserts the resolved value equals `runner-test` (env injection at script layer beats `$USER` fallback).
+**Expected**: d121 PASSES iff PR #764 has merged AND canonical invocation form is present. Pre-#764 RED state: TC2 FAILs.
 
-### TC-5: Tier 1/2 edge — empty-string handling (GH Actions evaluates unset var as empty)
+### TC3a: POSIX `${VAR:-DEFAULT}` semantics — env-injection wins (`ATC_SERVICE_USER=foo`)
 
-**Setup**: `vars.ATC_SERVICE_USER=""` (operator explicitly sets empty string — pathological case).
+**Setup**: Operator scenario where ATC_SERVICE_USER is set via env injection (e.g., workflow env block, shell export).
 
 **Steps**:
-1. Empty repo var → GH Actions evaluates `${{ vars.ATC_SERVICE_USER }}` to `''`
-2. Workflow YAML env block evaluates `ATC_SERVICE_USER: ${{ vars.ATC_SERVICE_USER || 'atilcan' }}` → `'' || 'atilcan'` resolves to `'atilcan'` (GH Actions `||` empty-handling)
-3. Script reads `$ATC_SERVICE_USER=atilcan` from env
-4. Script logs `ATC_SERVICE_USER resolved to: atilcan`
+1. Run `ATC_SERVICE_USER=foo bash -c 'printf "%s" "${ATC_SERVICE_USER:-$USER}"'`
+2. Assert output equals `'foo'`
 
-**Expected**: d121 asserts empty-string repo var evaluates to `atilcan`, NOT empty (GH Actions `||` idiom correctly treats empty as falsy and falls back to default).
+**Expected**: POSIX `${VAR:-DEFAULT}` semantics: env-injected value wins, NOT $USER fallback.
 
-### TC-6: End-to-end — cross-check systemd unit ownership matches `ATC_SERVICE_USER`
+### TC3b: POSIX `${VAR:-DEFAULT}` semantics — unset falls back to `$USER`
 
-**Setup**: Prod-like environment where `atilcan` owns `atilcalc-web.service` systemd unit (per ADR-0010).
+**Setup**: ATC_SERVICE_USER unset (Tier 1+2 don't fire).
 
 **Steps**:
-1. `vars.ATC_SERVICE_USER` unset, workflow YAML env declares `ATC_SERVICE_USER: ${{ vars.ATC_SERVICE_USER || 'atilcan' }}`
-2. Script resolves `ATC_SERVICE_USER=atilcan`
-3. Script executes `sudo -u atilcan systemctl --user status atilcalc-web.service`
-4. Cross-check: the unit is actually owned by `atilcan` (per ADR-0010)
+1. Run `unset ATC_SERVICE_USER; bash -c 'printf "%s" "${ATC_SERVICE_USER:-$USER}"'`
+2. Assert output equals `$USER` (current shell user)
 
-**Expected**: d121 asserts `sudo -u $ATC_SERVICE_USER systemctl --user status atilcalc-web.service` exits 0 (unit is owned by the resolved user). This is the end-to-end cross-check that the 3-tier resolution chose the RIGHT user (not just any user).
+**Expected**: Tier 3 safe fail-open to runner identity (`$USER`). If runner user IS the service owner, deploy succeeds; if not, deploy fails CLEAN with `unit not found` (NOT corrupts).
+
+### TC3c: POSIX `${VAR:-DEFAULT}` semantics — empty string falls back to `$USER`
+
+**Setup**: `ATC_SERVICE_USER=""` (operator sets empty string — pathological case, GH Actions evaluates unset vars as empty).
+
+**Steps**:
+1. Run `ATC_SERVICE_USER= bash -c 'printf "%s" "${ATC_SERVICE_USER:-$USER}"'`
+2. Assert output equals `$USER`
+
+**Expected**: POSIX `:-` (with colon) treats empty as unset → safe fail-open to `$USER`. Note: `${VAR-DEFAULT}` (no colon) does NOT fall back on empty — different semantics. ADR-0064 §Canonical script-side fallback uses `${VAR:-DEFAULT}` (colon form), so empty falls back.
+
+### TC4: Defensive — empty `ATC_SERVICE_USER` does NOT cause `sudo -u ""` failure
+
+**Setup**: Operator scenario where ATC_SERVICE_USER is empty (could be from GH Actions evaluating unset vars as empty, or operator misconfiguration).
+
+**Steps**:
+1. Simulate empty ATC_SERVICE_USER
+2. Verify `${ATC_SERVICE_USER:-$USER}` falls back to $USER (NOT empty)
+3. Defensive cross-check: `sudo -u "$RESOLVED_USER" id` exits 0 (RESOLVED_USER is non-empty)
+
+**Expected**: Defensive against the `sudo -u ""` failure pathology — Tier 3 fallback fires BEFORE sudo invocation, so the resolved user is always non-empty.
+
+### TC5: Sister-pattern coverage — d109 + d112 + d117 d-tests remain on main
+
+**Setup**: Sister-pattern coverage invariant per ADR-0049 (≥3 sister d-tests per family).
+
+**Steps**:
+1. Verify `scripts/tests/d109-*.sh`, `scripts/tests/d112-*.sh`, `scripts/tests/d117-*.sh` all exist on main
+2. Assert env-var precedence family has ≥3 members
+
+**Expected**: d121 adds 4th member to the env-var precedence family — d109 (BUDGET_MULTIPLIER env block) + d112 (conftest env-var precedence) + d117 (ATILCALC_EVALUATE_PERSIST env-var gate) + d121 (ATC_SERVICE_USER 3-tier resolution).
 
 ## Adversarial Probes
 
