@@ -16,7 +16,7 @@ This pre-draft will be expanded post-Sprint 23 squash wave + Issue #769 verdict.
 ### Cluster-squash discipline (ADR-0059) ✅
 
 - 5/5 cluster PRs squash-merged cleanly (cycle ~#3417, 2026-07-03T16:00:31Z)
-- Owner squash cadence resolved (10/10 cluster-squash wave closure cycle ~#3188)
+- Owner squash cadence resolved (12/12 Sprint 22 PIVOT cascade + 10/10 cluster-squash wave closure cycle ~#3188)
 - Closes-anchor strict format (ADR-0057) enforced — Issue #771 auto-closed, Issue #765 auto-closed
 - d-test sister-pattern (ADR-0049) preserved across cluster — d121 + d122 atomic in cluster
 
@@ -35,8 +35,8 @@ This pre-draft will be expanded post-Sprint 23 squash wave + Issue #769 verdict.
 
 ### Owner squash cadence ✅
 
-- 10/10 cluster-squash wave closure
-- Sprint 22 PIVOT close-out (12/12 cascade) closed cycle ~#3188
+- 12/12 Sprint 22 PIVOT cascade closed cycle ~#3188
+- 10/10 cluster-squash wave closure (post-Sprint-22 PRs that shipped pre-PIVOT)
 - Cluster-squash 5/5 closed cycle ~#3417
 
 ## What didn't go well
@@ -114,8 +114,8 @@ Local `main` ref was stale at `8d9540b` while `origin/main` was at `60d234f` (mu
 
 | Metric | Sprint 22 (precedent) | Sprint 23 | Trend |
 |---|---|---|---|
-| Cluster-squash closure rate | 10/10 (100%) | 5/5 (100%) | ✅ stable |
-| Stories committed | 18 (PIVOT) + carry-over | 9 + 8 dev cluster | ➡️ normal cadence |
+| Cluster-squash closure rate | 12/12 PIVOT + 10/10 wave (100%) | 5/5 (100%) | ✅ stable |
+| Stories committed | 18 (PIVOT) + Sprint 21 carry-over | 9 + 8 dev cluster | ➡️ normal cadence |
 | Sprint 21 carry-over closure | 4 (skeleton Sprint 22) | 4 (PR #694/#704/#679/#738) | ✅ resolved |
 | PM lane discipline violations | 0 | 0 | ✅ stable |
 | Critical fixes (Trust-but-verify §5) | 0 (Sprint 22 cluster wave) | 3 (this session: rebase + 2 cross-PR links) | ⚠️ regression |

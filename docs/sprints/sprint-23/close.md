@@ -23,8 +23,8 @@
 | # | PR | Squash SHA | Merged | Purpose | Cluster role |
 |---|---|---|---|---|---|
 | 1 | #772 | 1c79f28 | 2026-07-03T15:09:15Z | RCA-20 scripts/run-server.sh uv-run venv missing uvicorn --extra web (Closes #771) | dev impl+d122 atomic |
-| 2 | #764 | 2d3d926 | 2026-07-03T15:09:15Z | RCA-17 AC4 user fix `${ATC_SERVICE_USER:-$USER}` (refs #763) | dev fix |
-| 3 | #775 | 14f87e1 | 2026-07-03T15:37:17Z | d121 cross-user env-var pattern d-test (refs #774 + #764) | sister-pattern d-test |
+| 2 | #764 | 2d3d926 | 2026-07-03T15:22:38Z | RCA-17 AC4 user fix `${ATC_SERVICE_USER:-$USER}` (refs #763) | dev fix |
+| 3 | #775 | 14f87e1 | 2026-07-03T15:27:25Z | d121 cross-user env-var pattern d-test (refs #774 + #764) | sister-pattern d-test |
 | 4 | #770 | 48f8a12 | 2026-07-03T16:00:19Z | Sprint 24 candidate mapping + 9 decom-pending + #653 carry (refs #767) | PM contribution FIRST |
 | 5 | #773 | 60d234f | 2026-07-03T16:00:30Z | ADR-0064 cross-user env-var pattern (Closes #765 + RCA-17 codification) | arch ADR |
 
