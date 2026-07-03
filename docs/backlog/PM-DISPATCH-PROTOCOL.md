@@ -73,9 +73,9 @@ Codification candidate from RETRO-016 #6 (PM-side pre-dispatch lint):
 ```bash
 # Pre-flight check before PM Wave promotion (status:backlog → status:ready)
 for issue in $(gh issue list --label status:ready --json number --jq '.[].number'); do
-  agent=$(gh api repos/atilproject/AtilCalculator/issues/$issue \
+  agent=$(gh api repos/atilcan65/AtilCalculator/issues/$issue \
     --jq '.labels[].name | select(startswith("agent:"))[0]')
-  body=$(gh api repos/atilproject/AtilCalculator/issues/$issue --jq '.body')
+  body=$(gh api repos/atilcan65/AtilCalculator/issues/$issue --jq '.body')
 
   if [[ "$agent" == "agent:tester" ]] && ! echo "$body" | grep -qi "d-test-coupled"; then
     echo "⚠️  PM LINT FAIL: Issue #$issue has agent:tester but is NOT d-test-coupled"
