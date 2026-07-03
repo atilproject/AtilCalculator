@@ -22,7 +22,7 @@ Every PR must use the project's [PR template](.github/pull_request_template.md).
 - **Test plan** — unit + integration + d-test sibling (when applicable)
 - **Owner checklist** — owner approval, CI green, labels correct, pre-merge grep clean
 
-**Skip the template = CI label-check FAIL** (`.github/workflows/label-check.yml` enforces 4-cat invariant per ADR-0012).
+**Skip the template = CI label-check FAIL** (`.github/workflows/label-check.yml` enforces 4-cat invariant per [ADR-0012](docs/decisions/ADR-0012-required-label-set.md)).
 
 ### Gate 2 — ADR requirement for doctrine changes
 
@@ -32,30 +32,29 @@ If your PR modifies any of:
 - `.claude/agents/*.md` — agent soul files (PM lane cc'd, owner merges)
 - `.claude/CLAUDE.md` — top-level doctrine file (orchestrator lane, owner merges)
 - `.github/workflows/*.yml` — CI configuration (architect + tester draft, owner merges)
-- Any file that **changes a process contract** (label discipline, auto-ping rules, etc.)
 
 …then your PR must:
 
-1. **Reference an existing ADR** (or open a new ADR PR in parallel via `docs/decisions/ADR-NNNN-<slug>.md`)
-2. **Pass architect 9-Lens review** (per [ADR-0045](docs/decisions/ADR-0045-9-lens-pre-publish.md))
+1. **Reference an existing ADR** in the PR body's ADR cross-ref table (per Gate 1 PR template §ADR cross-ref) — if the PR adds/modifies a rule documented in an existing ADR (label discipline, auto-ping, autonomy loop, etc.), cite the affected ADR
+2. **Pass architect 9-Lens review** — architect verifies all 10 lenses (a-j) per [ADR-0045](docs/decisions/ADR-0045-auto-generated-file-refs-design-verification.md) (which codifies lens j) + [ADR-0043](docs/decisions/ADR-0043-8-lens-architect-review-checklist.md) (8-lens base) + [ADR-0054](docs/decisions/ADR-0054-9lens-enforcement.md) (9th lens enforcement)
 3. **Document the doctrine impact** in the PR body (per PR template §Doctrine impact)
 
-Doctrine changes are **owner-merge-gate only** per [ADR-0031](docs/decisions/ADR-0031-owner-merge-gate.md).
+Doctrine changes are **owner-merge-gate only** per [ADR-0031](docs/decisions/ADR-0031-owner-override-doctrine.md) (Owner-Override PR Merge Doctrine).
 
 ### Gate 3 — d-test requirement (sister-pattern)
 
-Per [ADR-0049](docs/decisions/ADR-0049-d-test-framework.md), every doctrine-touching PR must include a **d-test sister-pattern**:
+Per [ADR-0049](docs/decisions/ADR-0049-behavioral-workflow-test-framework.md) (Behavioral Workflow Test Framework), every doctrine-touching PR must include a **d-test sister-pattern**:
 
 - ≥ 5 test cases (TCs) per d-test
-- Tests must fail BEFORE the change is applied (RED-first per [ADR-0044](docs/decisions/ADR-0044-red-first-tdd.md))
+- Tests must fail BEFORE the change is applied (RED-first)
 - Tests must pass AFTER the change is applied (GREEN)
 - Tests must remain in place to prevent regression
 
-**When d-test is required**:
+**When d-test is required** (sister-pattern examples):
 
 - ADR-0017 (tech stack) PRs — verify the stack guard still triggers
-- ADR-0044 (RED-first TDD) PRs — verify RED phase enforcement
-- ADR-0064 (cross-user env-var) PRs — verify env-var pattern works across user boundaries
+- [ADR-0064](docs/decisions/ADR-0064-cross-user-env-var-pattern.md) (cross-user env-var) PRs — verify env-var pattern works across user boundaries
+- ADR-0050 (pre-merge 4-cat verification) PRs — verify the 4-cat invariant still holds
 
 **When d-test is NOT required**:
 
@@ -65,13 +64,13 @@ Per [ADR-0049](docs/decisions/ADR-0049-d-test-framework.md), every doctrine-touc
 
 ### Gate 4 — Owner approval gate
 
-Per [ADR-0031](docs/decisions/ADR-0031-owner-merge-gate.md), the **human owner** (`@atilcan65`) is the final merge authority for:
+Per [ADR-0031](docs/decisions/ADR-0031-owner-override-doctrine.md), the **human owner** (`@atilcan65`) is the final merge authority for:
 
 - All PRs that touch `.github/workflows/`, `.claude/`, `docs/decisions/`
 - All PRs labeled `status:ready` (CI-green, peer-reviewed)
 - All sprint close-out PRs (sprint-NN/close.md, RETRO-NNN.md)
 
-Owner approval is posted as a PR review comment with `verdict-by:<ts>` stamp. Squash-merge is owner-only — agents MUST NOT merge their own PRs (per `.claude/CLAUDE.md §Things agents must NEVER do`).
+Owner approval is posted as a PR review comment with `verdict-by:<ts>` stamp (per [ADR-0024](docs/decisions/ADR-0024-stale-verdict-watchdog-schema.md) verdict-by convention + [ADR-0044](docs/decisions/ADR-0044-verdict-by-scope-clarification.md) §TDD RED exclusion). Squash-merge is owner-only — agents MUST NOT merge their own PRs (per `.claude/CLAUDE.md §Things agents must NEVER do`).
 
 ## Review routing — CODEOWNERS
 
@@ -91,7 +90,7 @@ docs/ARCHITECTURE-*  @atilcan65
 
 In practice this means **the human owner is the default reviewer for every PR**, with explicit ownership for architecture-critical paths (`.github/`, `.claude/`, `docs/ARCHITECTURE-*`).
 
-For non-architecture PRs, the per-lane `cc:*` labels handle review routing (see [ADR-0015](docs/decisions/ADR-0015-atomic-4-flag-hand-off.md)):
+For non-architecture PRs, the per-lane `cc:*` labels handle review routing (see [ADR-0015](docs/decisions/ADR-0015-atomic-agent-handoff.md) Atomic Agent Hand-off):
 
 - `cc:architect` — on docs/decisions/, docs/designs/, .github/workflows/ PRs
 - `cc:developer` — on src/, tests/, scripts/ PRs
@@ -132,20 +131,24 @@ After PR opens:
 ## Out of scope
 
 - Per-contributor CLA (not yet adopted)
-- Code style guide (see `pyproject.toml` `[tool.ruff]` config + `mypy --strict` for engine module)
+- Code style guide (`pyproject.toml` `[tool.ruff]` + `mypy --strict`) — applies once the engine module lands per [ADR-0017](docs/decisions/ADR-0017-tech-stack.md) §Deferred; today no engine module exists, so lint/typecheck guides apply only to test scaffolding under `tests/`
 
 ---
 
 **Cross-refs**:
 
 - [PR template](.github/pull_request_template.md) — Gate 1 (Story #645, S21-014)
-- [ADR-0012](docs/decisions/ADR-0012-4-cat-label-invariant.md) — 4-cat label invariant
-- [ADR-0015](docs/decisions/ADR-0015-atomic-4-flag-hand-off.md) — atomic handoff discipline
-- [ADR-0031](docs/decisions/ADR-0031-owner-merge-gate.md) — owner merge gate (Gate 4)
-- [ADR-0044](docs/decisions/ADR-0044-red-first-tdd.md) — RED-first TDD
-- [ADR-0045](docs/decisions/ADR-0045-9-lens-pre-publish.md) — architect 9-Lens (Gate 2)
-- [ADR-0049](docs/decisions/ADR-0049-d-test-framework.md) — d-test sister-pattern (Gate 3)
-- [ADR-0057](docs/decisions/ADR-0057-closes-anchor-strict-format.md) — Closes #N vs Refs #N
+- [ADR-0012](docs/decisions/ADR-0012-required-label-set.md) — Required Label Set on Issue/PR Creation (4-cat invariant)
+- [ADR-0015](docs/decisions/ADR-0015-atomic-agent-handoff.md) — Atomic Agent Hand-off (preserve 4-category invariant)
+- [ADR-0024](docs/decisions/ADR-0024-stale-verdict-watchdog-schema.md) — Stale-Verdict Watchdog Schema (verdict-by convention)
+- [ADR-0031](docs/decisions/ADR-0031-owner-override-doctrine.md) — Owner-Override PR Merge Doctrine (Gate 4)
+- [ADR-0043](docs/decisions/ADR-0043-8-lens-architect-review-checklist.md) — 8-Lens Architect Review Checklist (Gate 2 base)
+- [ADR-0044](docs/decisions/ADR-0044-verdict-by-scope-clarification.md) — Verdict-By:* SLA Scope Clarification (TDD RED exclusion)
+- [ADR-0045](docs/decisions/ADR-0045-auto-generated-file-refs-design-verification.md) — lens (j) auto-generated file refs verification (Gate 2)
+- [ADR-0049](docs/decisions/ADR-0049-behavioral-workflow-test-framework.md) — Behavioral Workflow Test Framework (Gate 3 d-test framework)
+- [ADR-0054](docs/decisions/ADR-0054-9lens-enforcement.md) — 9th lens enforcement
+- [ADR-0057](docs/decisions/ADR-0057-closes-anchor-guard.md) — Closes-anchor guard (parser-friendly issue close formats)
+- [ADR-0064](docs/decisions/ADR-0064-cross-user-env-var-pattern.md) — Cross-User Env Var Pattern (Gate 3 sister-pattern example)
 - [docs/decisions/INDEX.md](docs/decisions/INDEX.md) — full ADR index (AC3)
 
 **Story**: STORY-S21-021, Issue #648, Sprint 24 PM lane.
