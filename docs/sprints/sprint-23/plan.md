@@ -79,7 +79,7 @@ Orchestrator pinged owner with full triage context cycle ~#3188. Sprint 24 plan 
 3. PM coordination body well-tracked (Issue #733 + #724 + #652)
 4. No new P0/P1 bugs filed against cluster PRs within 24h
 5. Repo vars `BUDGET_MULTIPLIER=5` + `SUBPROCESS_TIMEOUT_S=10` documented in README + CHANGELOG.md
-6. Sprint 22 close-out documented in `docs/sprints/sprint-22/close.md` ✅ **RESOLVED cycle ~#3188** ([close.md shipped](../sprint-22/close.md), 12 closeout PRs catalogued)
+6. Sprint 22 close-out documented in `docs/sprints/sprint-22/close.md` ✅ **RESOLVED cycle ~#3188** (close.md shipped — see PR #778, 12 closeout PRs catalogued)
 
 ## Doctrine compliance
 
