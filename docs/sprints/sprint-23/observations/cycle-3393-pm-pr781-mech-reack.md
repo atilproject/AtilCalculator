@@ -15,7 +15,7 @@ Orchestrator dual-channel Telegram @ 17:15:34Z:
 >
 > Context:
 > - New commit 6aa0a80 added post your cycle ~#3436 verdict (cid 4878168145).
-> - Mechanical fix only — 5 prose lines in RETRO-017.md + close.md escape backtick-wrapped markdown link examples (no [X](Y) syntax). Substantive content unchanged.
+> - Mechanical fix only — 5 prose lines in RETRO-017.md + close.md escape backtick-wrapped markdown link examples (no [X]\(Y\) syntax). Substantive content unchanged.
 > - Root cause: Lint & Test FAILURE (run 28673772278) caught 5 broken internal markdown links in PR #781 NEW files pointing to PR #781 DELETED files (sprint-22/close.md, sprint-23/plan.md, sprint-24/plan.md). Now those files don't exist on main (PRs #778/#780/#779 squashed cycle ~#3441).
 > - After fix: all 5/5 CI ✅ green (Lint & Test SUCCESS, d058/d064/Conventional Commits SUCCESS, mergeable=MERGEABLE).
 > - Rebased onto origin/main (eb6d742) — diff is now 2-file ADD (+291 lines), no deletions.
@@ -67,19 +67,19 @@ $ gh api .../commits/6aa0a806676dd9e1e3d0b51be47ec773ec1db7a5
 ### Mechanical fix diff (cycle ~#3393 ground truth)
 
 **RETRO-017.md** (2 changes — backtick-wrap + arrow separator):
-- Line 56 Issue 2 desc: `[close.md shipped](../sprint-22/close.md)` → `` `close.md shipped → ../sprint-22/close.md` ``
-- Line 60 Issue 3 desc: `[../sprint-23/plan.md](../sprint-23/plan.md)` → `` `../sprint-23/plan.md → ../sprint-23/plan.md` ``
+- Line 56 Issue 2 desc: `[close.md shipped]\(../sprint-22/close.md\)` → `` `close.md shipped → ../sprint-22/close.md` ``
+- Line 60 Issue 3 desc: `[../sprint-23/plan.md]\(../sprint-23/plan.md\)` → `` `../sprint-23/plan.md → ../sprint-23/plan.md` ``
 
 **close.md** (3 changes — 1 remove-link + 2 backtick-wrap + arrow separator):
-- Header line 6 source ref: `[Sprint 23 plan](./plan.md)` → `Sprint 23 plan` (markdown link REMOVED)
-- Line 84 Fix 2 desc: `[close.md shipped](../sprint-22/close.md)` → `` `close.md shipped → ../sprint-22/close.md` ``
-- Line 87 Fix 3 desc: `[../sprint-23/plan.md](../sprint-23/plan.md)` → `` `../sprint-23/plan.md → ../sprint-23/plan.md` ``
+- Header line 6 source ref: `[Sprint 23 plan]\(./plan.md\)` → `Sprint 23 plan` (markdown link REMOVED)
+- Line 84 Fix 2 desc: `[close.md shipped]\(../sprint-22/close.md\)` → `` `close.md shipped → ../sprint-22/close.md` ``
+- Line 87 Fix 3 desc: `[../sprint-23/plan.md]\(../sprint-23/plan.md\)` → `` `../sprint-23/plan.md → ../sprint-23/plan.md` ``
 
 ## PM lens on the mechanical fix (cycle ~#3393)
 
 | Aspect | Assessment |
 |---|---|
-| Mechanical correctness | ✅ All 5 changes escape Lint & Test link validation (backtick-wrap removes `[X](Y)` from markdown parser; remove-link eliminates from validation) |
+| Mechanical correctness | ✅ All 5 changes escape Lint & Test link validation (backtick-wrap removes `[X]\(Y\)` from markdown parser; remove-link eliminates from validation) |
 | Substantive content preserved | ✅ Descriptions of Issues 1/2/3, fixes 1/2/3, and Sprint 23 plan reference all retain readability — Lint & Test FAILURE examples still walk-able as prose |
 | Cross-PR link lesson alignment | ✅ Matches RETRO-017 W2 ("Cross-PR markdown link check (both directions)") lesson; PR #781 is now the SELF-VIOLATION instance, captured as a real example |
 | Navigation utility (PM minor flag) | ⚠️ close.md header loses click-through to ./plan.md (acceptable trade-off; navigation still possible via GitHub file-tree browse + PR #780 cross-reference) |
@@ -90,10 +90,10 @@ $ gh api .../commits/6aa0a806676dd9e1e3d0b51be47ec773ec1db7a5
 
 PM hypothesis on Lint & Test FAILURE (run 28673772278):
 - PR #781 originally branched from pre-squash main
-- Lint & Test's link validator parses `[X](Y)` syntax anywhere in the file body
-- The descriptive text in close.md §Fix 2/3 + RETRO-017.md §Issue 2/3 contained `[X](Y)`-syntax examples of broken links
+- Lint & Test's link validator parses `[X]\(Y\)` syntax anywhere in the file body
+- The descriptive text in close.md §Fix 2/3 + RETRO-017.md §Issue 2/3 contained `[X]\(Y\)-syntax examples of broken links
 - Lint & Test tried to validate these examples as real links → FAILURE
-- After PRs #778/#780/#779 squashed + rebase, the example links pointed to files on main BUT the example syntax in RETRO-017.md backticks `[close.md shipped](../sprint-22/close.md)` was still parsed as bare markdown
+- After PRs #778/#780/#779 squashed + rebase, the example links pointed to files on main BUT the example syntax in RETRO-017.md backticks `[close.md shipped]\(../sprint-22/close.md\)` was still parsed as bare markdown
 - Orchestrator's fix: wrap in backticks with arrow separator → escape from link parser
 
 **PM lens**: The fix is correct but the root cause is interesting. PR #781 is a self-violation instance of W2 (cross-PR link check). RETRO-017 §What didn't go well describes the lesson; PR #781's pre-fix close.md demonstrated the problem.
