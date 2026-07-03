@@ -24,10 +24,19 @@ Closes #
 
 <!-- Bu PR hangi ADR'ları etkiliyor veya referans veriyor?
      ADR'ları tam başlık + path ile listele. Bkz. docs/decisions/INDEX.md
+     Tablo AMAÇLI exhaustive DEĞİLDİR — yukarıda listelenmemiş bir ADR'a referans veriyorsanız satır ekleyin.
 -->
 | ADR | Title | Impact |
 |-----|-------|--------|
-| (örnek) ADR-NNNN | [title] | [none / partial / full] |
+| ADR-0012 | 4-cat label invariant (type/status/agent/cc) | [none / partial / full] |
+| ADR-0015 | atomic 4-flag hand-off (handoff sırası) | [none / partial / full] |
+| ADR-0017 | tech stack (Python 3.11+, pytest, ruff, mypy, decimal) | [none / partial / full] |
+| ADR-0031 | owner-merge-gate (squash-merge) | [none / partial / full] |
+| ADR-0044 | RED-first TDD (tester d-test BEFORE impl) | [none / partial / full] |
+| ADR-0049 | d-test framework (≥5 TCs, sister-pattern) | [none / partial / full] |
+| ADR-0057 | anchor strict format (Closes #N vs Refs #N) | [none / partial / full] |
+| ADR-0064 | cross-user env-var pattern (Sprint 23 RCA-17) | [none / partial / full] |
+| RETRO-017 W2 [PRE-DRAFT] | cross-PR markdown link pattern (RETRO-017 PRE-DRAFT) | [none / partial / full] |
 | | | |
 
 ## Changes
@@ -46,11 +55,12 @@ Closes #
 - [ ] Chore (deps, CI, tooling)
 - [ ] Incident response
 
-## Testing
+## Test plan
 
 <!-- Bu PR nasıl test edildi? -->
 - [ ] Unit tests added/updated
 - [ ] Integration tests added/updated
+- [ ] d-test sibling (ADR-0049 ≥5 TCs) — only for ADR-0017 / -0044 / -0064 PRs
 - [ ] Manual testing notes:
 
 ## Owner Checklist
@@ -62,7 +72,10 @@ Closes #
 - [ ] **Owner approval** — `@atilcan65` PR review comment ile onayladı (ADR-0031)
 - [ ] **CI green** — `.github/workflows/ci.yml` tüm checks geçti (post-merge)
 - [ ] **PR labels correct** — `type:*` + `status:*` + `agent:*` + `cc:*` 4-cat invariant (ADR-0012)
-- [ ] **Pre-merge grep clean** — `grep -nE '\]\(\./|\]\(\.\./' <changed-files>` (RETRO-017 W2)
+- [ ] **Pre-merge grep clean** — RETRO-017 W2 cross-PR markdown link pattern. Run:
+      ```bash
+      grep -nE '\]\(\./|\]\(\.\./' <changed-files> || echo "clean"
+      ```
 - [ ] **Conventional commit** — `feat/fix/chore/docs/refactor(scope): ...` format
 - [ ] **Squash-merge plan** — Multi-PR docs cluster ise owner squash cascade planlandı
 
