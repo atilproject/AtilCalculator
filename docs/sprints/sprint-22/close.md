@@ -127,7 +127,7 @@ Per Issue #733 owner verdict (Q1: Sprint 21 carry-over executes by default; Q2: 
 
 - **Sprint 22 plan**: [./plan.md](./plan.md) (PIVOT execution plan, 184 lines)
 - **Sprint 21 close**: [../sprint-21/close.md](../sprint-21/close.md) (carry-over default)
-- **Sprint 23 plan**: [../sprint-23/plan.md](../sprint-23/plan.md) (9 stories committed, ~32sp + 3sp conditional)
+- **Sprint 23 plan**: PR #780 (9 stories committed, ~32sp + 3sp conditional — ships post-this-PR per cross-PR link order)
 - **Issue #708**: Sprint 22 PIVOT coordination, owner GO verdict
 - **Issue #733**: Sprint 23 Kickoff owner verdict (Q1+Q2)
 - **Issue #735**: [Sprint 23 Kickoff] Cluster close + Sprint 21 carry-over execution
