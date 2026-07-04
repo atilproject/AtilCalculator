@@ -38,6 +38,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 WATCHER="$REPO_ROOT/scripts/agent-watch.sh"
+INDEX="$REPO_ROOT/scripts/tests/INDEX.md"
 
 PASS=0
 FAIL=0
@@ -159,6 +160,15 @@ else
     pass "TC7d — 'reviewer chain' precondition referenced in j.4 vacuous-pass detection (lens j.4 attestation)"
   else
     fail "TC7d — 'reviewer chain' precondition NOT referenced in j.4 vacuous-pass detection (lens j.4 attestation gap)"
+  fi
+
+  # TC7e — scripts/tests/INDEX.md has d320 row (Cadence Rule 1 atomic per ADR-0055 §1)
+  if [ ! -f "$INDEX" ]; then
+    fail "TC7e — scripts/tests/INDEX.md not found at $INDEX (Cadence Rule 1 attestation impossible — ADR-0055 §1)"
+  elif grep -qE '\*\*d320\*\*' "$INDEX"; then
+    pass "TC7e — scripts/tests/INDEX.md has d320 row (Cadence Rule 1 atomic — d-test + INDEX.md same commit per ADR-0055 §1)"
+  else
+    fail "TC7e — scripts/tests/INDEX.md MISSING d320 row (Cadence Rule 1 violation — ADR-0055 §1 atomic, d-test file shipped without INDEX.md entry)"
   fi
 fi
 
