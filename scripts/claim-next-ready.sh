@@ -93,6 +93,22 @@ fi
 command -v gh >/dev/null 2>&1 || { echo "ERROR: gh CLI required" >&2; exit 4; }
 command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required" >&2; exit 4; }
 
+# --- Issue #809: concurrent-invocation race guard (flock mutex) ---
+# Per Issue #809 + ADR-0038 §Auto-Claim Protocol integrity: N parallel
+# invocations of claim-next-ready.sh can race on the read-then-write
+# sequence (WIP count query → ready items query → status:ready →
+# status:in-progress flip), each computing the same stale WIP and
+# performing duplicate claims on the same issue (live instance: 3 claim
+# comments on #796 within 26s).
+#
+# Fix: wrap the critical section in `flock -n` (non-blocking). Concurrent
+# invocations fail-fast with exit 5 instead of racing. Lock is per-role
+# (developer/tester/etc. don't block each other — only same-role watchers
+# do). Lock file override via CLAIM_NEXT_READY_LOCK_FILE env var (used by
+# d809 TC4 + for emergency manual cleanup).
+LOCK_FILE="${CLAIM_NEXT_READY_LOCK_FILE:-/var/lock/dev-studio/claim-${ROLE}.lock}"
+mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
+
 # --- WIP cap check (ADR-0002 §polling cadence, ADR-0038 risk #6) ---
 # ADR-0038 §Work-Stream Awareness amendment (PR #504 squash @ a45c613):
 #   WIP is counted by WORK-STREAM, not by issue count.
@@ -108,6 +124,30 @@ command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required" >&2; exit 4; }
 # --wip-count-only --role=* (global) queries all in-progress issues
 # across all roles (used by orchestrator watcher: wip-idle-detect.sh +
 # proactive-board-scan.sh D4).
+#
+# ============================================================================
+# Critical section begins (Issue #809 race guard):
+# All WIP-read + ready-query + flip + comment + audit operations below are
+# protected by flock -n (non-blocking). Concurrent invocations fail-fast with
+# exit 5 instead of racing on the read-then-write sequence. See issue body for
+# the live reproducer (3 auto-claim comments on same issue within 26s).
+# ============================================================================
+(
+  flock -n 9 || {
+    echo "[claim-next-ready.sh] ERROR: another claim in progress (lock=$LOCK_FILE, role=$ROLE) — concurrent invocation denied (exit 5). See Issue #809." >&2
+    # Audit log emission per ADR-0045 lens (f) observability + arch verdict cmt 4882248162.
+    # Cluster-squash detection per ADR-0059: lock-contention-denied pattern signals
+    # watchdog burst or duplicate cron overlap. Best-effort (mkdir + log may fail silently
+    # in sandboxed envs per ADR-0048 defensive pattern — observability NOT silently skipped).
+    _atomic_repo_name="${REPO##*/}"
+    _atomic_log_dir="${AUTO_CLAIM_LOG_DIR:-/var/log/dev-studio/${_atomic_repo_name}}"
+    mkdir -p "$_atomic_log_dir" 2>/dev/null || true
+    _atomic_now_iso="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    echo "$_atomic_now_iso $ROLE lock-contention-denied (lock=$LOCK_FILE, exit=5)" \
+      >> "$_atomic_log_dir/auto-claim.log" 2>/dev/null || true
+    exit 5
+  }
+
 if [ "$WIP_COUNT_ONLY" = "true" ] && { [ "$ROLE" = "*" ] || [ "$ROLE" = "global" ]; }; then
   # Issue #806: gh issue list --label silent-drop — switch to REST gh api
   # (sister-pattern: scripts/agent-watch.sh L1778-1779 Katman 1 count)
@@ -356,4 +396,9 @@ echo "$now_iso $ROLE claimed #$picked_number (WIP=$wip_after/$WIP_LIMIT, $picked
   >> "$audit_log" 2>/dev/null || echo "WARN: audit log write failed at $audit_log" >&2
 
 echo "claimed #$picked_number (WIP=$wip_after/$WIP_LIMIT, $picked_priority_label)"
-exit 0
+# End of critical section — flock released when subshell exits (success or failure).
+# Propagate subshell exit code (0=claimed, 1=no-ready/no-dep-free, 3=WIP-cap, 4=API-error,
+# 5=lock-busy-concurrent). Without `exit $?`, an unconditional `exit 0` would mask e.g. exit 3
+# (WIP cap) that d031 TC4 expects. d809 race-guard must not regress d031 sister-test.
+) 9>"$LOCK_FILE"
+exit $?
