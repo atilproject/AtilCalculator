@@ -109,6 +109,48 @@ command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required" >&2; exit 4; }
 LOCK_FILE="${CLAIM_NEXT_READY_LOCK_FILE:-/var/lock/dev-studio/claim-${ROLE}.lock}"
 mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
 
+# --- Issue #834: PID-aware stale-lock self-cleanup (sister to #809) ---
+# Per arch verdict cmt 4883055858 (option b PRIMARY): claim-next-ready.sh
+# startup detects stale flock locks from dead/abandoned processes and
+# self-cleans them. Sister-pattern to PR #825 (flock mutex) + d809 d-test.
+#
+# Mechanism:
+#   1. Before flock -n: read $LOCK_FILE.pid sidecar (if exists); kill -0 check
+#   2. If PID is dead (kill -0 returns non-zero): remove $LOCK_FILE + sidecar
+#   3. Emit silent_skip log per TD-016/020 family (struct: stale-lock-cleanup)
+#   4. After successful flock acquisition: write current $$ to $LOCK_FILE.pid
+#
+# Cross-role isolation: only same-role lock checked (no-touch other roles).
+# Missing-PID fallback: lock without .pid sidecar → assume legacy stale → cleanup.
+PID_FILE="${LOCK_FILE}.pid"
+if [ -e "$LOCK_FILE" ]; then
+  _stale_pid=""
+  if [ -r "$PID_FILE" ]; then
+    _stale_pid="$(cat "$PID_FILE" 2>/dev/null | head -1 | tr -d '[:space:]')"
+  fi
+  _stale_cleanup_needed=0
+  _stale_reason=""
+  if [ -z "$_stale_pid" ]; then
+    # Missing or empty .pid sidecar → legacy lock, treat as stale (AC3 fallback)
+    _stale_cleanup_needed=1
+    _stale_reason="missing-pid"
+  elif ! kill -0 "$_stale_pid" 2>/dev/null; then
+    # PID file present but process is dead (AC1)
+    _stale_cleanup_needed=1
+    _stale_reason="dead-pid (pid=$_stale_pid)"
+  fi
+  if [ "$_stale_cleanup_needed" = "1" ]; then
+    rm -f "$LOCK_FILE" "$PID_FILE" 2>/dev/null || true
+    # silent_skip log per TD-016/020 family (arch verdict cmt 4883055858)
+    _stale_repo_name="${REPO##*/}"
+    _stale_log_dir="${AUTO_CLAIM_LOG_DIR:-/var/log/dev-studio/${_stale_repo_name}}"
+    mkdir -p "$_stale_log_dir" 2>/dev/null || true
+    _stale_now_iso="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    echo "$_stale_now_iso $ROLE stale-lock-cleanup (lock=$LOCK_FILE, reason=$_stale_reason) silent_skip" \
+      >> "$_stale_log_dir/auto-claim.log" 2>/dev/null || true
+  fi
+fi
+
 # --- WIP cap check (ADR-0002 §polling cadence, ADR-0038 risk #6) ---
 # ADR-0038 §Work-Stream Awareness amendment (PR #504 squash @ a45c613):
 #   WIP is counted by WORK-STREAM, not by issue count.
@@ -147,6 +189,9 @@ mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
       >> "$_atomic_log_dir/auto-claim.log" 2>/dev/null || true
     exit 5
   }
+  # Issue #834: write current PID to $LOCK_FILE.pid sidecar so future
+  # invocations can detect dead PIDs (sister to PR #825 flock mutex).
+  printf '%s\n' "$$" > "$PID_FILE" 2>/dev/null || true
 
 if [ "$WIP_COUNT_ONLY" = "true" ] && { [ "$ROLE" = "*" ] || [ "$ROLE" = "global" ]; }; then
   # Issue #806: gh issue list --label silent-drop — switch to REST gh api
