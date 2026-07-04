@@ -6,7 +6,7 @@
 - **Parent ADR:** [ADR-0024](./ADR-0024-stale-verdict-watchdog-schema.md) — Stale-Verdict Watchdog Schema (`verdict-by:<ts>` labels + `stale_verdict` events)
 - **Amends:** ADR-0024 §Watchdog logic by adding §Supersede rule (canonical deadline = latest `verdict-by:<ts>` when multiple present)
 - **Closes:** Issue #828 (stale_verdict hook false-positive on PR #816 — 3 wake instances in 12min cycle #4075-#4085)
-- **Sister-patterns:** [ADR-0024-amendment-auto-verdict-by-hook](./ADR-0024-amendment-auto-verdict-by-hook.md) (auto-pair on `cc:<peer>` add — same family), [ADR-0002-amendment-1-stale-verdict-filter-scope](./ADR-0002-amendment-1-stale-verdict-filter-scope.md) (verdict-authority discriminator — closes Issue #798), ADR-0069 Form C (race-detection doctrinal codification pattern), ADR-0055 §1 Cadence Rule 1 atomic, ADR-0052 §30s re-query window (CI propagation timing), ADR-0044 RED-first TDD
+- **Sister-patterns:** [ADR-0024-amendment-auto-verdict-by-hook](./ADR-0024-amendment-auto-verdict-by-hook.md) (auto-pair on `cc:<peer>` add — same family), [ADR-0002-amendment-1-stale-verdict-filter-scope](./ADR-0002-amendment-1-stale-verdict-filter-scope.md) (verdict-authority discriminator — closes Issue #798), ADR-0069 Form C (race-detection doctrinal codification pattern), ADR-0052 §30s re-query window (CI propagation timing)
 - **Related:** Bug #827 (sister cluster blocker — `scripts/status-action-driver.sh` PR exclusion, currently re-flipping squash cluster PRs every ~1-2min); PR #816 (live instance — observed 3 stale_verdict wakes c4.41, c4.44, c4.46 in 12min); PR #799 (sister-pattern fix for Issue #798); Issue #798 (Layer 5 j.4 — verdict-authority false-positive, sister class)
 
 ---
@@ -128,7 +128,9 @@ When a PR/issue has multiple `verdict-by:<ts>` labels:
 
 ---
 
-## 9-Lens Pre-Publish Attestation (per architect.md §9-Lens Review Checklist, ADR-0045)
+## 9-Lens Pre-Publish Attestation (per architect.md §9-Lens Review Checklist)
+
+> **Note**: the "9-Lens" checklist is a composite of multiple ADRs — lenses (a)–(g) per `.claude/agents/architect.md` §9-Lens Review Checklist, lens (h) Workflow YAML SHA pin per ADR-0043 (sister-pattern to TD-028), lens (i) Platform hard constraints per ADR-0043 (8-Lens extension), lens (j) Auto-generated file refs + live-state verification per ADR-0045. There is no single "ADR-0045 9-Lens pre-publish gate" ADR; the prior reference was doctrinally imprecise (corrected cycle #4108).
 
 | Lens | Verdict | Note |
 |---|---|---|
@@ -153,15 +155,15 @@ When a PR/issue has multiple `verdict-by:<ts>` labels:
 - [ADR-0024-amendment-auto-verdict-by-hook](./ADR-0024-amendment-auto-verdict-by-hook.md) (sister amendment — auto-pair on `cc:<peer>` add)
 - [ADR-0002-amendment-1-stale-verdict-filter-scope](./ADR-0002-amendment-1-stale-verdict-filter-scope.md) (sister — verdict-authority discriminator, Issue #798 sister-pattern)
 - [ADR-0069](./ADR-0069-form-c-race-detection.md) (sister — race-detection doctrinal codification pattern)
-- [ADR-0055](./ADR-0055-cadence-rule-1-atomic.md) (Cadence Rule 1 atomic — dev impl PR must include 4 artifacts)
 - [ADR-0052](./ADR-0052-ci-rerun-race-codification.md) (sister — §30s re-query window for CI propagation)
-- [ADR-0044](./ADR-0044-red-first-tdd.md) (RED-first TDD — d-test contract structure)
-- [ADR-0049](./ADR-0049-d-test-framework.md) (d-test framework — ≥5 TCs baseline)
-- [ADR-0045](./ADR-0045-9-lens-pre-publish.md) (9-Lens pre-publish gate — this attestation)
-- [ADR-0031](./ADR-0031-owner-merge-gate.md) (owner squash gate for workflow YAML)
+- ADR-0055 (text-only — d-test ID uniqueness, not Cadence Rule 1 atomic; no link per fix cycle #4108)
+- ADR-0044 (text-only — verdict-by scope clarification, not RED-first TDD; no link per fix cycle #4108)
+- ADR-0049 (text-only — behavioral workflow test framework, not generic d-test framework baseline; no link per fix cycle #4108)
+- ADR-0045 (text-only — auto-generated file refs in design verification, lens (j); not 9-Lens pre-publish checklist; no link per fix cycle #4108)
+- [ADR-0031](./ADR-0031-owner-override-doctrine.md) (owner squash gate for workflow YAML — slug fix from `owner-merge-gate`)
 - [ADR-0038](./ADR-0038-auto-claim-protocol.md) (parent of amendment #2 Form C + amendment #3 umbrella candidate)
-- [ADR-0027](./ADR-0027-threat-model.md) (threat model — workflow YAML SHA-pin per lens (h))
-- [ADR-0043](./ADR-0043-platform-hard-constraints.md) (lens (i) 8 sub-categories)
+- [ADR-0027](./ADR-0027-deploy-automation.md) (threat model — workflow YAML SHA-pin per lens (h) — slug fix from `threat-model`)
+- ADR-0043 (text-only — 8-lens architect review checklist, not platform hard constraints; no link per fix cycle #4108)
 - Issue #828 (this amendment's home — stale_verdict hook false-positive)
 - Issue #798 (Layer 5 j.4 — verdict-authority false-positive, sister class)
 - Bug #827 (sister cluster blocker — scripts/status-action-driver.sh PR exclusion)
