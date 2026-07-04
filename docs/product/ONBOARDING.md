@@ -27,7 +27,9 @@ gh issue create \
   --label "agent:developer" --label "cc:developer"
 ```
 
-with your prereq check output, or check existing issues via `gh issue list --label "type:bug" --state open`. All four label categories per ADR-0012 (type+status+agent+cc) are required, otherwise `.github/workflows/label-check.yml` will fail the `opened` event. Debugging prereqs is out of scope for the 10-min walkthrough.
+with your prereq check output, or check existing issues via `gh api "repos/${REPO:-atilcan65/AtilCalculator}/issues?labels=type:bug&state=open" --jq '[.[] | {number, title, url, updatedAt}]'`. All four label categories per ADR-0012 (type+status+agent+cc) are required, otherwise `.github/workflows/label-check.yml` will fail the `opened` event. Debugging prereqs is out of scope for the 10-min walkthrough.
+
+> **Note (cycle ~#3554, silent-drop sister-fix)**: The original `gh issue list --label "type:bug" --state open` pattern was replaced with REST `gh api` per Issue #806 + PR #808 silent-drop fix. `gh issue list --label X` silently drops matches for some roles/label combinations (architect 100%, tester 60%, PM 75%, dev 25% miss rate per measured data). End-user bug-list visibility is similarly affected — REST `gh api /repos/${REPO}/issues?labels=X` is the canonical pattern. Sister-fix in `docs/backlog/PM-DISPATCH-PROTOCOL.md` v0.3 (same PR).
 
 ---
 
