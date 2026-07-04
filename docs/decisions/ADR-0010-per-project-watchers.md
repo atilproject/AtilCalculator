@@ -274,3 +274,69 @@ After this ADR ships:
 3. `gh issue create -R atilcan65/ProjectA --label "agent:product-manager" --label "status:backlog" --title "test"` ✔ → ProjectA's PM watcher picks up within heartbeat interval (~60s); ProjectB's PM watcher does NOT pick it up
 4. `systemctl --user restart dev-studio-watcher@ProjectA--developer.service` ✔ → only ProjectA's developer restarts; no other unit affected
 5. Editing `scripts/agent-watch.sh` in ProjectA's repo ✔ → only ProjectA's 5 watchers reload (via per-project reload .path); ProjectB unaffected
+
+---
+
+# ADR-0010 — Supplement (2026-07-04, Issue #820 / P0 INCIDENT)
+
+**LANE: @architect (committed on dev's STORY-820-dbus-supplement-b1-hotfix branch due to multi-agent tmux worktree contention; dev can rebase out if undesired)**
+
+- **Trigger:** Issue #820 (P0 INCIDENT, runner-vm-5 D-Bus user-bus unavailable)
+- **Author:** @architect (cycle ~#3573, scope per cmt 4881824175 + cmt 4881832463)
+- **Owner verdict:** cycle ~#3576 Option A canonical
+
+## §Supp-X — systemd user-service preconditions (NEW)
+
+Three preconditions must hold for `systemctl --user` to function:
+
+1. **`dbus-user-session` package installed on host** (provides `dbus-daemon --session`)
+2. **`loginctl enable-linger <user>`** for service-owning user (per ADR-0064 cross-user pattern, this is `atilcan`)
+3. **`XDG_RUNTIME_DIR=/run/user/<uid>` set AND `/run/user/<uid>` exists** with mode 0700 owned by user
+
+## §Supp-Y — Pre-flight detection pattern (NEW)
+
+Three-class detection distinguishes `systemctl --user` failure modes:
+
+| Class | Symptom | Disposition |
+|---|---|---|
+| D-Bus unavailable | "Failed to connect to bus" / "No medium found" / "Connection refused" | WARN + §Supp-Z fallback + §Supp-W silent_skip marker |
+| D-Bus OK + unit not registered | `list-unit-files` returns empty | **HARD FAIL exit 7** (RCA-14 preserved) |
+| D-Bus OK + unit registered | Canonical path works | Continue canonical path |
+
+## §Supp-Z — Fallback canonical pattern: nohup+setsid (NEW)
+
+When §Supp-X preconditions unmet, fallback is `nohup+setsid` uvicorn spawn (v8 canonical pre-ADR-0010; v9 RCA-14 removed it; Issue #820 surfaces as documented fallback).
+
+Command shape:
+```bash
+nohup setsid uvicorn atilcalc.api.main:app \
+  --host "$ATC_HOST" --port "$ATC_PORT" \
+  --log-level "${ATC_LOG_LEVEL:-info}" \
+  > "$ATC_LOG_DIR/uvicorn-fallback.log" 2>&1 < /dev/null &
+disown
+```
+
+## §Supp-W — silent_skip observability (NEW — ties to ADR-0045 lens d)
+
+When §Supp-Y Branch B fires, emit `<!-- adr-0010-supplement-silent-skip -->` audit event.
+
+## §Supp-Runner — Three options (NEW)
+
+Per owner verdict Option A is canonical:
+- **Option A (RECOMMENDED PRIMARY)**: §Supp-X preconditions provisioning on runner-vm-5
+- **Option B (FALLBACK)**: nohup+setsid-only deployment on runner-vm-5
+- **Option C (EXPLICITLY AVOIDED)**: `systemd-run --user` migration (same D-Bus dependency, transient units die, no value gained)
+
+## §Supp-V — Acceptance test extension (NEW)
+
+`scripts/tests/d820-supplement-issue-820.sh` ≥3 TCs RED-first per ADR-0044. Branch A canonical / Branch B D-Bus fallback / Branch C unit-missing HARD-FAIL.
+
+## Sister-patterns
+
+ADR-0002-amend-1, ADR-0024, ADR-0027 §136, ADR-0030, ADR-0044, ADR-0045 lens d, ADR-0048, ADR-0049, ADR-0055 §1, ADR-0064.
+
+## Reversibility
+
+Two-way door (reversible < 1 day): revert PR + owner uninstall + architect revert supplement.
+
+— @architect, 2026-07-04T11:43Z, supplement for Issue #820 P0 INCIDENT
