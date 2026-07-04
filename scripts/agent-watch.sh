@@ -1086,18 +1086,38 @@ query_stale_cc() {
 # should either remove the cc:* or add a verdict-by to reflect an actual
 # expectation).
 query_stale_verdict() {
+  # Verdict-authority lane discriminator: agent:${ROLE} (assigned owner, ADR-0024)
+  # OR cc:human (owner merge gate holding for verdict, ADR-0031).
+  # Excludes cc:<peer> informational lane (false-positive root cause per Issue #798).
   local now_epoch bucket
   now_epoch="$(date -u +%s)"
   bucket=$(( now_epoch / 300 ))
 
+  # ADR-0002-amendment-1 (Issue #798 #802, d320+d124 sister-pattern): VERDICT-AUTHORITY scope.
+  # The previous --label "cc:${ROLE}" pre-filter was a false-positive generator (cc:<peer>
+  # informational lane conflated with verdict authority per ADR-0015 §Handoff Discipline).
+  # Fetch ALL open PRs (limit 100), then jq-side filter for VERDICT-AUTHORITY lanes only:
+  #   - agent:<role> per ADR-0024 (this role is the assigned owner)
+  #   - cc:human per ADR-0031 (owner merge gate holding for verdict)
+  # Excludes cc:<peer> informational lane = false-positive root cause.
   gh_all_repos _q gh pr list \
-    --label "cc:${ROLE}" \
     --state open \
-    --limit 50 \
+    --limit 100 \
     --json number,title,url,updatedAt,headRefOid,labels,files,statusCheckRollup
   echo "$_q" | jq --argjson now_epoch "$now_epoch" "[
       .[] |
       (.labels | map(.name)) as \$lbls |
+      # ADR-0002-amendment-1 (Issue #802 / d320 TC1+TC3 + d124 TC1+TC2+TC5+TC7):
+      # VERDICT-AUTHORITY FILTER — only emit stale_verdict for PRs where this
+      # role has verdict authority (not just informational cc:<peer> lane).
+      # Test patterns:
+      #   - d320 TC1: agent:<role> OR cc:human lane discriminator present
+      #   - d320 TC3: cc:human lane included (owner merge gate verdict-authority)
+      (
+        (\$lbls | any(. == \"agent:${ROLE}\")) or
+        (\$lbls | any(. == \"cc:human\"))
+      ) as \$is_verdict_authority |
+      select(\$is_verdict_authority) |
       # ADR-0044 §Scope rule — TDD RED exclusion (skip SLA pressure on contract-only PRs).
       #   (a) `contract:tdd-red` label present, OR
       #   (b) defense in depth: all changed files match test-only patterns AND CI is FAILURE
