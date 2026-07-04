@@ -8,14 +8,14 @@
   - [ADR-0002](./ADR-0002-autonomy-loop.md) — autonomy loop, WIP limit doctrine
   - [ADR-0012](./ADR-0012-required-label-set.md) — 4-cat label invariant
   - [ADR-0015](./ADR-0015-atomic-agent-handoff.md) — Atomic 4-flag handoff
-  - [ADR-0024](./ADR-0024-verdict-by-scope-clarification.md) — `verdict-by:<ts>` convention
+  - [ADR-0024](./ADR-0024-stale-verdict-watchdog-schema.md) — `verdict-by:<ts>` convention
   - [ADR-0031](./ADR-0031-owner-override-doctrine.md) — owner-override PR merge
   - [ADR-0038](./ADR-0038-auto-claim-protocol.md) — §Auto-Claim Protocol (this ADR amends)
   - [ADR-0044](./ADR-0044-verdict-by-scope-clarification.md) — RED-first TDD (d020a sister)
   - [ADR-0049](./ADR-0049-behavioral-workflow-test-framework.md) — d-test framework (d020a = 5 TCs)
   - [ADR-0055 §1](./ADR-0055-d-test-id-uniqueness-sub-pattern-matrix.md) — Cadence Rule 1 atomic
   - [ADR-0056](./ADR-0056-layer-5-idempotency-reconcile.md) — Layer 5 idempotency reconcile (sister-pattern)
-  - [ADR-0068](./ADR-0068-j4-tester-author-exception.md) — Layer 5 j.4 tester-author exception (direct sister, same Sprint 24+ P2 doctrinal hardening cycle)
+  - **ADR-0068** (Layer 5 j.4 tester-author exception — pending PR #817 merge, direct sister, same Sprint 24+ P2 doctrinal hardening cycle)
 - **Closes:** Issue #811 doctrinal codification (impl Closes #811 already landed in commit 156ef01; this ADR seals the doctrine). **RETRO-016 candidate** — auto-claim re-flip loop cluster (3rd live instance cycle ~#4038 today).
 - **Live Instances:**
   | # | Date | Cycle | PR | Symptom | Resolution |
@@ -278,7 +278,7 @@ exempt ⇔ has_label(starts_with("verdict-by:"))
 - ADR-0049 (d-test framework)
 - ADR-0055 §1 (Cadence Rule 1 atomic)
 - ADR-0056 (Layer 5 idempotency reconcile)
-- ADR-0068 (Layer 5 j.4 tester-author exception — direct sister, Sprint 24+ P2 hardening cycle)
+- ADR-0068 (Layer 5 j.4 tester-author exception — pending PR #817 merge, direct sister, Sprint 24+ P2 hardening cycle)
 - File ownership matrix (CLAUDE.md §File ownership matrix)
 
 ---
