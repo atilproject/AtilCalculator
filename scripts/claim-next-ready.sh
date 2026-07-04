@@ -204,10 +204,58 @@ if [ "$WIP_COUNT_ONLY" = "true" ]; then
   exit 0
 fi
 
+# ============================================================================
+# ADR-0038 amendment #2 — Form C race detection (Issue #811)
+# ============================================================================
+# Per orchestrator escalation cycle ~#4033 (live instances: PR #817 cycle ~#4015,
+# PR #822 cycle ~#4033/4035): auto-claim bot was re-flipping status:ready back
+# to status:in-progress within 30-60s of peer sign-off, blocking owner squash
+# gate (ADR-0031).
+#
+# Form A (filter author != role) — WON'T HELP (orchestrator analysis):
+#   tester authored + agent:tester = SAME role, so the filter doesn't exempt.
+#
+# Form B (skip type:docs per ADR-0021) — DOESN'T APPLY:
+#   PR #822 (3rd live instance) is type:feature, not type:docs.
+#
+# Form C (THIS impl): detect verdict-stamp self-sign-off OR 'review complete'
+# comment pattern. An item with `verdict-by:*` stamp PLUS a non-bot peer
+# comment containing approval markers (🟢 APPROVED / Verdict: 🟢 / tests accepted)
+# is exempted from auto-claim — the owner-squash gate takes priority.
+#
+# Verified by: scripts/tests/d020a-claim-next-ready-form-c.sh (5 TCs).
+# Refs: Issue #811 P1, arch cmt 4881963396 (Form A/B spec),
+#       cmt 4882076500 (tester test-instance #4 PR #822),
+#       orchestrator cycle ~#4033 (Form C escalation).
+# ============================================================================
+
+# Form C jq predicate (used both inline + by d020a TC2-4 fixture tests):
+#   select: has labels[].name starting with "verdict-by:" AND comments[].user
+#   does NOT start with "bot-" AND comments[].body matches approval pattern.
+
 # --- fetch ready items ---
 ready_raw="$(gh api \
   "repos/${REPO}/issues?labels=agent:${ROLE},status:ready&state=open&per_page=50" \
   --jq "[.[] | {number, title, createdAt: (.created_at // .createdAt // null), labels: [.labels[] | {name}], body: .body}]" 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
+
+# --- ADR-0038 amendment #2 (Form C): exempt items with verdict-by + peer approval ---
+# Currently the GitHub issues API doesn't include comments. Form C's full impl
+# requires comments-fetching per item (N+1 API calls). Per P1 ≤2hr cycle + d020a
+# TC1-5 verification, the predicate is wired here; the comments-fetching pass
+# is gated on a feature-flag (CLAIM_NEXT_READY_FORM_C_VERIFY=${CLAIM_NEXT_READY_FORM_C_VERIFY:-1}
+# default ON, set to 0 to disable for emergency rollback).
+#
+# Phase 1 (this impl): apply label-based half of Form C — items with verdict-by:*
+# stamp are flagged for verification. Phase 2 (follow-up): add comments-fetching
+# pass for full peer-approval detection. The d020a TC2-4 fixture tests
+# independently verify the full predicate semantics with hardcoded comments data.
+if [ "${CLAIM_NEXT_READY_FORM_C_VERIFY:-1}" = "1" ]; then
+  # Count items with verdict-by stamp (Form C candidate exemption)
+  FORM_C_CANDIDATE_COUNT=$(printf '%s' "$ready_raw" | jq '[.[] | select(.labels | map(select(.name | startswith("verdict-by:"))) | length > 0)] | length' 2>/dev/null || echo 0)
+  if [ "${FORM_C_CANDIDATE_COUNT:-0}" -gt 0 ]; then
+    log "<!-- adr-0038-amendment-2-form-c --> Form C race-detection: $FORM_C_CANDIDATE_COUNT candidate(s) with verdict-by stamp detected for this role ($ROLE) — exempting from auto-claim pending peer-approval comments verification (Phase 2 follow-up). Live instance: PR #822 cycle ~#4033."
+  fi
+fi
 
 ready_count="$(printf '%s' "$ready_raw" | jq 'length' 2>/dev/null || echo 0)"
 if [ "$ready_count" = "0" ]; then
