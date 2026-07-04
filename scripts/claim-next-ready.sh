@@ -207,7 +207,7 @@ fi
 # --- fetch ready items ---
 ready_raw="$(gh api \
   "repos/${REPO}/issues?labels=agent:${ROLE},status:ready&state=open&per_page=50" \
-  --jq "[.[] | {number, title, createdAt: .created_at, labels: [.labels[] | {name}], body}]" 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
+  --jq "[.[] | {number, title, createdAt: (.created_at // .createdAt // null), labels: [.labels[] | {name}], body: .body}]" 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
 
 ready_count="$(printf '%s' "$ready_raw" | jq 'length' 2>/dev/null || echo 0)"
 if [ "$ready_count" = "0" ]; then

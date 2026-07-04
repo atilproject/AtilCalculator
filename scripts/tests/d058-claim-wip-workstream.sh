@@ -168,6 +168,38 @@ case "$cmd" in
   *"repo view"*)
     echo '{"nameWithOwner":"test-owner/test-repo"}'
     ;;
+  # Issue #806 silent-drop fix (PR #808): claim-next-ready.sh migrated
+  # from `gh issue list --label X` to `gh api /repos/.../issues?labels=X`.
+  # d058 fixture must mock the new gh api surface. Patterns are matched
+  # first (before legacy issue list) since case dispatches first-match-wins.
+  *"api"*"status:in-progress"*)
+    # WIP list (both global + per-role queries use this pattern).
+    payload="$(cat "${FAKE_WIP_FILE:-/dev/null}" 2>/dev/null || echo '[]')"
+    if [ -n "$JQ_EXPR" ]; then
+      printf '%s' "$payload" | jq -r "$JQ_EXPR" 2>/dev/null || printf '%s' "$payload"
+    else
+      printf '%s' "$payload"
+    fi
+    ;;
+  *"api"*"status:ready"*)
+    # Ready list (per-role query). Accepts both REST format (`created_at`)
+    # and GraphQL fixture format (`createdAt`) — claim-next-ready.sh --jq
+    # uses lenient fallback `(.created_at // .createdAt // null)`.
+    if [ -n "${READY_JSON:-}" ]; then
+      payload="$READY_JSON"
+      if [ -n "$JQ_EXPR" ]; then
+        printf '%s' "$payload" | jq -r "$JQ_EXPR" 2>/dev/null || printf '%s' "$payload"
+      else
+        printf '%s' "$payload"
+      fi
+    else
+      if [ -n "$JQ_EXPR" ]; then
+        echo '0'
+      else
+        echo '[]'
+      fi
+    fi
+    ;;
   *"issue list"*"status:in-progress"*)
     # Return the WIP list. If --jq is present, apply it.
     payload="$(cat "${FAKE_WIP_FILE:-/dev/null}" 2>/dev/null || echo '[]')"
