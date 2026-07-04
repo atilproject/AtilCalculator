@@ -583,11 +583,13 @@ query_assigned_issues() {
   # ADR-0047 Part 1 (Issue #422): gh_all_repos iterates REPOS[] and merges
   # per-repo JSON arrays into one event stream. Single-repo deployments see
   # identical behavior (REPOS has one element).
-  gh_all_repos _q gh issue list \
-    --label "agent:${ROLE}" \
-    --state open \
-    --limit 50 \
-    --json number,title,url,updatedAt,labels
+  # Issue #806: gh issue list --label filter silently drops matches for
+  # certain roles (architect 100%, tester 60%, PM 75%, dev 25%). Use REST
+  # gh api with labels=X query param instead. Sister-pattern: L1778
+  # (Katman 1 queue count) — already correctly on REST path.
+  gh_all_repos _q gh api \
+    "repos/${REPO}/issues?labels=agent:${ROLE}&state=open&per_page=50" \
+    --jq "[.[] | {number, title, url: .html_url, updatedAt: .updated_at, labels: [.labels[] | {name}]}]"
   echo "$_q" | jq "[ .[] | select(.updatedAt > \"$LAST_SEEN\") |
            {
              id: (\"issue-assigned-\" + (.number | tostring) + \"-\" + (.labels | map(.name) | sort | join(\"|\"))),
@@ -624,11 +626,10 @@ query_assigned_issues_any_status() {
   now_epoch="$(date -u +%s)"
   bucket=$(( now_epoch / 300 ))
 
-  gh_all_repos _q gh issue list \
-    --label "agent:${ROLE}" \
-    --state open \
-    --limit 50 \
-    --json number,title,url,updatedAt,labels
+  # Issue #806: REST gh api replaces gh issue list --label (silent-drop fix)
+  gh_all_repos _q gh api \
+    "repos/${REPO}/issues?labels=agent:${ROLE}&state=open&per_page=50" \
+    --jq "[.[] | {number, title, url: .html_url, updatedAt: .updated_at, labels: [.labels[] | {name}]}]"
   echo "$_q" | jq --argjson now_epoch "$now_epoch" --arg bucket "$bucket" \
        "[ .[] |
          (.labels | map(.name)) as \$lbls |
@@ -876,10 +877,12 @@ query_verdict_posted() {
 query_issue_mentions() {
   # Issues touched after last_seen, whose comments contain @<role>.
   local issues
-  gh_all_repos _issues_raw gh issue list \
-    --state open \
-    --limit 30 \
-    --json number,title,url,updatedAt
+  # Issue #806: gh issue list --label silent-drop — switch to REST gh api
+  # for uniform-fix (defensive; this site has no --label filter but the
+  # architect listed it as affected to eliminate ALL silent-drop risk).
+  gh_all_repos _issues_raw gh api \
+    "repos/${REPO}/issues?state=open&per_page=30" \
+    --jq "[.[] | {number, title, url: .html_url, updatedAt: .updated_at}]"
   issues="$(echo "$_issues_raw" | jq "[ .[] | select(.updatedAt > \"$LAST_SEEN\") ]" 2>/dev/null || echo '[]')"
 
   echo "$issues" | jq -r '.[].number' | while read -r num; do
@@ -939,11 +942,11 @@ query_periodic_backlog_scan() {
   fi
 
   # Collect open issues + PRs with agent:<role> or cc:<role>
+  # Issue #806: REST gh api (sister-pattern: L1778 Katman 1 count)
   local issues prs combined
-  gh_all_repos _issues_raw gh issue list \
-    --state open \
-    --limit 50 \
-    --json number,title,url,labels
+  gh_all_repos _issues_raw gh api \
+    "repos/${REPO}/issues?state=open&per_page=50" \
+    --jq "[.[] | {number, title, url: .html_url, labels: [.labels[] | {name}]}]"
   issues="$(echo "$_issues_raw" | jq "[ .[] | select((.labels // []) | map(.name) | any(. == \"agent:${ROLE}\" or . == \"cc:${ROLE}\")) | {number, title, url, labels: (.labels | map(.name))} ]" 2>/dev/null || echo '[]')"
   gh_all_repos _prs_raw gh pr list \
     --state open \
@@ -1366,10 +1369,11 @@ query_board_changes() {
   # — prevents dedup collisions when two roles see the same issue's flip.
   if [ "$ROLE" != "orchestrator" ]; then
     # Filter to agent:<role> issues only.
-    gh_all_repos _q gh issue list \
-      --state all \
-      --limit 50 \
-      --json number,title,url,updatedAt,labels,state
+    # Issue #806: REST gh api (sister-pattern: L1778). State=all to keep
+    # both open and closed issues for label-change diff detection.
+    gh_all_repos _q gh api \
+      "repos/${REPO}/issues?state=all&per_page=50" \
+      --jq "[.[] | {number, title, url: .html_url, updatedAt: .updated_at, state, labels: [.labels[] | {name}]}]"
     echo "$_q" | jq "[ .[] | select(.updatedAt > \"$LAST_SEEN\") |
              select((.labels | map(.name) | index(\"agent:$ROLE\")) != null) |
              {
