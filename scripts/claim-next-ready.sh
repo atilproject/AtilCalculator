@@ -149,15 +149,17 @@ mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
   }
 
 if [ "$WIP_COUNT_ONLY" = "true" ] && { [ "$ROLE" = "*" ] || [ "$ROLE" = "global" ]; }; then
+  # Issue #827: pull_request=false filter — exclude PRs from WIP query (PRs returned by GitHub /issues endpoint; WIP count = issues-only per ADR-0038).
   # Issue #806: gh issue list --label silent-drop — switch to REST gh api
   # (sister-pattern: scripts/agent-watch.sh L1778-1779 Katman 1 count)
   in_progress_json="$(gh api \
-    "repos/${REPO}/issues?labels=status:in-progress&state=open&per_page=100" \
+    "repos/${REPO}/issues?labels=status:in-progress&state=open&per_page=100&pull_request=false" \
     --jq "[.[] | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
 else
+  # Issue #827: pull_request=false filter — exclude PRs from WIP query.
   # Issue #806: gh issue list --label silent-drop — switch to REST gh api
   in_progress_json="$(gh api \
-    "repos/${REPO}/issues?labels=agent:${ROLE},status:in-progress&state=open&per_page=100" \
+    "repos/${REPO}/issues?labels=agent:${ROLE},status:in-progress&state=open&per_page=100&pull_request=false" \
     --jq "[.[] | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
 fi
 issue_count="$(printf '%s' "$in_progress_json" | jq 'length' 2>/dev/null || echo 0)"
@@ -271,11 +273,12 @@ fi
 
 # Form C jq predicate (used both inline + by d020a TC2-4 fixture tests):
 #   select: has labels[].name starting with "verdict-by:" AND comments[].user
+  # Issue #827: pull_request=false filter — exclude PRs from ready items query. Squash-ready PRs (status:ready + cc:human) MUST NOT be auto-claimed (PR cluster flip-back race; cluster #823/#825/#826/#817/#799 cycle #4080-#4084).
 #   does NOT start with "bot-" AND comments[].body matches approval pattern.
 
 # --- fetch ready items ---
 ready_raw="$(gh api \
-  "repos/${REPO}/issues?labels=agent:${ROLE},status:ready&state=open&per_page=50" \
+  "repos/${REPO}/issues?labels=agent:${ROLE},status:ready&state=open&per_page=50&pull_request=false" \
   --jq "[.[] | {number, title, createdAt: (.created_at // .createdAt // null), labels: [.labels[] | {name}], body: .body}]" 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
 
 # --- ADR-0038 amendment #2 (Form C): exempt items with verdict-by + peer approval ---
