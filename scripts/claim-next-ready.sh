@@ -133,7 +133,20 @@ mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
 # the live reproducer (3 auto-claim comments on same issue within 26s).
 # ============================================================================
 (
-  flock -n 9 || { echo "[claim-next-ready.sh] ERROR: another claim in progress (lock=$LOCK_FILE, role=$ROLE) — concurrent invocation denied (exit 5). See Issue #809." >&2; exit 5; }
+  flock -n 9 || {
+    echo "[claim-next-ready.sh] ERROR: another claim in progress (lock=$LOCK_FILE, role=$ROLE) — concurrent invocation denied (exit 5). See Issue #809." >&2
+    # Audit log emission per ADR-0045 lens (f) observability + arch verdict cmt 4882248162.
+    # Cluster-squash detection per ADR-0059: lock-contention-denied pattern signals
+    # watchdog burst or duplicate cron overlap. Best-effort (mkdir + log may fail silently
+    # in sandboxed envs per ADR-0048 defensive pattern — observability NOT silently skipped).
+    _atomic_repo_name="${REPO##*/}"
+    _atomic_log_dir="${AUTO_CLAIM_LOG_DIR:-/var/log/dev-studio/${_atomic_repo_name}}"
+    mkdir -p "$_atomic_log_dir" 2>/dev/null || true
+    _atomic_now_iso="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    echo "$_atomic_now_iso $ROLE lock-contention-denied (lock=$LOCK_FILE, exit=5)" \
+      >> "$_atomic_log_dir/auto-claim.log" 2>/dev/null || true
+    exit 5
+  }
 
 if [ "$WIP_COUNT_ONLY" = "true" ] && { [ "$ROLE" = "*" ] || [ "$ROLE" = "global" ]; }; then
   # Issue #806: gh issue list --label silent-drop — switch to REST gh api
