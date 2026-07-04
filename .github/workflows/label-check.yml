@@ -502,6 +502,81 @@ jobs:
               return;
             }
 
+            // ------------------------------------------------------------------
+            // Layer 5.5 (j.4 vacuous-pass detection, Issue #789 owner scope,
+            // cycle ~#3675 + ~#3698 escalation): PRE-CHECK reviewer chain
+            // BEFORE any status:ready decision. Per @orchestrator cycle ~#3698
+            // insight: Layer 5's PASSING state IS its desired state when the
+            // bug considers reviewer chain redundant with status:ready and
+            // silently removes cc:dev/test/needs-tester. After removal, Layer 5
+            // passes vacuously. Per lens (j.4) — when a check passes after a
+            // precondition has been silently removed, the passing state is
+            // misleading. Verification requires asserting the precondition
+            // exists AT CHECK TIME.
+            //
+            // Required reviewer chain per type-driven rules (ADR-0012 + ADR-0048):
+            //   type:bug / type:feature / type:refactor / type:chore / type:incident:
+            //     cc:tester + needs-tester-signoff MUST be present (reviewer chain
+            //     intact BEFORE status:ready auto-add)
+            //   type:docs (agent:architect|product-manager|orchestrator):
+            //     cc:architect + verdict-by:<ts> MUST be present
+            //
+            // If chain INCOMPLETE → FAIL with j.4 message (NOT silent-skip).
+            // This prevents vacuous-pass — the bug's "desired state" of empty
+            // reviewer chain + green Layer 5.
+            //
+            // PRESERVE semantics: when status:ready is added, Layer 5 MUST NOT
+            // remove cc:dev/test/needs-tester — the reviewer chain is the
+            // AUDIT TRAIL through owner squash merge. Owner-authority on
+            // reviewer chain removal (per ADR-0031) is preserved.
+            //
+            // Sister-pattern: TD-021 cluster (auto-promote verdict-state drift,
+            // 7 instances), TD-048 (commit-body authoring attestation gap,
+            // 19th in blind-spot family).
+            // ------------------------------------------------------------------
+            const reqType = labels.find(l => l.startsWith('type:'));
+            const reqAgent = labels.find(l => l.startsWith('agent:'));
+            const reviewerChainDocs = ['cc:architect', 'cc:product-manager', 'cc:orchestrator'];
+            const docsAuthorAgent = reviewerChainDocs.map(c => 'agent:' + c.split(':')[1]).includes(reqAgent);
+            let vacuousPassFail = null;
+            if (reqType === 'type:docs' && docsAuthorAgent) {
+              // docs path: cc:<author> + verdict-by required
+              const hasAuthorCc = reviewerChainDocs.some(c => labels.includes(c));
+              const hasVerdictBy = labels.some(l => l.startsWith('verdict-by:'));
+              if (!hasAuthorCc || !hasVerdictBy) {
+                vacuousPassFail = `j.4 vacuous-pass: type:docs PR (agent=${reqAgent}) missing required reviewer chain — hasAuthorCc=${hasAuthorCc} hasVerdictBy=${hasVerdictBy}. Per cycle ~#3698 insight, Layer 5 must NOT pass vacuously after reviewer chain removal.`;
+              }
+            } else if (['type:bug', 'type:feature', 'type:refactor', 'type:chore', 'type:incident'].includes(reqType)) {
+              // non-docs path: cc:tester + needs-tester-signoff required
+              if (!labels.includes('cc:tester') || !labels.includes('needs-tester-signoff')) {
+                vacuousPassFail = `j.4 vacuous-pass: non-docs PR (type=${reqType}) missing reviewer chain — cc:tester=${labels.includes('cc:tester')} needs-tester-signoff=${labels.includes('needs-tester-signoff')}. Per cycle ~#3698 insight, Layer 5 must NOT pass vacuously after reviewer chain removal.`;
+              }
+            }
+            if (vacuousPassFail) {
+              const vacuousBody = [
+                markerSkip,
+                '**Layer 5 j.4 VACUOUS-PASS detection (FAIL, not silent-skip)**',
+                '',
+                `- **Trigger**: \`${context.eventName || context.event_name}\` event, action=\`${context.payload.action || '(batch)'}\`, label=\`${context.payload.label?.name || '(batch)'}\``,
+                `- **PR**: #${number}`,
+                `- **Type**: \`${reqType || '(none)'}\``,
+                `- **Agent**: \`${reqAgent || '(none)'}\``,
+                `- **Decision**: ${vacuousPassFail}`,
+                `- **Workflow run**: \`${{ github.run_id }}\``,
+                `- **ADR**: \`docs/decisions/ADR-0048-status-ready-auto-add-gating.md\` (cycle ~#3698 j.4 extension)`,
+                `- **TD**: TD-021 cluster (auto-promote verdict-state drift, 7 instances), TD-048 (commit-body authoring, blind-spot family)`,
+              ].join('\n');
+              const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: number, per_page: 100 });
+              const existing = comments.find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(markerSkip));
+              if (existing) {
+                await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: vacuousBody });
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number: number, body: vacuousBody });
+              }
+              core.setFailed(`j.4 vacuous-pass detected on PR #${number} (${reqType}): reviewer chain missing BEFORE status:ready transition. ${vacuousPassFail}`);
+              return;
+            }
+
             if (evtAction === 'labeled' && context.payload.label && context.payload.label.name === 'needs-tester-signoff' && hasLabel('status:ready')) {
               await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'status:ready' });
               const reversalBody = [
@@ -687,6 +762,15 @@ jobs:
             // pattern to PR #428 atomic flip). Cascade-strip Part 1 preserves
             // the OLDER label, so we remove status:in-review first to ensure
             // status:ready becomes the canonical primary.
+            //
+            // PRESERVE SEMANTICS (cycle ~#3698 j.4 extension, Issue #789 owner
+            // scope): Layer 5 MUST NOT remove cc:tester / cc:developer /
+            // cc:architect / cc:product-manager / cc:orchestrator /
+            // needs-tester-signoff / needs-architect-review when adding
+            // status:ready. The reviewer chain is the AUDIT TRAIL through
+            // owner squash merge per ADR-0012 4-cat invariant. Owner-authority
+            // on reviewer chain removal is preserved per ADR-0031 (owner may
+            // explicitly remove, but Layer 5 must NOT auto-remove).
             // ------------------------------------------------------------------
             if (hasLabel('status:in-review')) {
               await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'status:in-review' });
