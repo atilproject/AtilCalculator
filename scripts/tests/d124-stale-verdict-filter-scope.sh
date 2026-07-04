@@ -243,9 +243,14 @@ FIXTURE_CC_PEER='[
 # If the query uses --label "cc:developer" (BUG), fixture[0].labels contains
 # cc:developer → included → stale_verdict EMITS (incorrect, bug present).
 # The test fails if the gh query has the bug pattern AND would include this PR.
+# POST-FIX (PR #818 c1164bb, ADR-0002-amendment-1): the jq-side lane discriminator
+# is JSON-quoted, so the awk-extracted body may contain \"agent:...\" or \"cc:human\"
+# (backslash-quote) rather than bare "agent:...". We match the substring pattern
+# `agent:${ROLE}` or `cc:human` directly (quote-tolerant) — sufficient to detect
+# post-fix presence; the bug pattern `--label "cc:${ROLE}"` is regex-anchored separately.
 QUERY_USES_CC_PEER=$(echo "$QUERY_BODY" | grep -cE 'gh pr list.*--label[[:space:]]+"cc:\$\{ROLE\}"' || true)
-QUERY_USES_AGENT=$(echo "$QUERY_BODY" | grep -cE '"agent:\$\{?ROLE\}?"|"agent:developer"|"agent:tester"' || true)
-QUERY_USES_CC_HUMAN_LABEL=$(echo "$QUERY_BODY" | grep -cE '"cc:human"' || true)
+QUERY_USES_AGENT=$(echo "$QUERY_BODY" | grep -cE 'agent:\$\{?ROLE\}?|agent:developer|agent:tester' || true)
+QUERY_USES_CC_HUMAN_LABEL=$(echo "$QUERY_BODY" | grep -cE 'cc:human' || true)
 # After fix: query uses agent:<role> or cc:human (TC1 verified). Bug pattern absent (TC2).
 # Combined: cc:<peer>-only PR is filtered out before jq even sees it. → 0 events.
 if [ "$QUERY_USES_CC_PEER" -eq 0 ] && [ "$QUERY_USES_AGENT" -ge 1 -o "$QUERY_USES_CC_HUMAN_LABEL" -ge 1 ]; then
@@ -301,13 +306,17 @@ section "TC7: header docstring (line 25+) reflects correct filter semantics"
 # Per AC-5 of #798, the docstring at line 25 + 1081-1084 must reflect the
 # correct filter scope: (agent:<role> OR cc:human) AND verdict-by:*.
 # We assert: header mentions agent:<role> AND cc:human as the filter sources.
-HEADER_LINES="$(sed -n '24,30p;1078,1084p' "$WATCH_SH")"
+# POST-FIX (PR #818 c1164bb): the new verdict-authority docstring sits at lines
+# 1085-1091 of query_stale_verdict (not 1078-1084 as d124 originally assumed).
+# The original 24-30 + 1078-1084 range excluded the new fix comment — extend
+# the range to 1085-1092 so the assertion captures the post-fix documentation.
+HEADER_LINES="$(sed -n '24,30p;1085,1092p' "$WATCH_SH")"
 HEADER_HAS_AGENT=$(echo "$HEADER_LINES" | grep -cE 'agent:\$\{?ROLE\}?|agent:<role>' || true)
 HEADER_HAS_CC_HUMAN=$(echo "$HEADER_LINES" | grep -cE 'cc:human' || true)
 if [ "$HEADER_HAS_AGENT" -ge 1 ] && [ "$HEADER_HAS_CC_HUMAN" -ge 1 ]; then
   pass "header docstring documents agent:<role> + cc:human filter (verdict authority)"
 else
-  fail "header docstring missing agent:<role> or cc:human" "expected lines 24-30 + 1078-1084 of agent-watch.sh to mention BOTH 'agent:<role>' AND 'cc:human' as filter sources (AC-5 of #798: docs must reflect correct semantics)"
+  fail "header docstring missing agent:<role> or cc:human" "expected lines 24-30 + 1085-1092 of agent-watch.sh to mention BOTH 'agent:<role>' AND 'cc:human' as filter sources (AC-5 of #798: docs must reflect correct semantics); searched range updated post-PR#818 to track the new query_stale_verdict docstring"
 fi
 
 # ============================================================================
