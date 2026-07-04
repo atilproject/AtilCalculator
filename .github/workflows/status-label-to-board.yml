@@ -53,7 +53,11 @@ jobs:
     runs-on: [self-hosted, Linux, X64, atilproject]
     steps:
       - name: Resolve label → status and update board
-        uses: actions/github-script@v7
+        # Issue #567 SHA-pin sweep: pin github-script to v7 commit SHA matching label-check.yml
+        # (per ADR-0045 lens h + TD-028). SHA-pinning protects against supply-chain compromise
+        # of the version tag. Mapping: f28e40c7f34bde8b3046d885e986cb6290c5673b = v7.0.1
+        # (sister-pattern pin to label-check.yml L54/178/243/329/450).
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.0.1
         env:
           PROJECT_OWNER: "atilcan65"
           PROJECT_NUMBER: "16"
