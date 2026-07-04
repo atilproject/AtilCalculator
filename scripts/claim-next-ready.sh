@@ -151,14 +151,22 @@ mkdir -p "$(dirname "$LOCK_FILE")" 2>/dev/null || true
 if [ "$WIP_COUNT_ONLY" = "true" ] && { [ "$ROLE" = "*" ] || [ "$ROLE" = "global" ]; }; then
   # Issue #806: gh issue list --label silent-drop — switch to REST gh api
   # (sister-pattern: scripts/agent-watch.sh L1778-1779 Katman 1 count)
+  # Issue #831 DESIGN-DRIFT (P0): GitHub /issues endpoint `pull_request=false`
+  # URL param is a no-op (3-way empirical test returned identical sets for
+  # ?state=open / ?state=open&pull_request=true / ?state=open&pull_request=false;
+  # arch RCA cmt 4882811076). Client-side jq filter `select(.pull_request == null)`
+  # is the correct exclusion mechanism — real issues have pull_request=null,
+  # PRs have pull_request != null. Fix lands v2 d827 (PR #832) RED → GREEN.
   in_progress_json="$(gh api \
     "repos/${REPO}/issues?labels=status:in-progress&state=open&per_page=100" \
-    --jq "[.[] | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
+    --jq "[.[] | select(.pull_request == null) | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
 else
   # Issue #806: gh issue list --label silent-drop — switch to REST gh api
+  # Issue #831 DESIGN-DRIFT: client-side jq filter on PR exclusion
+  # (URL `pull_request=false` is a no-op per arch RCA cmt 4882811076).
   in_progress_json="$(gh api \
     "repos/${REPO}/issues?labels=agent:${ROLE},status:in-progress&state=open&per_page=100" \
-    --jq "[.[] | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
+    --jq "[.[] | select(.pull_request == null) | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
 fi
 issue_count="$(printf '%s' "$in_progress_json" | jq 'length' 2>/dev/null || echo 0)"
 
@@ -274,9 +282,15 @@ fi
 #   does NOT start with "bot-" AND comments[].body matches approval pattern.
 
 # --- fetch ready items ---
+# Issue #831 DESIGN-DRIFT (P0): client-side jq filter on PR exclusion for ready-items
+# query. URL `pull_request=false` is a no-op on GitHub /issues endpoint (3-way
+# empirical test, arch RCA cmt 4882811076). Filter applies BEFORE projection so
+# PRs (pull_request != null) are dropped from ready-items result, preventing
+# auto-claim flip-back on squash-ready PRs (#825/#826/#817/#799/#816 cluster,
+# Issue #827 origin). v2 d827 (PR #832) verifies this wiring post-impl.
 ready_raw="$(gh api \
   "repos/${REPO}/issues?labels=agent:${ROLE},status:ready&state=open&per_page=50" \
-  --jq "[.[] | {number, title, createdAt: (.created_at // .createdAt // null), labels: [.labels[] | {name}], body: .body}]" 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
+  --jq "[.[] | select(.pull_request == null) | {number, title, createdAt: (.created_at // .createdAt // null), labels: [.labels[] | {name}], body: .body}]" 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
 
 # --- ADR-0038 amendment #2 (Form C): exempt items with verdict-by + peer approval ---
 # Currently the GitHub issues API doesn't include comments. Form C's full impl
