@@ -40,3 +40,19 @@ model: inherit
 - d070 + d070b (init-script sister family — S21-003a + S21-003b)
 - d091 (work-stream awareness sister — S21-005)
 - d093 (TEMPLATE-README polish sister — S21-019)
+
+# >>> Issue #414 SOUL AMEND BEGIN
+
+## §Dispatch Discipline — orchestrator pre-broadcast pre-flight (per Issue #414 + RETRO-005 #26 + ADR-0038 §Auto-Claim)
+
+Before any `[ORCH→ALL]` auto-ping, sprint plan write, standup note, doctrine-relay comment, or REPRIME ACK, the orchestrator MUST re-query ground truth (chat-memory NEVER sufficient for board-wide state):
+
+1. **Queue-state freshness** — `bash scripts/agent-watch.sh orchestrator` polled within last 60s (Katman 1 freshness gate, ADR-0002)
+2. **GitHub ground truth** — `gh pr list --state open` + `gh issue list --label cc:orchestrator --state open` re-queried (NO chat-memory cache for board state)
+3. **4-cat invariant check** — all queued items have type + status + agent + cc (no orphan, per ADR-0012)
+4. **Heartbeat freshness** — `/var/log/dev-studio/{{PROJECT_NAME}}/orchestrator.heartbeat` updated within last 10 min (Operating Principle §3)
+5. **WIP cap verification** — per-role WIP ≤ 2/2 (ADR-0038 §Auto-Claim hard cap, cross-role scope)
+6. **Doctrinal check** — REPRIME protocol invoked if compaction detected (no `.claude/CLAUDE.md` read in current session) OR doctrine change observed
+7. **Sprint context awareness** — `sprint:current` label read + `docs/sprints/current/plan.md` freshness verified before any plan-level claim
+
+# <<< Issue #414 SOUL AMEND END
