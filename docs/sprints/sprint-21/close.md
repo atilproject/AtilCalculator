@@ -137,4 +137,107 @@ Q6 (Issue #708 §Open Questions): **Sprint 21 abandonment rationale**
 - Cycle ~1582 in-lane: orchestrator @ `docs/sprints/**` (file ownership matrix)
 - Cycle ~1582 gh calls: 1 (REST Issue #696 verify)
 
+---
+
+## Fresh-Clone Validation Evidence (Issue #653, Sprint 21 PM carry-over)
+
+> **Cycle**: ~#3478 (2026-07-03T19:15:00Z)
+> **Issuer**: @product-manager (PM lane)
+> **Story**: STORY-S21-023 (Issue #653, P2, 3sp, Epic E11 Validation & Smoke Tests, Wave 5)
+> **Lane**: docs/sprints/** (PM cc'd, orchestrator owner)
+
+### AC1 — Fresh clone of AtilCalculator
+
+**Procedure**:
+```bash
+git clone https://github.com/atilproject/AtilCalculator.git /tmp/atilcalc-fresh-clone-1
+cd /tmp/atilcalc-fresh-clone-1
+DEV_STUDIO_SKIP_SYSTEMD=1 DEV_STUDIO_SKIP_PROJECT_TOKEN=1 DEV_STUDIO_SKIP_BOARD=1 \
+  bash scripts/dev-studio-init.sh
+```
+
+**Init result**: exit 0 — 6 templates rendered, no unresolved placeholders, all side-effect steps skipped (per flag env vars).
+
+**d-test result**: 81/99 pass (81.8%), 18 systematic failures.
+**Report file**: `/tmp/atilcalc-fresh-clone-1-dtest-report.txt` (164 lines)
+
+### AC2 — Throwaway test repo (`atilcan65/dev-studio-template-smoke`)
+
+**Procedure**:
+```bash
+# 1. Create empty private repo
+gh repo create dev-studio-template-smoke --private \
+  --description "Throwaway repo for Issue #653 AC2"
+
+# 2. Seed with main HEAD content
+git clone https://github.com/atilproject/AtilCalculator.git /tmp/atilcalc-source-for-throwaway --branch main
+cd /tmp/atilcalc-source-for-throwaway
+git remote add origin https://github.com/atilcan65/dev-studio-template-smoke.git
+git push origin main:main --force
+
+# 3. Clone throwaway and validate
+git clone https://github.com/atilcan65/dev-studio-template-smoke /tmp/dev-studio-template-smoke-1
+cd /tmp/dev-studio-template-smoke-1
+DEV_STUDIO_SKIP_SYSTEMD=1 DEV_STUDIO_SKIP_PROJECT_TOKEN=1 DEV_STUDIO_SKIP_BOARD=1 \
+  bash scripts/dev-studio-init.sh
+
+# 4. Cleanup
+gh repo delete dev-studio-template-smoke --yes
+```
+
+**Init result**: exit 0 — 6 templates rendered, no unresolved placeholders.
+**d-test result**: 81/99 pass (81.8%), **identical 18 failures as AC1** (`comm -12` = 18 common).
+**Report file**: `/tmp/dev-studio-template-smoke-1-dtest-report.txt` (164 lines)
+
+### Reproducibility analysis — 100% overlap on 18 failing d-tests
+
+```
+d006-stable-event-ids.sh                          (event ID E2E — needs gh fixture)
+d007-api-observability.sh                         (API observability — needs token)
+d030-cmd-set-quoting-guard.sh                     (CLI quoting)
+d036a-cli-basic-arithmetic.sh                     (engine CLI)
+d037-notify-deprecation.sh                        (notify.sh API contract)
+d046c-peer-poke-canonical-parity.sh               (peer-poke helper)
+d048-adr-0012-status-ready-gating.sh              (Layer 5 status:ready auto-add)
+d050b-behavioral-workflow-test.sh                 (behavioral workflow)
+d051-5-soul-dispatch-discipline.sh                (5-soul dispatch)
+d062-proactive-board-scan-workstream.sh           (board scan work-stream)
+d063-stale-cc-deadlock-breaker.sh                 (cc deadlock breaker)
+d070b-init-prompt-ux.sh                           (init prompt UX)
+d073-template-flag.sh                             (template --dry-run flag)
+d075-claude-md-content.sh                         (CLAUDE.md content checks)
+d078-layer-5-initial-add-defensive-guard.sh       (Layer 5 defensive)
+d091-tmpl-source-files.sh                         (.tmpl source files)
+d096-soul-files-template.sh                       (soul files template)
+d106-soul-template-version-pin.sh                 (soul template version pin)
+```
+
+### AC1+AC2 verdict — NOT FULLY MET per AC literal
+
+The AC states "all d-tests pass". Reality: 81/99 (81.8%) pass with 18 systematic, reproducible failures common to both clones. PM lane is **evidence provider** (per Issue #653 Lane section: "Author: PM (PM performs the validation per AC1+AC2)"). Remediation of the 18 d-test failures is **dev + tester lane** (out of PM scope per doctrine "Bash is for read-only ops only" + Lane boundaries).
+
+### Sprint 22+ follow-up recommendation
+
+Open remediation issue(s) for the 18 d-tests, categorized:
+1. **Agent framework** (11 tests): d006, d007, d030, d037, d046c, d048, d050b, d051, d062, d063, d078 — likely need fixture/environment setup for fresh-clone contexts.
+2. **Template/init** (6 tests): d070b, d073, d075, d091, d096, d106 — likely need .tmpl-side or init-script changes.
+3. **Engine** (1 test): d036a — likely needs the engine module to be present (currently deferred per ADR-0017 §Deferred).
+
+Recommend: Sprint 22 P1 d-test hardening wave OR AC revision to "all d-tests pass within tolerance (≥80%)" with explicit gap list.
+
+### Cross-refs
+
+- **Issue #653** (STORY-S21-023 Fresh-Clone Validation, in-progress → cc:orchestrator handoff cycle ~#3478)
+- **PR #782** (squash 6de13a9, S21-017 PR Template, closed #645)
+- **PR #784** (squash 1f2d299, S21-018 CONTRIBUTING.md, closed #648)
+- **PR #786** (cycle observation snapshot pt 2, in-review)
+- **ADR-0012** (4-cat label invariant — Issue #653 labels verified ✅)
+- **ADR-0015** (atomic hand-off — cc:product-manager → cc:orchestrator flipped cycle ~#3478)
+- **ADR-0038** (auto-claim protocol — Issue #653 auto-claimed cycle ~#3471)
+- **ADR-0031** (owner-merge-gate — this PR awaits owner squash)
+- **RETRO-017** (PRE-DRAFT, owner-verdict-pending; the Fresh-Clone Validation result may feed RETRO-017 §Validation outcome analysis)
+- **Sprint 24 plan.md** (Issue #767 PM-triage table — Sprint 24 PM lane)
+
+---
+
 — @orchestrator, cycle ~1582, 2026-06-30T12:49+03:00, Sprint 21 close-out verdict-by-as-route-signal doctrine codification + architect HOLD CAP decision ACK + dev Sprint 21 Wave 1/2 ping awaited
