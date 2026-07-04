@@ -109,18 +109,16 @@ command -v jq >/dev/null 2>&1 || { echo "ERROR: jq required" >&2; exit 4; }
 # across all roles (used by orchestrator watcher: wip-idle-detect.sh +
 # proactive-board-scan.sh D4).
 if [ "$WIP_COUNT_ONLY" = "true" ] && { [ "$ROLE" = "*" ] || [ "$ROLE" = "global" ]; }; then
-  in_progress_json="$(gh issue list \
-    --repo "$REPO" \
-    --label "status:in-progress" \
-    --state open \
-    --json number,labels 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
+  # Issue #806: gh issue list --label silent-drop — switch to REST gh api
+  # (sister-pattern: scripts/agent-watch.sh L1778-1779 Katman 1 count)
+  in_progress_json="$(gh api \
+    "repos/${REPO}/issues?labels=status:in-progress&state=open&per_page=100" \
+    --jq "[.[] | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
 else
-  in_progress_json="$(gh issue list \
-    --repo "$REPO" \
-    --label "agent:${ROLE}" \
-    --label "status:in-progress" \
-    --state open \
-    --json number,labels 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
+  # Issue #806: gh issue list --label silent-drop — switch to REST gh api
+  in_progress_json="$(gh api \
+    "repos/${REPO}/issues?labels=agent:${ROLE},status:in-progress&state=open&per_page=100" \
+    --jq "[.[] | {number, labels: [.labels[] | {name}]}]" 2>/dev/null)" || { echo "ERROR: gh API error (WIP query)" >&2; exit 4; }
 fi
 issue_count="$(printf '%s' "$in_progress_json" | jq 'length' 2>/dev/null || echo 0)"
 
@@ -207,13 +205,9 @@ if [ "$WIP_COUNT_ONLY" = "true" ]; then
 fi
 
 # --- fetch ready items ---
-ready_raw="$(gh issue list \
-  --repo "$REPO" \
-  --label "agent:${ROLE}" \
-  --label "status:ready" \
-  --state open \
-  --limit 50 \
-  --json number,title,createdAt,labels,body 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
+ready_raw="$(gh api \
+  "repos/${REPO}/issues?labels=agent:${ROLE},status:ready&state=open&per_page=50" \
+  --jq "[.[] | {number, title, createdAt: (.created_at // .createdAt // null), labels: [.labels[] | {name}], body: .body}]" 2>/dev/null)" || { echo "ERROR: gh API error (ready query)" >&2; exit 4; }
 
 ready_count="$(printf '%s' "$ready_raw" | jq 'length' 2>/dev/null || echo 0)"
 if [ "$ready_count" = "0" ]; then
