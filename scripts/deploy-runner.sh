@@ -26,17 +26,6 @@
 # REMOVED, not just supplemented. New exit code 7 = systemd integration
 # failure (unit not registered, not enabled, or systemctl call failed).
 #
-# Sprint 23 v9.2 amend per Issue #785 INCIDENT-2 — RCA-19 uvicorn cold-start
-# readiness (PR #785 lane). Replaces the fragile fixed `sleep 2` after
-# `systemctl --user start` with `wait_for_uvicorn_ready()` — an HTTP-level
-# retry loop that polls /healthz for up to 15s (1s tick) and exits 7 on
-# timeout. The `ss -tlnp` etime cross-user check (d017 T1-T8 backstop,
-# RCA-12 Issue #168 original) is intentionally KEPT as defense-in-depth
-# backstop, NOT removed; the two checks are ORTHOGONAL (HTTP readiness vs
-# cross-user port-ownership). Behavioral change: post-restart readiness is
-# now HTTP-driven, eliminating the false-fail pattern where uvicorn cold
-# bind takes 5-8s (uvloop + pydantic 2.x) but the `ss` check ran at T+3s.
-#
 # Sprint 6 v9.1 amend per Issue #193 — RCA-17 redesign Option B' (PR #358 MERGED).
 # Adds 2-line audit log capturing REPO_DIR + current user identity at deploy
 # time. DOC-only amendment, no behavioral change. The audit log answers the
@@ -396,42 +385,6 @@ log "RCA-14 preflight: atilcalc-web.service systemd unit is registered (v9 will 
 # the runner's "Cleanup orphan processes" step at job end because it's
 # owned by the atilcan user session (not the runner job process tree).
 # Logout-survival requires `loginctl enable-linger atilcan` (owner pre-req).
-# v9.2 INCIDENT-2 fix (Issue #785 / RCA-19): uvicorn cold-start > sleep window.
-# Replaces a fixed `sleep N` with an HTTP-level readiness retry loop. With
-# uvloop + pydantic 2.x + fastapi 0.115 cold-init, uvicorn can take 5-8s
-# to fully bind and serve `/healthz`. The prior `sleep 2` was insufficient;
-# when the `ss -tlnp` post-check ran at T+3s, no PID was yet bound, producing
-# a false "no process bound to port" exit 6 despite prod actually being
-# healthy (verified post-deploy via SSH at 18:52:48Z — see issue body).
-#
-# Design:
-#   - Polls $HEALTHZ_URL with a 1-second tick, budget = 15s (spec Option A).
-#   - On HTTP 200: logs "uvicorn ready after Ns" and returns 0.
-#   - On timeout: logs warning and returns 1; caller (restart_service) maps
-#     that to the existing exit-code taxonomy (7 = systemd integration
-#     failure, same surface as the "atilcalc-web.service is not active"
-#     sibling fail at line 507).
-#   - The `ss -tlnp` + etime cross-user check immediately below (d017 T1-T8
-#     regression guard, RCA-12 original Issue #168) is intentionally KEPT
-#     as a defense-in-depth backstop. HTTP readiness + cross-user detection
-#     are ORTHOGONAL: HTTP=200 + etimes≤60s = green; HTTP fails after 15s
-#     + etimes≤60s = service unhealthy (exit 7); HTTP fails + no PID bound
-#     = hard cold-start failure (exit 6 retained for backstop).
-wait_for_uvicorn_ready() {
-  local wait_max="${UVICORN_READY_TIMEOUT_SEC:-15}"  # AC2 floor ≥10s, 15s preferred
-  local healthz_url="${HEALTHZ_URL:-http://127.0.0.1:${ATC_PORT:-8000}/healthz}"
-  log "wait_for_uvicorn_ready: polling $healthz_url (budget=${wait_max}s, 1s tick; refs Issue #785 INCIDENT-2)"
-  for i in $(seq 1 "$wait_max"); do
-    if curl -fsS --max-time 1 "$healthz_url" 2>/dev/null >/dev/null; then
-      log "wait_for_uvicorn_ready: uvicorn ready after ${i}s (HTTP 200 on $healthz_url)"
-      return 0
-    fi
-    sleep 1
-  done
-  log "wait_for_uvicorn_ready: TIMEOUT after ${wait_max}s — uvicorn never became ready; falling through to RCA-12 cross-user + AC4 systemd checks"
-  return 1
-}
-
 restart_service() {
   log "Restarting atilcalc-web.service via systemctl --user (RCA-14 v9 — uvicorn lifecycle owned by systemd per ADR-0010)"
 
@@ -497,13 +450,9 @@ restart_service() {
   if ! systemctl --user start atilcalc-web.service 2>&1 | tee -a /tmp/deploy-systemd.log; then
     fail "systemctl --user start atilcalc-web.service failed (RCA-14). See /tmp/deploy-systemd.log. Common cause: unit's ExecStart command failed (check ExecStart path, PYTHONPATH, working directory), or atilcalc-web.service has a dependency that failed. Verify with 'systemctl --user status atilcalc-web.service' on the prod host." 7
   fi
-  # systemd reports "active" within a few hundred ms; uvicorn import-time +
-  # uvloop + pydantic 2.x cold init can take 5-8s. Instead of a fixed sleep,
-  # poll /healthz with a 15s budget (Issue #785 v9.2 fix, d123 TC2-TC4).
-  # On timeout fall through to defense-in-depth `ss -tlnp` + etime cross-user
-  # check (RCA-12 original, d017 T1-T8). The two checks are orthogonal:
-  # HTTP readiness vs port-ownership.
-  wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-15}s after systemctl --user start (RCA-19 / Issue #785 INCIDENT-2). Common cause: pyproject.toml [web] extra missing on the prod venv, ExecStart path mismatch, or uvicorn import-time failure. Cross-check via 'systemctl --user status atilcalc-web.service' and 'journalctl --user -u atilcalc-web.service -n 50 --no-pager' on the prod host." 7
+  # systemd reports "active" within a few hundred ms; 2s gives us a buffer
+  # for slow D-Bus + socket activation + uvicorn import-time startup.
+  sleep 2
 
   # --- RCA-12 post-restart: strict port-PID etimes check (REPLACES lenient ps grep) ---
   # The old `ps aux | grep uvicorn | grep -v grep` check was lenient — it
