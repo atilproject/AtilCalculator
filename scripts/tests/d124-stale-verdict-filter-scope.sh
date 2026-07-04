@@ -243,9 +243,14 @@ FIXTURE_CC_PEER='[
 # If the query uses --label "cc:developer" (BUG), fixture[0].labels contains
 # cc:developer → included → stale_verdict EMITS (incorrect, bug present).
 # The test fails if the gh query has the bug pattern AND would include this PR.
+# POST-FIX (PR #818 c1164bb, ADR-0002-amendment-1): the jq-side lane discriminator
+# is JSON-quoted, so the awk-extracted body may contain \"agent:...\" or \"cc:human\"
+# (backslash-quote) rather than bare "agent:...". We match the substring pattern
+# `agent:${ROLE}` or `cc:human` directly (quote-tolerant) — sufficient to detect
+# post-fix presence; the bug pattern `--label "cc:${ROLE}"` is regex-anchored separately.
 QUERY_USES_CC_PEER=$(echo "$QUERY_BODY" | grep -cE 'gh pr list.*--label[[:space:]]+"cc:\$\{ROLE\}"' || true)
-QUERY_USES_AGENT=$(echo "$QUERY_BODY" | grep -cE '"agent:\$\{?ROLE\}?"|"agent:developer"|"agent:tester"' || true)
-QUERY_USES_CC_HUMAN_LABEL=$(echo "$QUERY_BODY" | grep -cE '"cc:human"' || true)
+QUERY_USES_AGENT=$(echo "$QUERY_BODY" | grep -cE 'agent:\$\{?ROLE\}?|agent:developer|agent:tester' || true)
+QUERY_USES_CC_HUMAN_LABEL=$(echo "$QUERY_BODY" | grep -cE 'cc:human' || true)
 # After fix: query uses agent:<role> or cc:human (TC1 verified). Bug pattern absent (TC2).
 # Combined: cc:<peer>-only PR is filtered out before jq even sees it. → 0 events.
 if [ "$QUERY_USES_CC_PEER" -eq 0 ] && [ "$QUERY_USES_AGENT" -ge 1 -o "$QUERY_USES_CC_HUMAN_LABEL" -ge 1 ]; then
@@ -301,7 +306,7 @@ section "TC7: header docstring (line 25+) reflects correct filter semantics"
 # Per AC-5 of #798, the docstring at line 25 + 1081-1084 must reflect the
 # correct filter scope: (agent:<role> OR cc:human) AND verdict-by:*.
 # We assert: header mentions agent:<role> AND cc:human as the filter sources.
-HEADER_LINES="$(sed -n '24,30p;1078,1084p' "$WATCH_SH")"
+HEADER_LINES="$(sed -n '24,30p;1085,1092p' "$WATCH_SH")"
 HEADER_HAS_AGENT=$(echo "$HEADER_LINES" | grep -cE 'agent:\$\{?ROLE\}?|agent:<role>' || true)
 HEADER_HAS_CC_HUMAN=$(echo "$HEADER_LINES" | grep -cE 'cc:human' || true)
 if [ "$HEADER_HAS_AGENT" -ge 1 ] && [ "$HEADER_HAS_CC_HUMAN" -ge 1 ]; then
