@@ -215,44 +215,37 @@ else
 fi
 
 # ============================================================================
-# T6 (Issue #439 P2, Path A scope expansion to Layer 4): Layer 4 cascade-strip
-# audit body around L337 must use context.payload.action — Layer 4 fires BEFORE
-# Layer 5 in the workflow, so a bare context.event.action there throws TypeError
-# before Layer 5 even runs (CI label-check FAILURE ×5 on PR #438 pre-#439 fix).
+# T6 (Issue #439 P2, Path A scope expansion): workflow MUST NOT use bare
+# context.event.action anywhere (Issue #436 P0 fix generalized). Originally
+# scoped to Layer 4 audit body around L337; expanded to whole-workflow scan
+# after Issue #789 AC1 evidence: workflow has evolved post-Issue #439, Layer 4
+# no longer needs action tracking, but the bug class (bare context.event.action)
+# remains a regression risk if reintroduced anywhere.
 # ============================================================================
-section "T6 (Issue #439 P2): Layer 4 cascade-strip audit body uses context.payload.action"
-# Extract Layer 4 audit body region (around L320-L360 — between Q5a fail-check
-# and the auditBody construction).
-LAYER4_AUDIT_REGION="$(sed -n '320,360p' "$WORKFLOW")"
-TC6_PAYLOAD_HITS=$(printf '%s' "$LAYER4_AUDIT_REGION" | grep -cE "context\.payload\.action" 2>/dev/null || echo 0)
-TC6_BARE_EVENT_HITS=$(printf '%s\n' "$LAYER4_AUDIT_REGION" | grep -E "context\.event\.action" 2>/dev/null | grep -vE "^\s*(\*|//)" | wc -l | tr -d ' \n')
+section "T6 (Issue #439 P2, Issue #789 expansion): no bare context.event.action anywhere in workflow"
+TC6_PAYLOAD_HITS=$(grep -cE "context\.payload\.action" "$WORKFLOW" 2>/dev/null | tr -d '\n' || echo 0)
+TC6_BARE_EVENT_HITS=$(grep -E "context\.event\.action" "$WORKFLOW" 2>/dev/null | grep -vE "^\s*(\*|//)" | wc -l | tr -d ' \n')
 if [ "$TC6_PAYLOAD_HITS" -ge 1 ] && [ "$TC6_BARE_EVENT_HITS" = "0" ]; then
-  pass "Layer 4 cascade-strip audit body uses context.payload.action (payload_hits=$TC6_PAYLOAD_HITS, bare_event_hits=0)"
+  pass "Workflow uses context.payload.action (payload_hits=$TC6_PAYLOAD_HITS, bare_event_hits=0)"
 else
-  fail "Layer 4 cascade-strip audit body still has bare context.event.action (payload_hits=$TC6_PAYLOAD_HITS, bare_event_hits=$TC6_BARE_EVENT_HITS)" \
-    "Issue #439 P2: Layer 4 fires BEFORE Layer 5 in workflow order; bare context.event.action at L337 throws TypeError on PR opened events, breaking label-check for ALL non-docs PRs (PR #438 first victim ×5 FAILURE). Same canonical fix as Issue #436."
+  fail "Workflow still has bare context.event.action (payload_hits=$TC6_PAYLOAD_HITS, bare_event_hits=$TC6_BARE_EVENT_HITS)" \
+    "Issue #439 P2 / Issue #436 P0: context.event.action is undefined on pull_request_target (context.event is WebhookEvent metadata {name, payload}, not {action}). Canonical accessor is context.payload.action. ANY bare context.event.action in runtime code throws TypeError on PR opened events."
 fi
 
 # ============================================================================
-# T7 (Issue #441 P0 regression anchor): audit body lines have balanced
-# template-literal backticks. Catches the L337 regression that PR #438 hotfix
-# introduced (missing outer-close backtick before trailing comma →
-# SyntaxError on pull_request_target audit body construction).
-#
-# Per Issue #441 §Required fix AC2: backtick-balance anchor check on L337, L476,
-# L517. Each Trigger line is a template literal: 1 outer-open + 6 escaped pairs
-# (3 inner markdown code spans) + 1 outer-close = 2 unescaped + 6 escaped.
-#
-# Sister regression anchor to TC5/TC6: content-anchor grep catches the symptom
-# (context.event.action gone, context.payload.action present) but NOT the
-# iatrogenic syntax error introduced by the fix itself. Behavioral test
-# (Issue #440 d050b, Sprint 12 P0 promotion) catches BOTH via JS execution;
-# TC7 catches the structural balance pre-execution (lighter weight, hotfix-safe).
+# T7 (Issue #441 P0 regression anchor, Issue #789 expansion): audit body
+# template-literal Trigger lines have balanced outer-open/close backticks.
+# Original Issue #441 AC2 specified L337/L476/L517; workflow evolved since
+# (PR #804 cycle ~#3698 j.4 vacuous-pass addition, Issue #680 DRAFT-PR
+# skip-guard addition). Trigger lines have MIGRATED to L411/L580/L759/L830.
+# Each current Trigger line: 1 outer-open + 6 escaped pairs (4 inner markdown
+# code spans: Trigger, eventName, action, label) + 1 outer-close = 6 escaped +
+# 2 unescaped (total 8 backticks). Expected counts updated.
 # ============================================================================
-section "T7 (Issue #441 P0): audit body Trigger lines have balanced template-literal backticks"
+section "T7 (Issue #441 P0, Issue #789 line-number migration): audit body Trigger lines have balanced template-literal backticks"
 EXPECTED_ESCAPED=6
 EXPECTED_UNESCAPED=2
-TRIGGER_LINES=(337 476 517)
+TRIGGER_LINES=(411 580 759 830)
 TC7_FAILED=0
 TC7_OK=0
 for line_num in "${TRIGGER_LINES[@]}"; do
@@ -319,7 +312,13 @@ plural_method = len(re.findall(r'\.addLabels\(', region_str))
 # labels_array_correct=name_singular_wrong=both checked. The empty-list iteration
 # via any(...) returns False for both, contributing to the FAIL signal.
 addlabels_call_lines = [l for l in region if '.addLabels(' in l]
-labels_array_correct = any(re.search(r'labels:\s*\[', l) for l in addlabels_call_lines)
+# Issue #789 expansion: accept both literal array shape `labels: ['status:ready']`
+# AND variable-array shape `labels: labelsToAdd` (current workflow pattern, line 800).
+# Original regex `labels:\s*\[` only matched literal arrays. The structural fix
+# (addLabels plural method) is preserved via plural_method >= 1 check; the array
+# shape check is loosened to accept variable references (still catches
+# `labels:\s*'status:ready'` which would be the singular-method regression).
+labels_array_correct = any(re.search(r'labels:\s*(\[[^\]]*\]|[A-Za-z_][A-Za-z0-9_]*)', l) for l in addlabels_call_lines)
 name_singular_wrong = any(re.search(r\"name:\s*['\\\"]status:ready['\\\"]\", l) for l in addlabels_call_lines)
 print(singular_method, plural_method, int(labels_array_correct), int(name_singular_wrong))
 ")"

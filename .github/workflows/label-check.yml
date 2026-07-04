@@ -503,6 +503,26 @@ jobs:
             }
 
             // ------------------------------------------------------------------
+            // Issue #680 (PR #683 amendments #2 + #3 + #4) DRAFT-PR skip-guard.
+            // PR #679 LIVE INSTANCE: status:ready auto-added to DRAFT PR (premature
+            // owner merge signal). DRAFT PRs skip ALL status:ready auto-add for
+            // all types (amendment #3 — type-driven table DRAFT row extension).
+            //
+            // Sister-pattern: d077 (RE-ADD regression, Issue #675) + d078 (this
+            // test). The DRAFT-PR skip-guard fires BEFORE Layer 5 j.4 vacuous-pass
+            // check (preserves reviewer chain audit trail per cycle ~#3698).
+            //
+            // Audit marker: `adr-0012-status-ready-gating-draft-skip` emitted on
+            // console for sister-test grep (d078 TC4 + ADR-0012 observability
+            // variant — sister-pattern to existing 'adr-0012-status-ready-gating-skip').
+            // ------------------------------------------------------------------
+            if (context.payload.pull_request && context.payload.pull_request.draft === true) {
+              core.info(`[Layer 5] DRAFT PR #${number} — skip-guard fired (Issue #680 amendment #2). DRAFT PRs skip ALL status:ready auto-add for all types (amendment #3 — type-driven table DRAFT row extension, DRAFT PRs skip auto-add).`);
+              console.log(`[Layer 5 audit] adr-0012-status-ready-gating-draft-skip: PR=#${number} type=${type || '(none)'} agent=${agent || '(none)'} (Issue #680 DRAFT skip-guard, amendment #4 audit marker)`);
+              return;
+            }
+
+            // ------------------------------------------------------------------
             // Layer 5.5 (j.4 vacuous-pass detection, Issue #789 owner scope,
             // cycle ~#3675 + ~#3698 escalation): PRE-CHECK reviewer chain
             // BEFORE any status:ready decision. Per @orchestrator cycle ~#3698
