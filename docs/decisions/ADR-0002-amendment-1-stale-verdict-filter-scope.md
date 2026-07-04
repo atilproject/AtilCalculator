@@ -18,7 +18,7 @@ The filter was authored under the assumption that `cc:<role>` indicates verdict 
 |---|---|---|
 | `cc:<role>` | [ADR-0015](./ADR-0015-atomic-agent-handoff.md) | Queue-passing / informational lane / **no verdict authority** |
 | `agent:<role>` | [ADR-0012](./ADR-0012-required-label-set.md) | Work ownership / verdict authority per [ADR-0024](./ADR-0024-stale-verdict-watchdog-schema.md) |
-| `cc:human` | [ADR-0031](./ADR-0031-owner-merge-gate.md) | Owner merge gate / special verdict authority |
+| `cc:human` | [ADR-0031](./ADR-0031-owner-override-doctrine.md) | Owner merge gate / special verdict authority |
 | `verdict-by:<ts>` | [ADR-0024](./ADR-0024-stale-verdict-watchdog-schema.md) | Verdict stamp (set by whoever posts review) |
 
 **Live instances observed** (cycle ~#3671):
@@ -109,13 +109,13 @@ gh pr list \
 
 - [ ] AC-1: `scripts/agent-watch.sh` `query_stale_verdict` filter scoped to `(agent:<role> AND verdict-by:<ts>) OR (cc:human AND verdict-by:<ts>)`
 - [ ] AC-2: Existing event ID format preserved (`stale-verdict-<n>-<sha7>-b<bucket>`)
-- [ ] AC-3: Sister-test `scripts/tests/d320-stale-verdict-filter.sh` ≥3 TCs per [ADR-0049](./ADR-0049-d-test-framework.md):
+- [ ] AC-3: Sister-test `scripts/tests/d320-stale-verdict-filter.sh` ≥3 TCs per [ADR-0049](./ADR-0049-behavioral-workflow-test-framework.md):
   - TC1: PR with `cc:<peer>` + `verdict-by:*` past deadline does NOT fire stale_verdict for that peer
   - TC2: PR with `agent:<role>` + `verdict-by:*` past deadline DOES fire stale_verdict for that role
   - TC3: PR with `cc:human` + `verdict-by:*` past deadline DOES fire stale_verdict (owner merge gate)
 - [ ] AC-4: `docs/decisions/INDEX.md` entry added for this amendment
-- [ ] AC-5: PR opened by architect; cc:developer + cc:tester for sister-lane ack; owner squash gate per [ADR-0031](./ADR-0031-owner-merge-gate.md)
-- [ ] AC-6: All CI checks GREEN (label-check, lint, d-test framework per [ADR-0049](./ADR-0049-d-test-framework.md))
+- [ ] AC-5: PR opened by architect; cc:developer + cc:tester for sister-lane ack; owner squash gate per [ADR-0031](./ADR-0031-owner-override-doctrine.md)
+- [ ] AC-6: All CI checks GREEN (label-check, lint, d-test framework per [ADR-0049](./ADR-0049-behavioral-workflow-test-framework.md))
 - [ ] AC-7: No false-positive stale_verdict fires for 24h post-fix on synthetic PR (regression validation)
 
 ## Sister-patterns
@@ -123,9 +123,9 @@ gh pr list \
 - [ADR-0015](./ADR-0015-atomic-agent-handoff.md) — `cc:<role>` informational lane doctrine
 - [ADR-0024](./ADR-0024-stale-verdict-watchdog-schema.md) — `verdict-by:<ts>` verdict stamp semantics
 - [ADR-0021](./ADR-0021-docs-pr-convention.md) — docs PR convention (same lane-discipline family)
-- [ADR-0031](./ADR-0031-owner-merge-gate.md) — owner merge gate (`cc:human` verdict authority)
-- [ADR-0045](./ADR-0045-9-lens-pre-publish.md) — 9-Lens framework applied to design doc
-- [ADR-0049](./ADR-0049-d-test-framework.md) — d-test ≥3 TCs sister-pattern
+- [ADR-0031](./ADR-0031-owner-override-doctrine.md) — owner merge gate (`cc:human` verdict authority)
+- [ADR-0045](./ADR-0045-auto-generated-file-refs-design-verification.md) — 9-Lens framework applied to design doc
+- [ADR-0049](./ADR-0049-behavioral-workflow-test-framework.md) — d-test ≥3 TCs sister-pattern
 - [TD-006](../tech-debt.md) — multi-role bulk label hygiene (same lane-discipline family)
 - [TD-027](../tech-debt.md) — wake_nudge event IDs TTL-filter (sister concern)
 - Issue #430 — §Pre-verdict cross-check (adjacent doctrine)

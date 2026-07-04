@@ -38,7 +38,7 @@
 ## High-level diagram
 
 ```mermaid
-graph LR
+flowchart LR
     PR[PR labels<br/>type, agent, cc, verdict-by]
     Filter[query_stale_verdict filter<br/>scripts/agent-watch.sh:1085]
     Decision{verdict-authority<br/>lane?}
