@@ -377,15 +377,35 @@ log "Preflight: prod runtime surface installed successfully"
 if ! command -v systemctl >/dev/null 2>&1; then
   fail "systemctl not on PATH (RCA-14 — v9 requires systemd user-service per ADR-0010; the nohup+setsid canonical pattern was REMOVED in v9 because the runner cleanup phase terminates it)" 7
 fi
-# `systemctl --user list-unit-files` may itself fail (no D-Bus session) on
-# the runner context. Suppress all errors and treat any failure as
-# "unit not registered" — which IS the failure case for v9 (RCA-14 fix:
-# fail-loud on missing unit, exit 7).
-unit_state="$(systemctl --user list-unit-files atilcalc-web.service 2>/dev/null || true)"
-if [[ -z "$unit_state" ]] || ! printf '%s' "$unit_state" | grep -q atilcalc-web; then
+# Issue #820 P0 INCIDENT-3 RCA-21 — ADR-0010 supplement preflight (architect
+# disposition cmt 4881824175): `systemctl --user` may fail with D-Bus
+# user-bus error class on hosts where the dbus-user-session preconditions
+# are unmet (dbus-user-session pkg + loginctl enable-linger + XDG_RUNTIME_DIR).
+# The v9 + v9.1 + v9.2 code path treated this as unit-not-registered and
+# hard-failed with exit 7 (RCA-14). The b1 supplement refactor detects the
+# D-Bus error class, emits the silent_skip audit marker (ADR-0045 lens d),
+# and routes to the nohup+setsid canonical fallback (Branch B supplement
+# path per ADR-0027 §136 retro-ratification). Unit-missing exit 7 (Branch C)
+# is preserved as a distinct failure class.
+#
+# Three-branch semantics (per arch spec):
+#   Branch A canonical: systemctl --user succeeds + unit registered → preserved.
+#   Branch B supplement: systemctl --user fails with D-Bus error class →
+#     silent_skip marker + nohup+setsid fallback + exit 0 (D-Bus missing
+#     is a runner-side infra gap, not a deploy failure).
+#   Branch C unit-missing: systemctl --user succeeds but unit not registered
+#     → exit 7 (RCA-14 invariant preserved unchanged).
+unit_state="$(systemctl --user list-unit-files atilcalc-web.service 2>&1)"
+_unit_probe_rc=$?
+dbus_ok=true
+if printf '%s\n' "$unit_state" | grep -qE '(Failed[[:space:]]+to[[:space:]]+connect[[:space:]]+to[[:space:]]+bus|No[[:space:]]+medium[[:space:]]+found|Connection[[:space:]]+refused)'; then
+  log "<!-- adr-0010-supplement-silent-skip --> D-Bus user-bus unavailable on this host (ADR-0010 supplement §Supp-X preconditions unmet: dbus-user-session pkg + loginctl enable-linger + XDG_RUNTIME_DIR). Branch B supplement path will trigger on restart — nohup+setsid fallback per ADR-0027 §136 retro-ratification."
+  dbus_ok=false
+elif [ "$_unit_probe_rc" != "0" ] || ! printf '%s' "$unit_state" | grep -q atilcalc-web; then
   fail "atilcalc-web.service systemd unit NOT registered (RCA-14 / Issue #171 — v9 requires systemd user-service per ADR-0010; the nohup+setsid canonical pattern was REMOVED in v9). Owner pre-req: install the unit file at ~/.config/systemd/user/atilcalc-web.service, run 'loginctl enable-linger atilcan' + 'systemctl --user daemon-reload' + 'systemctl --user enable atilcalc-web.service'." 7
+else
+  log "RCA-14 preflight: atilcalc-web.service systemd unit is registered (v9 will use systemctl --user stop+start for uvicorn lifecycle, per ADR-0010)"
 fi
-log "RCA-14 preflight: atilcalc-web.service systemd unit is registered (v9 will use systemctl --user stop+start for uvicorn lifecycle, per ADR-0010)"
 
 # --- Step 4: restart via systemctl --user (RCA-14 / Issue #171 — v9 fix) ---
 # Extracted as a function so step 6 (rollback) reuses the same restart logic
@@ -432,6 +452,32 @@ wait_for_uvicorn_ready() {
   return 1
 }
 
+# Issue #820 P0 INCIDENT-3 RCA-21 — Branch B supplement fallback per ADR-0010
+# §Supp-Z. When D-Bus user-bus is unavailable (preflight dbus_ok=false), the
+# canonical `systemctl --user start` path is unreachable. This helper spawns
+# uvicorn via the v8 nohup+setsid canonical pattern, which is the documented
+# fallback when D-Bus preconditions are unmet.
+#
+# Lifecycle caveats (per ADR-0010 supplement §Supp-Z):
+#   - The spawned uvicorn is detached from runner job tree (setsid creates a
+#     new session; nohup ignores SIGHUP). Runner cleanup phase cannot kill it.
+#   - No Restart=always (unlike systemd). Manual crash recovery required.
+#   - NOT auto-tracked by loginctl cgroups. Memory/CPU accounting deviates
+#     from the systemd-managed case. Acceptable for fast-unblock + b3 path.
+_nohup_setsid_uvicorn_spawn() {
+  local venv_uvicorn="${REPO_DIR:-.}/.venv/bin/uvicorn"
+  if [[ ! -x "$venv_uvicorn" ]]; then
+    log "<!-- adr-0010-supplement-silent-skip --> Branch B spawn FAILED: $venv_uvicorn not executable (RCA-9 preflight did not produce a valid uvicorn binary)"
+    return 1
+  fi
+  log "<!-- adr-0010-supplement-silent-skip --> Branch B supplement spawn: nohup setsid $venv_uvicorn (D-Bus unavailable; cleanup-phase vulnerable per ADR-0010 §Supp-Z)"
+  nohup setsid "$venv_uvicorn" atilcalc.web:app --host 127.0.0.1 --port "${ATC_PORT:-8000}" \
+    > /tmp/uvicorn-branch-b.log 2>&1 < /dev/null &
+  disown || true
+  log "Branch B spawn complete: uvicorn detached (runner job tree cleanup-phase vulnerable)"
+  return 0
+}
+
 restart_service() {
   log "Restarting atilcalc-web.service via systemctl --user (RCA-14 v9 — uvicorn lifecycle owned by systemd per ADR-0010)"
 
@@ -464,19 +510,24 @@ restart_service() {
     log "RCA-12 pre-check: port $ATC_PORT is free (no listener); systemctl stop will be a no-op steady-state"
   fi
 
-  # Pre-deploy: stop the service cleanly under systemd. systemctl --user stop
-  # returns 0 if the service was already stopped (steady-state on fresh
-  # checkout), and non-zero if the service is not registered (RCA-14 step 3
-  # should have caught that with exit 7). The stop is idempotent — repeated
-  # deploys converge to the same state.
+  # Pre-deploy: stop the service cleanly under systemd. Branch A canonical:
+  # systemctl --user stop returns 0 if already stopped (steady-state on fresh
+  # checkout). The stop is idempotent — repeated deploys converge to the same
+  # state. RCA-16 user-context (T6 fix): sudo -u atilcan wrapper available
+  # (see is-active check below). Requires passwordless sudoers rule per Issue #189.
   #
-  # RCA-16 user-context (T6 fix): runner != atilcan user → sudo -u atilcan
-  # wrapper available (see is-active check below for literal usage). Requires
-  # passwordless sudoers rule for the runner user on prod host. Per Issue #189.
-  if ! systemctl --user stop atilcalc-web.service 2>&1 | tee -a /tmp/deploy-systemd.log; then
-    fail "systemctl --user stop atilcalc-web.service failed (RCA-14). See /tmp/deploy-systemd.log. Common cause: D-Bus session not available, or atilcalc-web.service is owned by a different user. Verify with 'systemctl --user status atilcalc-web.service' on the prod host." 7
+  # Branch B supplement: on D-Bus-unavailable hosts (preflight set dbus_ok=false),
+  # skip systemctl --user (would fail with "Failed to connect to bus"). The
+  # Branch B start below will spawn a fresh nohup+setsid uvicorn that supersedes
+  # any pre-existing one — no explicit stop needed.
+  if [ "$dbus_ok" = "true" ]; then
+    if ! systemctl --user stop atilcalc-web.service 2>&1 | tee -a /tmp/deploy-systemd.log; then
+      fail "systemctl --user stop atilcalc-web.service failed (RCA-14). See /tmp/deploy-systemd.log. Common cause: D-Bus session not available, or atilcalc-web.service is owned by a different user. Verify with 'systemctl --user status atilcalc-web.service' on the prod host." 7
+    fi
+    log "RCA-14 pre-deploy: atilcalc-web.service stopped cleanly via systemctl --user (RCA-16 user-context: sudo -u atilcan available; see is-active check)"
+  else
+    log "<!-- adr-0010-supplement-silent-skip --> Skipping systemctl --user stop on Branch B supplement path (D-Bus unavailable; restart below spawns fresh nohup+setsid uvicorn that supersedes any existing listener)"
   fi
-  log "RCA-14 pre-deploy: atilcalc-web.service stopped cleanly via systemctl --user (RCA-16 user-context: sudo -u atilcan available; see is-active check)"
 
   # Validate .venv/bin/uvicorn exists — defense in depth. Step 2 (preflight)
   # should have ensured this via FAIL-or-CREATE pattern (RCA-9 fix), but if
@@ -493,17 +544,27 @@ restart_service() {
   # the unit gives us auto-restart on crash. The runner cleanup phase cannot
   # kill this process because it's owned by the atilcan user session (not
   # the runner job process tree).
-  log "Starting: systemctl --user start atilcalc-web.service (RCA-14 v9 — uvicorn lifecycle owned by systemd)"
-  if ! systemctl --user start atilcalc-web.service 2>&1 | tee -a /tmp/deploy-systemd.log; then
-    fail "systemctl --user start atilcalc-web.service failed (RCA-14). See /tmp/deploy-systemd.log. Common cause: unit's ExecStart command failed (check ExecStart path, PYTHONPATH, working directory), or atilcalc-web.service has a dependency that failed. Verify with 'systemctl --user status atilcalc-web.service' on the prod host." 7
+  log "Post-deploy: restart uvicorn per ADR-0010 supplement branches (Branch A canonical vs Branch B supplement)"
+  if [ "$dbus_ok" = "true" ]; then
+    log "Starting: systemctl --user start atilcalc-web.service (RCA-14 v9 — uvicorn lifecycle owned by systemd)"
+    if ! systemctl --user start atilcalc-web.service 2>&1 | tee -a /tmp/deploy-systemd.log; then
+      fail "systemctl --user start atilcalc-web.service failed (RCA-14). See /tmp/deploy-systemd.log. Common cause: unit's ExecStart command failed (check ExecStart path, PYTHONPATH, working directory), or atilcalc-web.service has a dependency that failed. Verify with 'systemctl --user status atilcalc-web.service' on the prod host." 7
+    fi
+    # systemd reports "active" within a few hundred ms; uvicorn import-time +
+    # uvloop + pydantic 2.x cold init can take 5-8s. Instead of a fixed sleep,
+    # poll /healthz with a 15s budget (Issue #785 v9.2 fix, d123 TC2-TC4).
+    # On timeout fall through to defense-in-depth `ss -tlnp` + etime cross-user
+    # check (RCA-12 original, d017 T1-T8). The two checks are orthogonal:
+    # HTTP readiness vs port-ownership.
+    wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-15}s after systemctl --user start (RCA-19 / Issue #785 INCIDENT-2). Common cause: pyproject.toml [web] extra missing on the prod venv, ExecStart path mismatch, or uvicorn import-time failure. Cross-check via 'systemctl --user status atilcalc-web.service' and 'journalctl --user -u atilcalc-web.service -n 50 --no-pager' on the prod host." 7
+  else
+    log "<!-- adr-0010-supplement-silent-skip --> Branch B supplement start: spawning nohup+setsid uvicorn (D-Bus unavailable per ADR-0010 supplement §Supp-Y/Z; lifecycle caveats per §Supp-Z)"
+    _nohup_setsid_uvicorn_spawn || fail "Branch B nohup+setsid uvicorn spawn failed (RCA-9 .venv/bin/uvicorn not executable, or nohup/setsid missing)" 7
+    # Still poll /healthz — Branch B spawn is detached, may take time to bind.
+    # The 15s readiness budget (Issue #785 v9.2, d123 TC3) is sufficient for
+    # the venv-installed uvicorn with uvloop + pydantic 2.x cold init.
+    wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-15}s after nohup+setsid spawn (Branch B supplement; RCA-19 / Issue #785 INCIDENT-2 readiness poll). Check /tmp/uvicorn-branch-b.log for spawn failures." 7
   fi
-  # systemd reports "active" within a few hundred ms; uvicorn import-time +
-  # uvloop + pydantic 2.x cold init can take 5-8s. Instead of a fixed sleep,
-  # poll /healthz with a 15s budget (Issue #785 v9.2 fix, d123 TC2-TC4).
-  # On timeout fall through to defense-in-depth `ss -tlnp` + etime cross-user
-  # check (RCA-12 original, d017 T1-T8). The two checks are orthogonal:
-  # HTTP readiness vs port-ownership.
-  wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-15}s after systemctl --user start (RCA-19 / Issue #785 INCIDENT-2). Common cause: pyproject.toml [web] extra missing on the prod venv, ExecStart path mismatch, or uvicorn import-time failure. Cross-check via 'systemctl --user status atilcalc-web.service' and 'journalctl --user -u atilcalc-web.service -n 50 --no-pager' on the prod host." 7
 
   # --- RCA-12 post-restart: strict port-PID etimes check (REPLACES lenient ps grep) ---
   # The old `ps aux | grep uvicorn | grep -v grep` check was lenient — it
@@ -553,11 +614,19 @@ restart_service() {
   #   run as the same user), overridable via ATC_SERVICE_USER for cross-user
   #   scenarios (e.g. prod atiltestweb where runner user `gh-actions-runner` runs
   #   the script but `atilcan` owns the service per RCA-16 lineage).
-  service_state=$(sudo -u "${ATC_SERVICE_USER:-$USER}" systemctl --user is-active atilcalc-web.service 2>&1 || true)
-  if [[ "$service_state" != "active" ]]; then
-    fail "AC4: atilcalc-web.service is not active (state='$service_state') after restart — systemd-managed service is unhealthy even though port $ATC_PORT is bound. Common cause: unit ExecStart failed (check journalctl --user -u atilcalc-web.service), or unit entered 'failed' state during restart. Distinct from RCA-12 (port-PID check) — the unit itself must be 'active'." 7
+  # Branch B supplement: AC4 systemd-active-state check is N/A on D-Bus-missing
+  # path (no systemd unit is "active" — Branch B owns lifecycle via nohup+setsid).
+  # Skip the check on Branch B; RCA-12 port-PID check above is the sole binding
+  # constraint for Branch B success.
+  if [ "$dbus_ok" = "true" ]; then
+    service_state=$(sudo -u "${ATC_SERVICE_USER:-$USER}" systemctl --user is-active atilcalc-web.service 2>&1 || true)
+    if [[ "$service_state" != "active" ]]; then
+      fail "AC4: atilcalc-web.service is not active (state='$service_state') after restart — systemd-managed service is unhealthy even though port $ATC_PORT is bound. Common cause: unit ExecStart failed (check journalctl --user -u atilcalc-web.service), or unit entered 'failed' state during restart. Distinct from RCA-12 (port-PID check) — the unit itself must be 'active'." 7
+    fi
+    log "AC4 check: atilcalc-web.service is active (systemd unit healthy — uvicorn lifecycle owned by systemd per ADR-0010)"
+  else
+    log "<!-- adr-0010-supplement-silent-skip --> AC4 check skipped on Branch B supplement path (D-Bus unavailable; no systemd unit active by design; Branch B owns uvicorn lifecycle via nohup+setsid per §Supp-Z)"
   fi
-  log "AC4 check: atilcalc-web.service is active (systemd unit healthy — uvicorn lifecycle owned by systemd per ADR-0010)"
 }
 
 restart_service
