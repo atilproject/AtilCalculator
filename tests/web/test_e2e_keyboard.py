@@ -88,10 +88,28 @@ def server():
     try:
         # Env-aware timeout: 10s for self-hosted, 5s for github-hosted + local.
         if not _wait_for_healthz(base_url, timeout_s=SUBPROCESS_TIMEOUT_S):
-            # Cleanup timeout scaled with subprocess timeout (1/5 of base for
-            # github-hosted, 1/5 for self-hosted = 2s, enough for stderr read).
-            cleanup_timeout = max(int(SUBPROCESS_TIMEOUT_S / 5), 1)
-            stdout, stderr = proc.communicate(timeout=cleanup_timeout)
+            # Cleanup: terminate the proc FIRST, then drain stderr.
+            # PR #836 RCA (cycle #4249): proc.communicate(timeout=cleanup_timeout)
+            # on a still-alive uvicorn raised subprocess.TimeoutExpired even
+            # though uvicorn had already logged 'Application startup complete.'
+            # — the cleanup timeout of 2s (computed as int(SUBPROCESS_TIMEOUT_S/5))
+            # was insufficient to drain the pipe buffer during the failure path.
+            # Fix: send SIGTERM, wait briefly for graceful exit, then drain
+            # via communicate() — proc is dead → EOF is instant, no blocking.
+            # Sister-pattern: ADR-0019 amend 3 §Runner-aware multipliers.
+            proc.terminate()
+            # Cap the graceful-shutdown wait at 5s (long enough for uvicorn to
+            # flush, short enough to avoid blocking CI on a stuck proc).
+            wait_budget = min(SUBPROCESS_TIMEOUT_S, 5)
+            try:
+                proc.wait(timeout=wait_budget)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait(timeout=1)
+            # Proc is now dead — communicate() drains the buffered pipes
+            # immediately and returns EOF. A 1s ceiling here is paranoia;
+            # under normal conditions the call returns in microseconds.
+            stdout, stderr = proc.communicate(timeout=1)
             pytest.fail(
                 f"Server did not become healthy at {base_url} within "
                 f"{SUBPROCESS_TIMEOUT_S}s.\n"
