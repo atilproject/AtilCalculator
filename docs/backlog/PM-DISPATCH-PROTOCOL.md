@@ -1,4 +1,4 @@
-# PM Dispatch Protocol — lane-discipline reference (v0.2 docs-only)
+# PM Dispatch Protocol — lane-discipline reference (v0.3 docs-only, silent-drop fix)
 
 > **Origin**: RETRO-016 candidate #6 (PM-side pre-dispatch lint, cycle ~#1233 PM post-mortem on Issue #690)
 > **PM owner**: @product-manager (docs/backlog/ = PM lane per file ownership matrix)
@@ -14,7 +14,9 @@
 
   Arch verdict: 🟡 NEEDS CHANGES. Fix path: drop scripts/tests/* files, re-open as docs-only PR.
 
-- **v0.2** (2026-06-29, cycle ~#1245, THIS FILE) — docs-only supersession. Branched from `origin/main`, single-file diff. No `scripts/tests/*` carries PM authorship. PR #700v2 carrier.
+- **v0.2** (2026-06-29, cycle ~#1245) — docs-only supersession. Branched from `origin/main`, single-file diff. No `scripts/tests/*` carries PM authorship. PR #700v2 carrier.
+
+- **v0.3** (2026-07-04, cycle ~#3554, THIS FILE) — **silent-drop pattern fix per Issue #806 + PR #808**. Replaced `gh issue list --label X --json Y --jq Z` with REST `gh api /repos/${REPO}/issues?labels=X --jq '...'` in the §Pre-Dispatch Lint example below. Sister-fix to PR #808 (which migrated `scripts/agent-watch.sh` + `scripts/claim-next-ready.sh`). **PM was specifically affected at 75% silent-drop miss rate** per Issue #806 measured data (architect 100% / tester 60% / PM 75% / dev 25%) — PM's queue visibility was degraded for any `agent:product-manager` label query. Docs-only supersession (1 file). Sister-file `docs/product/ONBOARDING.md` also has a `gh issue list --label "type:bug"` pattern (line 30) — sister-fixed in same PR.
 
 > **Irony**: The v0.1 PR that codified PM lane discipline itself violated PM lane discipline. v0.2 is the corrected carrier — no peer verdict on v0.1 needed; owner squash per ADR-0031 docs lane (reviewer: owner).
 
@@ -72,10 +74,15 @@ Codification candidate from RETRO-016 #6 (PM-side pre-dispatch lint):
 
 ```bash
 # Pre-flight check before PM Wave promotion (status:backlog → status:ready)
-for issue in $(gh issue list --label status:ready --json number --jq '.[].number'); do
-  agent=$(gh api repos/atilcan65/AtilCalculator/issues/$issue \
+# Issue #806 / PR #808: `gh issue list --label X` silently drops matches for some roles
+# (architect 100%, tester 60%, PM 75%, dev 25% miss per measured data). Use REST gh api
+# with `labels=X` query param instead — same response shape, no silent-drop class.
+REPO="${REPO:-atilcan65/AtilCalculator}"  # or atilproject/AtilCalculator after org migration
+for issue in $(gh api "repos/${REPO}/issues?labels=status:ready&state=open&per_page=50" \
+                 --jq '.[] | .number'); do
+  agent=$(gh api "repos/${REPO}/issues/$issue" \
     --jq '.labels[].name | select(startswith("agent:"))[0]')
-  body=$(gh api repos/atilcan65/AtilCalculator/issues/$issue --jq '.body')
+  body=$(gh api "repos/${REPO}/issues/$issue" --jq '.body')
 
   if [[ "$agent" == "agent:tester" ]] && ! echo "$body" | grep -qi "d-test-coupled"; then
     echo "⚠️  PM LINT FAIL: Issue #$issue has agent:tester but is NOT d-test-coupled"
@@ -87,6 +94,7 @@ done
 Sister-pattern: RETRO-007 watchlist entry #6 (PM AC-VERIFY timing) + RETRO-016 candidates #1-5 (defense-in-depth doctrine).
 
 > **Note**: `scripts/lint-pm-dispatch.sh` (the codified carrier of this lint) is NOT included in this PR per lane discipline. It is a Sprint 14+ candidate that lives in `scripts/tests/` (developer + tester lane). v0.1 PR #700 erroneously bundled it; v0.2 is docs-only.
+> **Note (v0.3)**: The v0.2 lint example used `gh issue list --label status:ready --json number --jq '.[].number'` which was affected by Issue #806 silent-drop bug class. PM lane specifically experienced 75% miss rate on this pattern. v0.3 migrates to REST `gh api` per PR #808's sister-fix in `scripts/agent-watch.sh` + `scripts/claim-next-ready.sh`. The `REPO` env-var fallback mirrors ADR-0064 cross-user env-var precedence (canonical: `vars.REPO` repo var > `REPO` env > hardcoded default).
 
 ## §Auto-Claim Compatibility
 
@@ -120,6 +128,8 @@ PM ACKs **confirming tester auto-claim on impl stories** are ✗ WRONG — must 
 - **Issue #414** — §Pre-flip (PM atomic-flips cluster dispatch to dev BEFORE dev claim)
 - **Issue #430** — §Pre-verdict cross-check
 - **Issue #682** — §Post-verdict cross-watchdog (PR #692 codification)
+- **Issue #806** — silent-drop bug in `gh issue list --label` filter (PM 75% miss rate, architect 100%, tester 60%, dev 25% per measured data). **Closed by PR #808** (REST `gh api` migration across `scripts/agent-watch.sh` 5 sites + `scripts/claim-next-ready.sh` 3 sites + d806 sister-test 11/11 GREEN).
+- **PR #808** — silent-drop fix carrier (`fix(scripts): gh issue list --label silent-drop → REST gh api`, merged 2026-07-04T10:17:21Z). PM lane sister-fix in this v0.3 (docs/backlog/PM-DISPATCH-PROTOCOL.md + docs/product/ONBOARDING.md lint example migration).
 - **RETRO-007 watchlist entry #6** — PM AC-VERIFY timing (sister-pattern)
 - **RETRO-016 candidates #1-5** — defense-in-depth doctrine
 - **RETRO-016 candidate #6** — THIS doc (PM-side pre-dispatch lint Sprint 14+)
@@ -140,7 +150,8 @@ PM ACKs **confirming tester auto-claim on impl stories** are ✗ WRONG — must 
 ## §Versioning
 
 - v0.1 — 2026-06-29 cycle ~#1233 — PM initial authoring (commit ef4f884, branch `docs/pm-dispatch-protocol`, bundled into PR #700 with lane violations)
-- **v0.2 — 2026-06-29 cycle ~#1245** — docs-only supersession. Single-file diff. No scripts/tests/* carries PM authorship. PR #700v2 carrier.
+- v0.2 — 2026-06-29 cycle ~#1245 — docs-only supersession. Single-file diff. No scripts/tests/* carries PM authorship. PR #700v2 carrier.
+- **v0.3 — 2026-07-04 cycle ~#3554** — silent-drop pattern fix per Issue #806 + PR #808. Migrated `§Pre-Dispatch Lint` example from `gh issue list --label X` (75% PM silent-drop miss) to REST `gh api /repos/${REPO}/issues?labels=X --jq '...'`. Sister-fix to PR #808 (script-side migration). Sister-file `docs/product/ONBOARDING.md` (line 30) updated in same PR.
 
 ---
 
