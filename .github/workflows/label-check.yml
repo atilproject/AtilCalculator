@@ -248,7 +248,15 @@ jobs:
             const marker = process.env.MARKER;
             const pr = context.payload.pull_request;
             const number = pr.number;
-            const labels = (pr.labels || []).map(l => (typeof l === 'string' ? l : l.name));
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            // Issue #819 fix (sister-pattern to Layer 5 j.4): read fresh PR labels via
+            // GitHub API instead of the stale webhook snapshot. The webhook payload is
+            // frozen at fire time (PR #817 LIVE INSTANCE 2026-07-04T11:06Z, cmt 4881737089)
+            // so any subsequent label mutation is invisible without an API re-fetch.
+            // Non-label fields (state, draft, number) still come from the webhook object.
+            const { data: freshPR } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+            const labels = (freshPR.labels || []).map(l => (typeof l === 'string' ? l : l.name));
 
             // Layer 3 only fires for `type:bug` PRs.
             if (!labels.includes('type:bug')) {
@@ -259,9 +267,6 @@ jobs:
             // Required additional labels for type:bug PRs.
             const requiredExtra = ['cc:tester', 'needs-tester-signoff'];
             const missingExtra = requiredExtra.filter(l => !labels.includes(l));
-
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
 
             // Find existing bot comment by marker (separate from the 4-cat check)
             const { data: comments } = await github.rest.issues.listComments({
@@ -460,7 +465,16 @@ jobs:
             const pr = context.payload.pull_request;
             const number = pr.number;
             const issueState = pr.state;
-            const labels = (pr.labels || []).map(l => (typeof l === 'string' ? l : l.name));
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            // Issue #819 fix: read fresh PR labels via GitHub API instead of the stale
+            // webhook snapshot. The webhook payload is frozen at fire time (PR #817 LIVE
+            // INSTANCE 2026-07-04T11:06Z, cmt 4881737089) so subsequent label mutations
+            // (e.g. auto-verdict-by hook) are invisible without an API re-fetch. Fresh
+            // API fetch via pulls.get replaces the stale binding for j.4 vacuous-pass
+            // detection (sister-pattern fix to Layer 3); non-label fields stay from pr.
+            const { data: freshPR } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+            const labels = (freshPR.labels || []).map(l => (typeof l === 'string' ? l : l.name));
             const hasLabel = (name) => labels.includes(name);
 
             // Q5b: early-return on closed PR (frozen state, no-op)
@@ -468,9 +482,6 @@ jobs:
               core.info(`PR #${number} is closed; Layer 5 no-op.`);
               return;
             }
-
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
 
             // ------------------------------------------------------------------
             // TC4 reversal handler: needs-tester-signoff re-added AFTER tester
