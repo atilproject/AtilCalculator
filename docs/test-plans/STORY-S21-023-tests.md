@@ -21,7 +21,7 @@
 - **AC2 throwaway-repo harness**: procedure to create a fresh GitHub repo (`atilcan65/dev-studio-template-smoke`) with AtilCalculator as the source-of-truth, run init.sh + d-test suite, capture artifacts.
 - **AC3 report-capture + attach**: procedure to harvest d-test stdout/stderr + exit-code matrices into canonical report files; attach to Sprint 21 close.md as evidence.
 - **d124 + d320 acceptance gates**: explicit emphasis on these two d-tests (PR #830 acceptance) — **must both emit GREEN** on every fresh clone for AC1+AC2 to be valid.
-- **Cross-clone diff verification**: tc ensures both clones emit identical d-test results (sister-pattern: d068 cross-clone agreement).
+- **Cross-clone diff verification**: tc ensures both clones emit identical d-test results (sister-pattern: ADR-0001 §2 init idempotency).
 
 ### Out of scope
 
@@ -56,7 +56,7 @@
 8. **Critical**: explicitly run d124 + d320 with same capture pattern
 9. Aggregate: every d-test exit code in `${REPORT_LOCAL}/dtest-exit-matrix.txt`
 
-**Expected**: `${INIT_EXIT_LOCAL}` = 0; **all d-tests GREEN** including `${D124_EXIT_LOCAL}` = 0 and `${D320_EXIT_LOCAL}` = 0. Sister-pattern: d058 §sister-test authorship; d068 cross-clone invariant.
+**Expected**: `${INIT_EXIT_LOCAL}` = 0; **all d-tests GREEN** including `${D124_EXIT_LOCAL}` = 0 and `${D320_EXIT_LOCAL}` = 0. Sister-pattern: d058 §sister-test authorship; ADR-0001 §2 init idempotency.
 
 ### TC2: AC1 — d124 + d320 spec-correctness on local-clone
 
@@ -92,7 +92,7 @@
 
 **Expected**: `${INIT_EXIT_REMOTE}` = 0; full d-test matrix GREEN; specifically d124 + d320 = 0; GitHub round-trip preserved source HEAD (no drift). Sister-pattern: TC1 local-clone contract applied to GitHub round-trip.
 
-### TC4: AC2 — Cross-clone agreement (d068 invariant)
+### TC4: AC2 — Cross-clone agreement (ADR-0001 §2 init idempotency)
 
 **Setup**: post-TC1 + TC3 (both clones validated, d-test exit matrices captured).
 
@@ -103,7 +103,7 @@
 4. Hash both clones' rendered outputs: `find . -type f -not -path './.git/*' | sort | xargs sha256sum | sha256sum > ${CLONE_HASH}` for each clone → must match
 5. Sister-pattern assertion: identical rendered output + identical d-test results = identical behavior
 
-**Expected**: All diffs empty; cloned hashes match. **This is the cross-clone agreement test** — proves the template is deterministic across clones (sister-pattern: d068 cross-clone invariant if exists, else ADR-0050 §init idempotency).
+**Expected**: All diffs empty; cloned hashes match. **This is the cross-clone agreement test** — proves the template is deterministic across clones (sister-pattern: ADR-0001 §2 init idempotency (PM lane decision, architect Option A — Refs arch cmt 4888952297)).
 
 ### TC5: AC3 — Report capture (artifact canonicalization)
 
@@ -171,19 +171,19 @@
 
 - **PR #830 (ADR-0024 stale-verdict-supersede) correctness** → TC2 explicit d124+d320 GREEN gate. If d124 fails, PR #830 acceptance is invalid (regression back to Issue #798 RCA pattern).
 - **`scripts/dev-studio-init.sh` non-idempotency** → TC1 idempotency sister-check (rerun must produce no diff). Sister-pattern to STORY-S21-022 TC3.
-- **Cross-clone non-determinism (init.sh $RANDOM/date/UUID usage)** → TC4 cross-clone hash must match. Sister-pattern to ADR-0050 §init idempotency guarantee.
+- **Cross-clone non-determinism (init.sh $RANDOM/date/UUID usage)** → TC4 cross-clone hash must match. Sister-pattern to ADR-0001 §2 init idempotency guarantee.
 - **Throwaway-repo namespace collision** → TC3 pre-flight check; orphan-throwaway from prior failed runs must be cleaned.
 
 ## Sister-patterns
 
 - **d058** (claim-next-ready work-stream awareness) — TC1 d-test matrix structure (per-d-test stdout/stderr/exit capture) lifted from d058 §TC10.
-- **d068** (cross-clone agreement, if exists) — TC4 directly mirrors cross-clone invariant contract.
+- **ADR-0001 §2** (init idempotency) — TC4 directly mirrors cross-clone agreement invariant (PM Option A; arch-verified d068 = cluster-lag YAML wiring, co-opted per ADR-0055 §sub-pattern remediation, NOT cross-clone concern).
 - **d124 + d320** (PR #830 acceptance tests, Issue #798 RCA) — TC1/TC2/TC3 critical emphasis on these d-tests.
 - **d296 + d319 + d012** (peer-poke + verdict-by-RED-exclusion + stale-verdict-schema sisters) — sister-pattern lineage invoked via d320 sister test authorship.
 - **ADR-0044** (RED-first TDD) — d124 + d320 shipped RED pre-PR #830, GREEN post-merge; PM's TC1+TC3 re-validate.
 - **ADR-0049** (d-test framework ≥3 sister-pattern baseline) — d124 (8 TCs) + d320 (3 TCs) both meet baseline; PM's TC1-TC6 (6 TCs) are validation TC not d-test impl.
 - **ADR-0012** (4-cat label invariant) — #653 carries 4 labels (type:feature + agent:product-manager + cc:orchestrator + cc:human etc.) — validated at issue open, must persist through PR cycle.
-- **ADR-0050** (init idempotency) — TC1 idempotency check + TC4 cross-clone hash sister-lineage.
+- **ADR-0001 §2** (init idempotency) — TC1 idempotency check + TC4 cross-clone hash sister-lineage (supersedes prior ADR-0050 misattribution; arch-verified home).
 - **Sprint 24 SCAFFOLD §Outcome criteria** — owner verdict 2026-07-04T18:51:17Z rendered PM as steward of #653; this test plan = PM's first authoritative artifact.
 
 ## Definition of Done
