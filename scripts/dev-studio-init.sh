@@ -67,8 +67,12 @@
 #   1  preflight failure (gh/git missing, not authenticated, etc.)
 #   2  template render failure
 #
-# Idempotent: always renders fresh. Manual edits to rendered outputs are lost.
-# (They are gitignored, so don't edit them — edit the `.tmpl` and re-run.)
+# Idempotent: always renders fresh. Manual edits to rendered outputs are
+# overwritten on re-run per ADR-0050 §C9 (RENDERED_PATHS-only side-effect,
+# unconditional write inside scope). On first run, .tmpl sources are
+# moved to .dev-studio/.tmpl-cache/ (gitignored); re-render reads from
+# the cache and overwrites dst. Edit the `.tmpl` (or restore from cache)
+# to keep manual edits permanent.
 
 set -euo pipefail
 
@@ -486,6 +490,14 @@ run_secret_canary() {
 # absolute paths). Names with `|` are an extreme edge case; sed would
 # break — but git config user.name is unlikely to contain it.
 
+# Template cache directory. After first render, .tmpl sources are MOVED
+# (not copied, not rm'd) here so re-runs can recover them. The cache is
+# gitignored via .dev-studio/, so working tree stays "no .tmpl present"
+# (e2e-pilot.sh smoke test) while re-render remains idempotent per
+# ADR-0050 §C9 (RENDERED_PATHS-only side-effect, unconditional overwrite
+# inside scope on every run).
+TMPL_CACHE_DIR="$REPO_ROOT/.dev-studio/.tmpl-cache"
+
 render_one() {
   local src="$1"
   local dst="$2"
@@ -512,13 +524,31 @@ render_one() {
     chmod +x "$dst"
   fi
 
-  # Remove the .tmpl source after successful render. Template-grade contract:
-  # rendered repos should contain ONLY final files — leftover .tmpl files are
-  # confusing for downstream consumers and break post-init smoke tests that
-  # assert "no .tmpl present". DRY_RUN skips this (we already returned above).
-  rm -f "$src"
+  # Move the .tmpl source to the template cache (gitignored at
+  # .dev-studio/.tmpl-cache/) instead of deleting it. Template-grade
+  # contract: rendered repos contain ONLY final files in working tree
+  # (so post-init smoke tests like e2e-pilot.sh "no .tmpl present" pass),
+  # but a cached copy under .dev-studio/.tmpl-cache/ enables idempotent
+  # re-render per ADR-0050 §C9 (RENDERED_PATHS-only side-effect, overwrites
+  # unconditionally inside scope on every run). DRY_RUN skips this (we
+  # already returned above). Fix per Issue #845 + d649 TC5 RED-state
+  # contract in PR #842.
+  #
+  # Idempotent mv: if src is already under the cache dir (re-render path
+  # from render_all() pass 2), skip the mv to avoid nesting the cache
+  # directory on repeated runs.
+  case "$src" in
+    "$TMPL_CACHE_DIR"/*)
+      dbg "rendered (from cache, no-op mv): $src -> $dst"
+      return 0
+      ;;
+  esac
+  local rel_path="${src#$REPO_ROOT/}"
+  local cache_path="$TMPL_CACHE_DIR/$rel_path"
+  mkdir -p "$(dirname "$cache_path")"
+  mv "$src" "$cache_path"
 
-  dbg "rendered: $src -> $dst (source removed)"
+  dbg "rendered: $src -> $dst (source cached at $cache_path)"
 }
 
 # --- Render all .tmpl files in the repo -----------------------------------
@@ -533,6 +563,9 @@ render_all() {
   # Skip status-label-to-board.yml.tmpl: it needs {{GITHUB_PROJECT_NUMBER}} which is
   # not known until bootstrap-project-board.sh creates the board (ADR-0013). The
   # board bootstrap script renders that template itself as a post-step.
+  # Also skip .dev-studio/ — that's the template cache directory created by
+  # render_one() for idempotent re-render; it's NOT source content (it's a
+  # mirror of original sources, scanned via the second pass below).
   while IFS= read -r -d '' tmpl; do
     case "$tmpl" in
       */.github/workflows/status-label-to-board.yml.tmpl)
@@ -550,10 +583,37 @@ render_all() {
     fi
   done < <(find "$REPO_ROOT" \
              -path "$REPO_ROOT/.git" -prune -o \
+             -path "$REPO_ROOT/.dev-studio" -prune -o \
              -path "$REPO_ROOT/node_modules" -prune -o \
              -path "$REPO_ROOT/.tmux-bootstrap" -prune -o \
              -path "$REPO_ROOT/scripts/.tmux-bootstrap" -prune -o \
              -type f -name "*.tmpl" -print0)
+
+  # Second pass: re-render from template cache if working tree was empty.
+  # This is the idempotent re-run path that fixes Issue #845 / d649 TC5:
+  # on re-run, working-tree .tmpl files are gone (moved to cache by prior
+  # render_one call), so we recover them from $TMPL_CACHE_DIR and re-render,
+  # overwriting any manual edits that landed on dst. Per ADR-0050 §C9,
+  # RENDERED_PATHS-only side-effect means: don't touch anything OUTSIDE the
+  # rendered paths, but INSIDE the rendered paths, overwrite unconditionally.
+  if [ "$count" -eq 0 ] && [ -d "$TMPL_CACHE_DIR" ]; then
+    log "re-rendering from template cache (idempotent re-run, Issue #845 fix)"
+    while IFS= read -r -d '' cached_src; do
+      # Cache mirrors original src tree: $TMPL_CACHE_DIR/<rel_path> →
+      # dst = $REPO_ROOT/<rel_path with .tmpl stripped>. The mv in
+      # render_one preserves the relative path under REPO_ROOT, so we can
+      # reverse it deterministically without a manifest file.
+      local rel="${cached_src#$TMPL_CACHE_DIR/}"
+      local dst="$REPO_ROOT/${rel%.tmpl}"
+      if render_one "$cached_src" "$dst"; then
+        count=$((count + 1))
+        RENDERED_PATHS+=("$dst")
+      else
+        failed=$((failed + 1))
+      fi
+    done < <(find "$TMPL_CACHE_DIR" \
+               -type f -name "*.tmpl" -print0 2>/dev/null)
+  fi
 
   if [ "$DRY_RUN" = "1" ]; then
     ok "[dry-run] $count template(s) would be rendered"
