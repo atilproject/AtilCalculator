@@ -237,7 +237,7 @@ else
 fi
 
 # .tmpl uzantıları temizlenmiş mi
-POST_INIT_TMPL=$(find . -name "*.tmpl" -not -path "./.git/*" 2>/dev/null | wc -l)
+POST_INIT_TMPL=$(find . -name "*.tmpl" -not -path "./.git/*" -not -path "./.dev-studio/*" 2>/dev/null | wc -l)
 if [[ $POST_INIT_TMPL -eq 0 ]]; then
     pass ".tmpl extensions cleaned up"
 else
