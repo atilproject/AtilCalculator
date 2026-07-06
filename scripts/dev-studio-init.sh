@@ -144,9 +144,35 @@ resolve_values() {
   GITHUB_OWNER="$(gh api user --jq .login 2>/dev/null)" \
     || fail "could not resolve {{GITHUB_OWNER}} via 'gh api user'"
 
-  # Current repo name from gh (works because we're inside the repo).
-  GITHUB_REPO="$(gh repo view --json name --jq .name 2>/dev/null)" \
-    || fail "could not resolve {{GITHUB_REPO}} via 'gh repo view'. Is this repo pushed to GitHub yet?"
+  # Current repo name. ADR-0050 §C9: init is hermetic by default — no network
+  # dependency. We parse the local git origin URL (no gh CLI call needed)
+  # to derive GITHUB_REPO. Operators who need richer metadata (e.g. visibility
+  # hints from `gh repo view --json visibility`) can opt in via
+  # DEV_STUDIO_GH_METADATA=1; the gh call is best-effort and falls back to
+  # local-only resolution if it fails. Fix for Issue #844 (d649 TC4: gh repo
+  # view fragile on unpushed local clones).
+  GITHUB_REPO=""
+  if [ "${DEV_STUDIO_GH_METADATA:-0}" = "1" ]; then
+    GITHUB_REPO="$(gh repo view --json name --jq .name 2>/dev/null || true)"
+  fi
+  if [ -z "$GITHUB_REPO" ]; then
+    local origin_url
+    origin_url="$(git -C "$REPO_ROOT" config --get remote.origin.url 2>/dev/null || true)"
+    if [ -n "$origin_url" ]; then
+      # Take the part after the last '/' (works for all common URL forms:
+      #   https://github.com/owner/repo.git
+      #   git@github.com:owner/repo.git
+      #   ssh://git@github.com/owner/repo
+      #   https://github.com/owner/repo
+      # ), then strip a trailing '.git' suffix if present.
+      GITHUB_REPO="$(printf '%s' "$origin_url" \
+        | awk -F/ '{print $NF}' \
+        | sed 's/\.git$//')"
+    fi
+  fi
+  if [ -z "$GITHUB_REPO" ]; then
+    fail "could not resolve {{GITHUB_REPO}} from local git origin (or 'gh repo view' with DEV_STUDIO_GH_METADATA=1). Set the 'origin' remote to a GitHub URL, or set DEV_STUDIO_GH_METADATA=1 for network resolution."
+  fi
 
   # Human display name from git config.
   HUMAN_OWNER_NAME="$(git -C "$REPO_ROOT" config user.name 2>/dev/null || true)"
