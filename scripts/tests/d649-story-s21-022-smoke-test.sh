@@ -267,16 +267,24 @@ if should_run T4; then
 fi
 
 # --- T5: manual edit to rendered output is overwritten -----------------------
+# Note (Issue #852 / cycle ~#5078): target migrated README.md → CLAUDE.md.
+# README.md is gitignored (Faz 4 rendered output, .gitignore line 90) but
+# NOT in this repo's RENDERED_PATHS — no README.md.tmpl source exists, so
+# init never touches README.md, manual edits trivially survive, and TC5
+# fails for a reason unrelated to the impl under test. CLAUDE.md IS in
+# RENDERED_PATHS (CLAUDE.md.tmpl exists in this repo) and IS touched by
+# init on every run, so the marker-overwrite assertion correctly exercises
+# ADR-0050 §C9 (RENDERED_PATHS-only side-effect, unconditional overwrite).
 if should_run T5; then
-  say "T5: manuel edit'in üzerine basılmalı (idempotent re-render)"
+  say "T5: manuel edit'in üzerine basılmalı (idempotent re-render, CLAUDE.md)"
   EDIT_DIR="$(mktemp -d -t faz5-T5.XXXXXX)"
   cp -r "$REPO_ROOT" "$EDIT_DIR/repo"
   rm -rf "$EDIT_DIR/repo/.venv" "$EDIT_DIR/repo/__pycache__" 2>/dev/null || true
-  # First, render once to produce the README.md
+  # First, render once to produce the CLAUDE.md
   DEV_STUDIO_REPO_ROOT="$EDIT_DIR/repo" bash "$EDIT_DIR/repo/scripts/dev-studio-init.sh" >/dev/null 2>&1
-  TARGET="$EDIT_DIR/repo/README.md"
+  TARGET="$EDIT_DIR/repo/CLAUDE.md"
   if [[ ! -f "$TARGET" ]]; then
-    fail "T5 manual-edit" "README.md not rendered by initial init"
+    fail "T5 manual-edit" "CLAUDE.md not rendered by initial init"
   else
     # Manually corrupt the rendered output
     MARKER="### MANUAL_EDIT_THAT_MUST_BE_OVERWRITTEN_$$"
