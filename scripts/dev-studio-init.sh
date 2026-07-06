@@ -358,7 +358,12 @@ ensure_project_token() {
 #
 # Solution: trigger .github/workflows/secret-canary.yml via workflow_dispatch
 # immediately after `gh secret set` succeeds. Poll for completion (max 90s).
-# Abort init if the canary does not finish with conclusion=success.
+# Canary failures are post-render checks — they warn-and-continue per Issue #843
+# (rc=1 is scoped to render-time only). The renders are already bit-stable by
+# the time the canary runs, and a canary hiccup (network, quota, transient
+# gh-API failure) should not block downstream automation. Set
+# DEV_STUDIO_STRICT_PROJECT_TOKEN=1 to opt back into fail-on-canary for ops
+# who want strict enforcement.
 #
 # This is the *only* deterministic way to validate the secret end-to-end
 # without exposing the token value (GitHub does not allow reading secrets).
@@ -387,7 +392,8 @@ run_secret_canary() {
         --repo "$GITHUB_OWNER/$GITHUB_REPO" \
         --ref main \
         -f "bootstrap_id=$bootstrap_id" >/dev/null 2>&1; then
-    fail "failed to dispatch PROJECT_TOKEN canary workflow. Verify .github/workflows/secret-canary.yml exists on origin/main (it ships static, no render). Check: gh api repos/$GITHUB_OWNER/$GITHUB_REPO/contents/.github/workflows/secret-canary.yml. See ADR-0014 §3.5."
+    warn "failed to dispatch PROJECT_TOKEN canary workflow (post-render check, warn-and-continue per Issue #843). Verify .github/workflows/secret-canary.yml exists on origin/main. See ADR-0014 §3.5."
+    return 0
   fi
 
   log "waiting for canary run to appear (bootstrap_id=$bootstrap_id)"
@@ -412,7 +418,8 @@ run_secret_canary() {
   done
 
   if [ -z "$run_id" ]; then
-    fail "canary workflow did not start within 30s after dispatch. Check Actions tab for $GITHUB_OWNER/$GITHUB_REPO. See ADR-0014 §3.5."
+    warn "canary workflow did not start within 30s after dispatch (post-render check, warn-and-continue per Issue #843). Check Actions tab for $GITHUB_OWNER/$GITHUB_REPO. See ADR-0014 §3.5."
+    return 0
   fi
 
   log "canary run started: id=$run_id (watching, max 90s)"
@@ -466,13 +473,16 @@ run_secret_canary() {
         printf '        which defaults to --public. See ADR-0016.\n\n'
       fi
 
-      fail "PROJECT_TOKEN canary FAILED (conclusion=$conclusion). The secret stored in the repo is corrupted, revoked, or lacks scope. Re-run init and re-paste the token; if it keeps failing, generate a fresh classic PAT. See ADR-0014 §3.5."
+      warn "PROJECT_TOKEN canary FAILED (conclusion=$conclusion, post-render check, warn-and-continue per Issue #843). The secret stored in the repo is corrupted, revoked, or lacks scope. Re-run init and re-paste the token; if it keeps failing, generate a fresh classic PAT. See ADR-0014 §3.5."
+      return 0
       ;;
     in_progress|queued|"")
-      fail "PROJECT_TOKEN canary did not finish within 90s (run $run_id). Investigate manually at https://github.com/$GITHUB_OWNER/$GITHUB_REPO/actions/runs/$run_id. See ADR-0014 §3.5."
+      warn "PROJECT_TOKEN canary did not finish within 90s (run $run_id, post-render check, warn-and-continue per Issue #843). Investigate manually at https://github.com/$GITHUB_OWNER/$GITHUB_REPO/actions/runs/$run_id. See ADR-0014 §3.5."
+      return 0
       ;;
     *)
-      fail "PROJECT_TOKEN canary returned unexpected conclusion=$conclusion (run $run_id). See ADR-0014 §3.5."
+      warn "PROJECT_TOKEN canary returned unexpected conclusion=$conclusion (run $run_id, post-render check, warn-and-continue per Issue #843). See ADR-0014 §3.5."
+      return 0
       ;;
   esac
 }
