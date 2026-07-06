@@ -1107,15 +1107,17 @@ query_stale_verdict() {
   echo "$_q" | jq --argjson now_epoch "$now_epoch" "[
       .[] |
       (.labels | map(.name)) as \$lbls |
-      # ADR-0002-amendment-1 (Issue #802 / d320 TC1+TC3 + d124 TC1+TC2+TC5+TC7):
-      # VERDICT-AUTHORITY FILTER — only emit stale_verdict for PRs where this
-      # role has verdict authority (not just informational cc:<peer> lane).
-      # Test patterns:
-      #   - d320 TC1: agent:<role> OR cc:human lane discriminator present
-      #   - d320 TC3: cc:human lane included (owner merge gate verdict-authority)
+      # ADR-0002-amendment-2 (Issue #846 / d124 TC5): cc:<role> presence gate.
+      # cc:human alone is the owner merge gate (ADR-0031) — but a role's
+      # stale_verdict wake must ALSO require cc:<role> to be currently on
+      # the PR. Without this, agents get woken when cc:human is on a PR
+      # but their own lane already finished (e.g., cc:orchestrator removed
+      # at 2026-07-04T09:08:26 but stale_verdict kept firing through 05:08:37Z
+      # on PR #799 — see Issue #846 production evidence). Sister-pattern to
+      # amendment-1 (VERDICT-AUTHORITY scope, Issue #802 / d320).
       (
         (\$lbls | any(. == \"agent:${ROLE}\")) or
-        (\$lbls | any(. == \"cc:human\"))
+        ((\$lbls | any(. == \"cc:human\")) and (\$lbls | any(. == \"cc:${ROLE}\")))
       ) as \$is_verdict_authority |
       select(\$is_verdict_authority) |
       # ADR-0044 §Scope rule — TDD RED exclusion (skip SLA pressure on contract-only PRs).
