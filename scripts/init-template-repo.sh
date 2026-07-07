@@ -19,9 +19,8 @@
 # Multiple invocations converge to the same end state (is_template=true).
 #
 # Usage:
-#   bash scripts/init-template-repo.sh                  # interactive (defaults to atilcan65/multi-agent-dev-studio-template)
-#   bash scripts/init-template-repo.sh --dry-run        # show what would happen, no API calls
 #   MULTI_AGENT_DEV_STUDIO_TEMPLATE_REPO=foo/bar bash scripts/init-template-repo.sh
+#   bash scripts/init-template-repo.sh --dry-run        # show what would happen, no API calls
 #
 # Exit codes:
 #   0  success (is_template=true verified)
@@ -49,7 +48,12 @@ set -euo pipefail
 # --- Configuration --------------------------------------------------------
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TEMPLATE_REPO="${MULTI_AGENT_DEV_STUDIO_TEMPLATE_REPO:-atilcan65/multi-agent-dev-studio-template}"
+# Source ~/.dev-studio-env (AC3 contract from STORY-S21-010 / Issue #642) —
+# best-effort; absent file is OK (this script may run before dev-studio-init).
+[ -f "${HOME}/.dev-studio-env" ] && . "${HOME}/.dev-studio-env" 2>/dev/null || true
+# Required env var, no hardcoded default. Sister-pattern: agent-watch.sh
+# (e48dd96). Clone projects must opt-in via env or --repo-style flag.
+TEMPLATE_REPO="${MULTI_AGENT_DEV_STUDIO_TEMPLATE_REPO:?MULTI_AGENT_DEV_STUDIO_TEMPLATE_REPO env var required (e.g., \${GITHUB_OWNER}/multi-agent-dev-studio-template)}"
 
 DRY_RUN=0
 
