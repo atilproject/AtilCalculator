@@ -19,7 +19,7 @@
 # 7 TCs (≥5 baseline per ADR-0049 d-test framework sister-pattern):
 #   TC1: env var BUDGET_MULTIPLIER=1.5 set, RUNNER_ENV unset → 1.5 / 5.0
 #        (operator override takes precedence; SUBPROCESS_TIMEOUT_S still uses runner-default)
-#   TC2: env unset, RUNNER_ENV=self-hosted → 2.0 / 10.0
+#   TC2: env unset, RUNNER_ENV=self-hosted → 6.0 / 10.0
 #        (Sprint 22 PIVOT self-hosted canonical baseline; map fallback path)
 #   TC3: env unset, RUNNER_ENV=github-hosted → 1.0 / 5.0
 #        (TC4 regression guard — strict budgets preserved for GH-hosted)
@@ -127,14 +127,21 @@ else
 fi
 
 # ============================================================================
-# TC2: env unset, RUNNER_ENV=self-hosted → 2.0 / 10.0 (Sprint 22 PIVOT canonical baseline)
+# TC2: env unset, RUNNER_ENV=self-hosted → 6.0 / 10.0 (Sprint 22 PIVOT canonical baseline)
+# ----------------------------------------------------------------------------
+# Note (Issue #855 sister-pattern to Issue #852): expected value bumped
+# 2.0 → 6.0 to mirror `tests/conftest.py` line 117-127 _BUDGET_MULTIPLIER_MAP
+# self-hosted entry (cycle ~#4249, absorbed ~13x self-hosted VM perf variance
+# under pytest-cov — 5x budget insufficient, p99 446ms vs 250ms budget).
+# This TC is the test-side mirror of the canonical impl value, not a
+# duplicate contract. Sister-pattern RCA: docs/bugs/reports/d112-tc2-test-data-drift.md
 # ============================================================================
-section "TC2: env unset, RUNNER_ENV=self-hosted → 2.0 / 10.0 (Sprint 22 PIVOT canonical baseline)"
+section "TC2: env unset, RUNNER_ENV=self-hosted → 6.0 / 10.0 (Sprint 22 PIVOT canonical baseline)"
 resolve_conftest "RUNNER_ENV=self-hosted"
-if [ "$RES_CODE" -eq 0 ] && [ "$RES_OUT" = "2.0 10.0" ]; then
-  pass "TC2 — runner detection self-hosted → BUDGET_MULTIPLIER=2.0 SUBPROCESS_TIMEOUT_S=10.0 (per Sprint 22 PIVOT Option B)"
+if [ "$RES_CODE" -eq 0 ] && [ "$RES_OUT" = "6.0 10.0" ]; then
+  pass "TC2 — runner detection self-hosted → BUDGET_MULTIPLIER=6.0 SUBPROCESS_TIMEOUT_S=10.0 (per Sprint 22 PIVOT Option B)"
 else
-  fail "TC2 — self-hosted map fallback broken" "expected '2.0 10.0' (exit 0); got exit=$RES_CODE stdout='$RES_OUT' stderr='$RES_ERR'"
+  fail "TC2 — self-hosted map fallback broken" "expected '6.0 10.0' (exit 0); got exit=$RES_CODE stdout='$RES_OUT' stderr='$RES_ERR'"
 fi
 
 # ============================================================================
