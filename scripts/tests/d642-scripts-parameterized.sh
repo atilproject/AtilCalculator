@@ -251,8 +251,10 @@ fi
 # can populate HUMAN_OWNER_NAME from local git config, allowing the env-file to be
 # written. This is a TEST design gap (not an impl bug — the impl correctly fails
 # loud on missing user.name; the test must provide it in its isolated HOME).
-git config --global user.name "Test User" 2>/dev/null
-git config --global user.email "test@test.local" 2>/dev/null
+# Use HOME=$TC6_HOME for git config --global so the stub lands in $TC6_HOME/.gitconfig
+# (init's resolve_values reads from the env's HOME, not the test's HOME).
+HOME="$TC6_HOME" git config --global user.name "Test User" 2>/dev/null
+HOME="$TC6_HOME" git config --global user.email "test@test.local" 2>/dev/null
 
 if [ ! -x "$DEV_STUDIO_INIT" ]; then
   fail "TC6 — dev-studio-init.sh missing or not executable" "expected $DEV_STUDIO_INIT"
