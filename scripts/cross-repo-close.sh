@@ -66,7 +66,7 @@ fi
 # --- Validate inputs (only when not dry-run) ---
 if [[ "$DRY_RUN" == "false" ]]; then
   : "${PR_NUMBER:?PR_NUMBER env var required}"
-  : "${REPO:?REPO env var required (e.g., atilproject/AtilCalculator)}"
+  : "${REPO:?REPO env var required (e.g., <owner>/<repo>)}"
 fi
 
 # --- Caveat 5: Dry-run path ---

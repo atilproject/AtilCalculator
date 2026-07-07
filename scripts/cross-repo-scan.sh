@@ -50,11 +50,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PEER_POKE_SH="$SCRIPT_DIR/peer-poke.sh"
 
 # --- defaults ---
-DEFAULT_REPOS="atilproject/AtilCalculator,atilproject/dev-studio-template"
+# Sister-pattern to scripts/agent-watch.sh (e48dd96) and init-template-repo.sh
+# (99bb1c5): no hardcoded repo default. Source ~/.dev-studio-env first (AC3
+# contract from STORY-S21-010 / c638208), then derive from AGENT_CROSS_REPOS
+# or GITHUB_REPO env var. Fail loud if neither set.
+[ -f "${HOME}/.dev-studio-env" ] && . "${HOME}/.dev-studio-env" 2>/dev/null || true
+DEFAULT_REPOS=""
 KNOWN_ROLES="orchestrator product-manager architect developer tester human"
 
 # --- env / config ---
 MODE="${1:---once}"
+: "${AGENT_CROSS_REPOS:=${GITHUB_REPO:-}}"
 REPOS_RAW="${AGENT_CROSS_REPOS:-$DEFAULT_REPOS}"
 INTERVAL="${CROSS_REPO_SCAN_INTERVAL_SEC:-300}"
 
