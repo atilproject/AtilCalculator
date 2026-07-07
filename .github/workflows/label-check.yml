@@ -73,7 +73,7 @@ jobs:
             // Regression guard: scripts/tests/d076-label-check-state-filter.sh (refs #670).
             // TDZ fix follow-up: TC7 in d076 covers runtime execution on closed items.
             if (target.state === 'closed') {
-              core.info(`Skipping ${kind} #${number} — closed state, ADR-0015 §3 bypass`);
+              core.info(`silent_skip event=closed-state kind=${kind} number=${number} adr=ADR-0015-§3 message="Skipping ${kind} #${number} — closed state, ADR-0015 §3 bypass"`);
               return;
             }
 
@@ -201,7 +201,7 @@ jobs:
             });
             const existingLabels = (existingIssue.labels || []).map(l => (typeof l === 'string' ? l : l.name));
             if (existingLabels.some(l => l && l.startsWith('verdict-by:'))) {
-              core.info(`silent_skip: #${number} already has verdict-by label, skipping auto-pair (${peerLabel})`);
+              core.info(`silent_skip event=verdict-by-already-present number=${number} peer=${peerLabel} message="#${number} already has verdict-by label, skipping auto-pair"`);
               return;
             }
 
@@ -260,7 +260,7 @@ jobs:
 
             // Layer 3 only fires for `type:bug` PRs.
             if (!labels.includes('type:bug')) {
-              core.info(`PR #${number} is not type:bug; Layer 3 type-driven check skipped.`);
+              core.info(`silent_skip event=non-type-bug layer=3 number=${number} message="PR #${number} is not type:bug; Layer 3 type-driven check skipped."`);
               return;
             }
 
@@ -344,7 +344,7 @@ jobs:
 
             // Q5b: early-return on closed PR/issue (frozen state, no-op)
             if (issueState === 'closed') {
-              core.info(`PR/Issue #${number} is closed; cascade-strip no-op.`);
+              core.info(`cascade_strip event=closed-state number=${number} message="PR/Issue #${number} is closed; cascade-strip no-op."`);
               return;
             }
 
@@ -372,7 +372,7 @@ jobs:
             }
 
             if (currentStatusLabels.length <= 1) {
-              core.info(`PR/Issue #${number} has ≤1 status:* labels; cascade-strip not needed.`);
+              core.info(`cascade_strip event=no-duplicates number=${number} status_count=${currentStatusLabels.length} message="PR/Issue #${number} has ≤1 status:* labels; cascade-strip not needed."`);
               return;
             }
 
@@ -398,14 +398,14 @@ jobs:
             const primary = sortedByCreated[0];
             const duplicates = sortedByCreated.slice(1);
 
-            core.info(`PR/Issue #${number} has ${currentStatusLabels.length} status:* labels. Primary (oldest): ${primary}, duplicates: ${duplicates.join(', ')}`);
+            core.info(`cascade_strip event=duplicates-detected number=${number} status_count=${currentStatusLabels.length} primary=${primary} duplicates="${duplicates.join(',')}" message="PR/Issue #${number} has ${currentStatusLabels.length} status:* labels. Primary (oldest): ${primary}, duplicates: ${duplicates.join(', ')}"`);
 
             // Remove duplicates only — preserve primary + all cc:* + needs-*-signoff + agent:*
             const removed = [];
             for (const dup of duplicates) {
               await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: dup });
               removed.push(dup);
-              core.info(`Removed duplicate status:* label: ${dup} (primary ${primary} preserved)`);
+              core.info(`cascade_strip event=duplicate-removed number=${number} removed=${dup} primary=${primary} message="Removed duplicate status:* label: ${dup} (primary ${primary} preserved)"`);
             }
 
             // Q2 audit-trail idempotency: edit existing marker comment if present, else create
@@ -430,7 +430,7 @@ jobs:
               await github.rest.issues.createComment({ owner, repo, issue_number: number, body: auditBody });
             }
 
-            core.info(`✅ Cascade-strip scope-tightened on #${number}.`);
+            core.info(`cascade_strip event=scope-tightened-success number=${number} removed_count=${removed.length} message="✅ Cascade-strip scope-tightened on #${number}."`);
 
       # Layer 5 (Issue #425 AC #4, ADR-0048, docs PR #430 + ADR #431): status:ready
       # auto-add gating by type-driven reviewer chain. Closes PR #393 root-cause
@@ -479,7 +479,7 @@ jobs:
 
             // Q5b: early-return on closed PR (frozen state, no-op)
             if (issueState === 'closed') {
-              core.info(`PR #${number} is closed; Layer 5 no-op.`);
+              core.info(`silent_skip event=closed-state layer=5 number=${number} message="PR #${number} is closed; Layer 5 no-op."`);
               return;
             }
 
@@ -505,11 +505,11 @@ jobs:
             // 4832077155 arch RCA cycle ~1081).
             // ------------------------------------------------------------------
             if (context.sender && context.sender.type === 'Bot') {
-              core.info(`[Layer 5] Bot actor excluded (sender=${context.sender.login || 'unknown'}) — preventing self-trigger loop (Issue #675 TC3)`);
+              core.info(`silent_skip event=bot-actor-excluded layer=5 number=${number} sender=${context.sender.login || 'unknown'} issue=675-tc3 message="Bot actor excluded — preventing self-trigger loop"`);
               return;
             }
             if (evtAction === 'unlabeled' && context.payload.label && context.payload.label.name && context.payload.label.name.startsWith('status:')) {
-              core.info(`[Layer 5] status:* removal short-circuit (label=${context.payload.label.name}) — owner verdict, not L5 trigger (Issue #675 TC1)`);
+              core.info(`silent_skip event=status-removal-short-circuit layer=5 number=${number} label=${context.payload.label.name} issue=675-tc1 message="status:* removal — owner verdict, not L5 trigger"`);
               return;
             }
 
@@ -528,7 +528,7 @@ jobs:
             // variant — sister-pattern to existing 'adr-0012-status-ready-gating-skip').
             // ------------------------------------------------------------------
             if (context.payload.pull_request && context.payload.pull_request.draft === true) {
-              core.info(`[Layer 5] DRAFT PR #${number} — skip-guard fired (Issue #680 amendment #2). DRAFT PRs skip ALL status:ready auto-add for all types (amendment #3 — type-driven table DRAFT row extension, DRAFT PRs skip auto-add).`);
+              core.info(`silent_skip event=draft-pr-skip-guard layer=5 number=${number} issue=680-amendment-2 message="DRAFT PR #${number} — skip-guard fired. DRAFT PRs skip ALL status:ready auto-add for all types (amendment #3 — type-driven table DRAFT row extension)."`);
               console.log(`[Layer 5 audit] adr-0012-status-ready-gating-draft-skip: PR=#${number} type=${type || '(none)'} agent=${agent || '(none)'} (Issue #680 DRAFT skip-guard, amendment #4 audit marker)`);
               return;
             }
@@ -627,7 +627,7 @@ jobs:
               } else {
                 await github.rest.issues.createComment({ owner, repo, issue_number: number, body: reversalBody });
               }
-              core.info(`✅ Layer 5 reversal: removed status:ready from PR #${number} (needs-tester-signoff re-added).`);
+              core.info(`reversal event=layer-5-tc4 number=${number} removed=status:ready added=needs-tester-signoff message="Layer 5 reversal: removed status:ready from PR #${number} (needs-tester-signoff re-added)"`);
               return;
             }
 
@@ -783,7 +783,7 @@ jobs:
               } else {
                 await github.rest.issues.createComment({ owner, repo, issue_number: number, body: skipBody });
               }
-              core.info(`⏭️ Layer 5 silent-skip on PR #${number}: ${skipReason}`);
+              core.info(`silent_skip event=layer-5-skip number=${number} reason="${skipReason}" message="Layer 5 silent-skip on PR #${number}: ${skipReason}"`);
               return;
             }
 
