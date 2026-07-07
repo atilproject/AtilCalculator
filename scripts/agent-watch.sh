@@ -1416,7 +1416,11 @@ query_board_changes() {
   # the processed_event_ids dedup catches; only net changes to the label set
   # produce a new event.
   # RCA-19 / ADR-0036: orchestrator event ID also role-scoped for consistency.
-  gh issue list \
+  # Issue #862 fix: capture gh output into _q (matches 7 sister call sites L590,
+  # L630, L669, L698, L1044, L1103, L1396). Bare `gh issue list` with no capture
+  # would leak `_q: unbound variable` under `set -u` (line 138) AND the outer
+  # `add | unique_by(.id)` would collapse raw gh entries (no .id) to 1 most-recent.
+  gh_all_repos _q gh issue list \
     --state all \
     --limit 50 \
     --json number,title,url,updatedAt,labels,state
