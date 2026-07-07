@@ -134,7 +134,7 @@ preflight() {
     fail "gh CLI is not authenticated. Run: gh auth login"
   fi
 
-  [ -d "$REPO_ROOT/.git" ] || fail "REPO_ROOT is not a git repository: $REPO_ROOT"
+  git -C "$REPO_ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "REPO_ROOT is not a git repository: $REPO_ROOT"
 
   ok "preflight passed"
 }
