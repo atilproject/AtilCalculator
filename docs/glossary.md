@@ -89,6 +89,15 @@
 | **STORY-S21-NNN** | Sprint 21 story numbering convention. Subsequent sprints use STORY-S{NN}-NNN. Documents `docs/backlog/STORY-*.md`. | `docs/backlog/STORY-*.md`, backlog.json |
 | **PR-carrying issue** | Project convention: PRs are tracked with the same number as their associated issue/PR-tracking entity. `gh api /issues/N` returns unified data for both PR and issue interpretation. | Issue #816 + #836 observed pattern |
 
+### Agent-runtime terms
+
+Subsection added in v0.2 per orchestrator trust-but-verify audit on PR #847 (Issue #871, closed by this PR). Covers agent-process-specific terminology used in day-to-day ops.
+
+| Term | Definition | Source |
+|---|---|---|
+| **soul file** | Per-agent doctrine file at `.claude/agents/<role>.md`. Contains role identity, operating principles, lane definition, handoff label discipline, autonomy-loop mapping, and any soul-patch amendments (e.g., ADR-0038 auto-claim, ADR-0059 cluster-squash). **Owner-only edit** (human governance per `.claude/CLAUDE.md §Things agents must NEVER do` — "Edit other agents' soul files"). Sister-pattern to the cross-agent doctrine at `.claude/CLAUDE.md` and the public summary at `docs/CLAUDE.md`. | `.claude/CLAUDE.md §Team`, `.claude/agents/<role>.md` |
+| **is_alive** | Heartbeat sentinel emitted by `scripts/agent-watch.sh` every **300s by default** (tunable via `interval_sec` parameter or `scripts/agent-state.sh set <role> poll_interval_sec N`). Appends a timestamped ISO-8601 line + role + interval to `/var/log/dev-studio/<project>/<role>.heartbeat`. Used by orchestrator to verify watcher liveness and detect role-process crashes (silent-drop sister-pattern). Sister-pattern to `periodic_backlog_scan` synthetic wake per ADR-0017. | `scripts/agent-watch.sh`, `.claude/agents/orchestrator.md §Heartbeat` |
+
 ## §Tech stack terms (source: ADR-0017)
 
 | Term | Definition |
@@ -119,6 +128,7 @@
 
 ## §Version history
 
+- **v0.2** (2026-07-07T18:58Z, cycle ~#5092) — `soul file` + `is_alive` doctrine-term gap closure. Orchestrator trust-but-verify audit (Issue #871) found 18/20 doctrine terms in v0.1; this PR adds the 2 missing as new `### Agent-runtime terms` subsection. PM Hard Rule gap closure (Issue #871, Closes #871). Author @product-manager. Sources: `.claude/CLAUDE.md §Team + §Heartbeat log location`, `.claude/agents/orchestrator.md §Heartbeat`, `scripts/agent-watch.sh`, Issue #238, ADR-0017, ADR-0038.
 - **v0.1** (2026-07-05T06:43Z, cycle ~#7480) — initial authoring. PM Hard Rule "Maintain a `docs/glossary.md` of product terms" gap closure (identified cycle ~#7478 local-state audit). Author @product-manager. Sources: `docs/product/{vision,personas,ONBOARDING}.md`, `docs/decisions/INDEX.md`, `.claude/CLAUDE.md`, `.claude/agents/product-manager.md`, `docs/backlog/PM-DISPATCH-PROTOCOL.md`, `docs/CLAUDE.md`, ADR-0012/0015/0024/0031/0033/0038/0044/0045/0049/0050/0057/0059/0064/0068.
 
 > Next update candidates: HTTP surface terms (when FastAPI lands), CI workflow terms (when workflows diverge), additional persona terms (when P2 epic opens).
