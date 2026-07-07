@@ -4,7 +4,7 @@
 > **PM Hard Rule**: "Maintain a `docs/glossary.md` of product terms" — this document closes that gap (identified in cycle ~#7478 local-state audit, authored cycle ~#7480).
 > **Author**: @product-manager (cycle ~#7480, 2026-07-05T06:43Z).
 > **Update cadence**: as-needed when new terms enter the project vocabulary; sister-pattern to ONBOARDING.md, vision.md, personas.md.
-> **Cross-refs**: [`docs/product/vision.md`](./vision.md), [`docs/product/personas.md`](./personas.md), [`docs/product/ONBOARDING.md`](./ONBOARDING.md), [`docs/decisions/INDEX.md`](../decisions/INDEX.md), [`.claude/CLAUDE.md`](../../.claude/CLAUDE.md).
+> **Cross-refs**: [`docs/product/vision.md`](product/vision.md), [`docs/product/personas.md`](product/personas.md), [`docs/product/ONBOARDING.md`](product/ONBOARDING.md), [`docs/decisions/INDEX.md`](decisions/INDEX.md), [`.claude/CLAUDE.md`](../.claude/CLAUDE.md).
 
 ## §Product terms (AtilCalculator-specific)
 
