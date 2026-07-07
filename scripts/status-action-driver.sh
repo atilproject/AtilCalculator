@@ -57,6 +57,15 @@ NOTIFY_SH="$SCRIPT_DIR/notify.sh"
 # 257c57a (cross-repo-{scan,close}.sh). Best-effort; missing env-file is OK.
 [ -f "${HOME}/.dev-studio-env" ] && . "${HOME}/.dev-studio-env" 2>/dev/null || true
 
+# silent-skip guard per ADR-0045 lens (d) and Issue #642 §Out of scope: emit
+# structured event when GITHUB_OWNER or GITHUB_REPO is unset, so the soft
+# fall-through (GITHUB_REPO_URL/HEARTBEAT_DIR malformed to "https://github.com//"
+# and "/var/log/dev-studio/") is observable rather than silent. Arch 9-Lens
+# (d) follow-up on PR #873.
+if [ -z "${GITHUB_OWNER:-}" ] || [ -z "${GITHUB_REPO:-}" ]; then
+  echo "silent_skip event=status-driver-env-empty layer=2 reason=no-env-or-env-file message=\"GITHUB_REPO_URL/HEARTBEAT_DIR will be malformed until ~/.dev-studio-env is populated\"" >&2
+fi
+
 # Derive project-scoped URLs/paths from env-vars — no hardcoded literals.
 # Clone projects get the right URLs because their dev-studio-init.sh wrote
 # the env-file; this script does NOT redeclare the literal.
