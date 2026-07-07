@@ -141,19 +141,32 @@ echo "[]"
 FAKE_GH_EOF
 chmod +x "$FAKE_BIN/gh"
 
-# Extract query_board_changes function from agent-watch.sh
-# Use awk to extract lines from `^query_board_changes()` to the closing `^}`.
+# Extract BOTH query_board_changes AND gh_all_repos from agent-watch.sh.
+# The dev's fix at line 1423 (matches 7 sister call sites L590, L630, L669, L698,
+# L1044, L1103, L1396) replaces bare `gh issue list` with `gh_all_repos _q gh issue list`.
+# gh_all_repos is defined at L290-305 (close sibling in same file), so the fixture
+# needs to source it too — otherwise the post-fix invocation emits
+# 'gh_all_repos: command not found' on stderr, masking the real `_q: unbound variable`
+# pathology that RED-state captures.
 EXTRACTED_FUNC="$TEST_TMPDIR/query_board_changes.sh"
 awk '/^query_board_changes\(\) \{/,/^\}/' "$WATCH_SH" > "$EXTRACTED_FUNC"
 
-# Sanity check extraction
+GH_ALL_REPOS_FUNC="$TEST_TMPDIR/gh_all_repos.sh"
+awk '/^gh_all_repos\(\) \{/,/^\}/' "$WATCH_SH" > "$GH_ALL_REPOS_FUNC"
+
+# Sanity check extraction (both functions required for GREEN state)
 if [ ! -s "$EXTRACTED_FUNC" ]; then
   fail "TC3 — could not extract query_board_changes from agent-watch.sh" \
     "expected function definition lines 1384-1433; extraction empty (file structure changed?)"
   exit 1
 fi
+if [ ! -s "$GH_ALL_REPOS_FUNC" ]; then
+  fail "TC3 — could not extract gh_all_repos from agent-watch.sh" \
+    "expected function definition lines 286-305; extraction empty (file structure changed?)"
+  exit 1
+fi
 
-# Source the function with required globals set, run the FULL outer pipeline that the
+# Source both functions with required globals set, run the FULL outer pipeline that the
 # orchestrator uses (board="$(query_board_changes)" + jq -s 'add | unique_by(.id)').
 STDERR_FILE="$TEST_TMPDIR/stderr_capture.txt"
 STDOUT_FILE="$TEST_TMPDIR/stdout_capture.txt"
@@ -163,7 +176,11 @@ STDOUT_FILE="$TEST_TMPDIR/stdout_capture.txt"
   export LAST_SEEN="2000-01-01T00:00:00Z"
   export REPO="atilcan65/AtilCalculator"
   # shellcheck disable=SC1090
+  # Source gh_all_repos first (line 290), then query_board_changes (line 1384), then
+  # populate REPOS[] (required by gh_all_repos, line 295).
+  source "$GH_ALL_REPOS_FUNC"
   source "$EXTRACTED_FUNC"
+  REPOS=("$REPO")
   # Simulate the full outer pipeline that orchestrator's poll_once runs:
   #   board="$(query_board_changes)"
   #   echo "$board" | jq -s 'add | unique_by(.id)'
