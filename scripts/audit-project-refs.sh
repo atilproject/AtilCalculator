@@ -74,13 +74,22 @@ EXCLUDE_PATTERNS=(
   ':!audit-project-refs.sh'  # self-reference
 )
 
-cd "$TARGET_DIR"
+cd "$TARGET_DIR" || exit 2
 HIT_COUNT=0
 HITS=""
 
+# Resolve TARGET_DIR to absolute path so pathspec works regardless of cwd
+# (git grep pathspec is relative to repo root, not cwd; without absolute,
+# a relative "scripts/" arg combined with cwd=scripts/ would double-nest.)
+TARGET_DIR_ABS="$(cd "$TARGET_DIR" 2>/dev/null && pwd -P || echo "$TARGET_DIR")"
+
 # Iterate patterns and aggregate hits via git ls-files (tracked files only — Story spec)
+# Issue #642 hardening: scope grep to TARGET_DIR (was: whole-repo, which made
+# TC1 in d642-scripts-parameterized fail on legit scripts/ runs because hits in
+# docs/, .github/, etc. inflated the count). Sister-pattern to d105 d-test which
+# uses isolated fixture repos (whole-repo grep was OK there).
 for pattern in "${PATTERNS[@]}"; do
-  raw=$(git grep -nIE "$pattern" -- "${EXCLUDE_PATTERNS[@]}" 2>/dev/null || true)
+  raw=$(git grep -nIE "$pattern" -- "$TARGET_DIR_ABS" "${EXCLUDE_PATTERNS[@]}" 2>/dev/null || true)
   if [ -n "$raw" ]; then
     HIT_COUNT=$((HIT_COUNT + $(echo "$raw" | wc -l)))
     HITS="${HITS}${raw}\n"
