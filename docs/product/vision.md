@@ -103,6 +103,40 @@ These are the items PM needs an answer on (or has flagged for a follow-up) befor
 - [ ] **@architect** — Persistence layer (SQLite vs flat file vs nothing) — when does this become an ADR? Likely Sprint 2, not Sprint 1. → architect
 - [ ] **@architect** — VM hardening story (SSH key auth, `ufw`, `fail2ban`, password-auth off) — this is a Sprint 0/Sprint 1 ops story, separate from engine code. Who owns it — `@developer` (closest to the VM) or a dedicated "ops" agent? → architect + orchestrator
 
+## Template v1.0 GA Scope
+
+> **Source**: [Issue #867 PM consultation](https://github.com/atilcan65/AtilCalculator/issues/867) — 2026-07-07 PM advisory, cycle #47 (cmt 4903335857). This section was added BEFORE the v1.0.0 cut to set adopter expectations correctly.
+
+Per the orchestrator-led Template v1.0.0 GA release path, this project's (`AtilCalculator`) **template** release scope is:
+
+- **v1.0 = single-repo template** (AtilCalculator as the bootstrap canary). v1.0 enables `git clone` + `bash scripts/dev-studio-init.sh` to bootstrap a new single-repo Python project on Ubuntu 24.04 LTS. Includes:
+  - `dev-studio-init.sh` and `dev-studio-start.sh` (template renderer + agent launchers)
+  - `agent-watch.sh` autonomy loop (ADR-0002)
+  - `claim-next-ready.sh` (ADR-0038 §Layer 2 atomic claim)
+  - 4-cat label invariant + atomic hand-off (ADR-0012 / ADR-0015)
+  - RED-first TDD d-test framework (ADR-0044 / ADR-0049)
+  - 9-Lens pre-publish gate (ADR-0045)
+  - 60+ ADRs in `docs/decisions/`
+  - Persona/vision cycle + RETRO ritual + `docs/product/glossary.md` (this release)
+
+- **v1.1 = PIVOT infrastructure (deferred)**. Sprint 22 PIVOT 5-Phase Plan introduces: org-runner (self-hosted GitHub Actions), 3-repo org migration (template + canary + adopter), multi-repo coordination. v1.0 adopters do **NOT** get PIVOT — they get the single-repo template only.
+
+- **Out-of-MVP for v1.0** (must wait until v1.1):
+  - Org-wide automation
+  - Multi-repo coordination
+  - Canary mirror auto-population
+  - Cross-project integration with other AtilCalculator-template siblings
+
+**Why this section matters**: Without an explicit v1.0/v1.1 scope statement, downstream adopters of the v1.0.0 template release are likely to mis-scope expectations and file P0/P1 bug reports against "missing" PIVOT features in Sprint 25+. This paragraph is the upstream clarification.
+
+**References**:
+- [Issue #867](https://github.com/atilcan65/AtilCalculator/issues/867) — PM consultation, owner advisory request
+- [Issue #642](https://github.com/atilcan65/AtilCalculator/issues/642) — STORY-S21-010 Scripts Parameterized (must-ship in v1.0)
+- [Issue #566](https://github.com/atilcan65/AtilCalculator/issues/566) — SHA-pin + audit trail + silent-skip log (must-ship in v1.0)
+- [PR #847](https://github.com/atilcan65/AtilCalculator/pull/847) + [PR #865](https://github.com/atilcan65/AtilCalculator/pull/865) — glossary cluster (must-ship in v1.0)
+
+---
+
 ## PM Next Steps
 
 1. **Open a docs PR** with this `vision.md`, `personas.md`, and the initial `docs/backlog.json` (empty, awaiting Sprint 1 grooming after the architect ADR settles).
@@ -115,4 +149,5 @@ These are the items PM needs an answer on (or has flagged for a follow-up) befor
 
 ## Change Log
 
+- **2026-07-07** — Added §Template v1.0 GA Scope per PM advisory on [Issue #867](https://github.com/atilcan65/AtilCalculator/issues/867) cycle #47 (cmt 4903335857). Scope clarification: v1.0 = single-repo template, v1.1 = PIVOT infrastructure (Sprint 22 5-Phase Plan deferred). Adopter expectation setting for downstream clones.
 - **2026-06-17** — Initial draft. PM-canonicalised from [Issue #4](https://github.com/atilcan65/AtilCalculator/issues/4). Awaiting owner review.
