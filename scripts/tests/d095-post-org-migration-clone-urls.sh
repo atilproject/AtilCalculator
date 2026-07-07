@@ -60,8 +60,12 @@ SCRIPTS_DIR="${REPO_ROOT}/scripts"
 TESTS_DIR="${REPO_ROOT}/scripts/tests"
 
 # Category A: functional scripts (MIGRATE scope — sprint 22 PIVOT Faz 2.4)
+# Category A: functional scripts (MIGRATE scope — sprint 22 PIVOT Faz 2.4)
+# These reference atilproject/AtilCalculator in the current project context.
+# NOTE: cross-repo-close.sh is intentionally excluded (Issue #872 design-drift #6
+# follow-up) — by its nature it's a CROSS-repo script, operating on other projects
+# via $REPO env var, so it does not need to reference the current project.
 CATEGORY_A_SCRIPTS=(
-  "${SCRIPTS_DIR}/cross-repo-close.sh"
   "${SCRIPTS_DIR}/cross-repo-scan.sh"
   "${SCRIPTS_DIR}/agent-watch.sh"
   "${SCRIPTS_DIR}/status-action-driver.sh"
@@ -174,21 +178,29 @@ fi
 
 # ============================================================================
 # TC3: POSITIVE — Category A functional scripts MUST reference atilproject/AtilCalculator
+#         OR derive via GITHUB_REPO_URL/GITHUB_REPO env-var (parameterization-friendly)
 # ============================================================================
+# Issue #872 design-drift #6 MEDIUM: after PR #873 parameterization, 2 scripts
+# (cross-repo-close.sh, status-action-driver.sh) no longer contain the literal
+# atilproject/AtilCalculator — they derive the URL via ${GITHUB_REPO_URL} from
+# ~/.dev-studio-env (project-agnostic). TC3 should accept either the literal
+# (legacy URLs in USAGE help) OR the env-var derivation (parameterized URLs).
 section "TC3: AC3 — Category A functional scripts reference atilproject/AtilCalculator (positive)"
 TC3_MISSING_FILES=()
 for script in "${CATEGORY_A_SCRIPTS[@]}"; do
-  if ! grep -qE "${NEW_ORG}/AtilCalculator" "$script"; then
+  # Accept: literal atilproject/AtilCalculator OR env-var derivation (GITHUB_REPO_URL,
+  # GITHUB_REPO, GITHUB_OWNER) — both prove the script is using NEW_ORG/AtilCalculator context.
+  if ! grep -qE "${NEW_ORG}/AtilCalculator|GITHUB_REPO_URL|GITHUB_REPO=|GITHUB_OWNER=" "$script"; then
     TC3_MISSING_FILES+=("$(basename "$script")")
   fi
 done
 
 if [ "${#TC3_MISSING_FILES[@]}" -eq 0 ]; then
-  pass "TC3 — all ${#CATEGORY_A_SCRIPTS[@]} Category A functional scripts reference ${NEW_ORG}/AtilCalculator"
+  pass "TC3 — all ${#CATEGORY_A_SCRIPTS[@]} Category A functional scripts reference ${NEW_ORG}/AtilCalculator (literal or env-var)"
 else
   FILE_LIST=$(IFS=', '; echo "${TC3_MISSING_FILES[*]}")
   fail "TC3 — ${#TC3_MISSING_FILES[@]} Category A scripts missing ${NEW_ORG}/AtilCalculator ref: ${FILE_LIST}" \
-    "expected all Category A scripts to have at least one ${NEW_ORG}/AtilCalculator reference post-Faz-2.4."
+    "expected all Category A scripts to have at least one ${NEW_ORG}/AtilCalculator reference (literal or via GITHUB_REPO_URL/GITHUB_REPO env-var) post-Faz-2.4."
   EXIT_CODE=1
 fi
 
