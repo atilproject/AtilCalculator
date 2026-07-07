@@ -51,7 +51,27 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 NOTIFY_SH="$SCRIPT_DIR/notify.sh"
-HEARTBEAT="${HEARTBEAT:-/var/log/dev-studio/AtilCalculator/orchestrator.heartbeat}"
+
+# Source ~/.dev-studio-env (AC3 contract from STORY-S21-010 / Issue #642) —
+# sister-pattern to e48dd96 (agent-watch.sh), 99bb1c5 (init-template-repo.sh),
+# 257c57a (cross-repo-{scan,close}.sh). Best-effort; missing env-file is OK.
+[ -f "${HOME}/.dev-studio-env" ] && . "${HOME}/.dev-studio-env" 2>/dev/null || true
+
+# silent-skip guard per ADR-0045 lens (d) and Issue #642 §Out of scope: emit
+# structured event when GITHUB_OWNER or GITHUB_REPO is unset, so the soft
+# fall-through (GITHUB_REPO_URL/HEARTBEAT_DIR malformed to "https://github.com//"
+# and "/var/log/dev-studio/") is observable rather than silent. Arch 9-Lens
+# (d) follow-up on PR #873.
+if [ -z "${GITHUB_OWNER:-}" ] || [ -z "${GITHUB_REPO:-}" ]; then
+  echo "silent_skip event=status-driver-env-empty layer=2 reason=no-env-or-env-file message=\"GITHUB_REPO_URL/HEARTBEAT_DIR will be malformed until ~/.dev-studio-env is populated\"" >&2
+fi
+
+# Derive project-scoped URLs/paths from env-vars — no hardcoded literals.
+# Clone projects get the right URLs because their dev-studio-init.sh wrote
+# the env-file; this script does NOT redeclare the literal.
+: "${GITHUB_REPO_URL:=https://github.com/${GITHUB_OWNER:-}/${GITHUB_REPO:-}}"
+: "${HEARTBEAT_DIR:=/var/log/dev-studio/${GITHUB_REPO:-}}"
+HEARTBEAT="${HEARTBEAT:-${HEARTBEAT_DIR}/orchestrator.heartbeat}"
 
 # ---------- CLI parsing ----------
 DRY_RUN=false
@@ -186,7 +206,7 @@ if [ "$BLOCKERS_COUNT" -ge 1 ]; then
   if echo "$BLOCKERS_TEXT" | grep -Eq '\bP[01]\b'; then
     SEVERITY="$(echo "$BLOCKERS_TEXT" | grep -Eo '\bP[01]\b' | head -1)"
     PING_TEXT="[ORCH→HUMAN] STATUS-derived: ${SEVERITY} blocker — ${BLOCKERS_TEXT}
-https://github.com/atilproject/AtilCalculator
+${GITHUB_REPO_URL}
 Detected from orchestrator STATUS block. Conservative trigger per issue #45 PM caveat."
     APPEND_ACTION "blocker_escalation" "1" "human" \
       "Blockers: ${BLOCKERS_COUNT} ${BLOCKERS_TEXT}" \
@@ -202,7 +222,7 @@ if [ "$ENABLE_PHASE2" = true ]; then
     IN_PROGRESS_COUNT="$(gh issue list --state open --label 'status:in-progress' --json number --jq 'length' 2>/dev/null || echo 0)"
     if [ "${IN_PROGRESS_COUNT:-0}" -ge 1 ]; then
       PING_TEXT="[ORCH→ALL] STATUS-derived: idle team (${ACTIVE_COUNT} agents listed) + ${IN_PROGRESS_COUNT} in-progress issues
-https://github.com/atilproject/AtilCalculator
+${GITHUB_REPO_URL}
 Phase-2 trigger. Flag-gated; enable only after 1 sprint dry-run per issue #45 PM caveat."
       APPEND_ACTION "idle_team_ping" "2" "all" \
         "Active agents: ${ACTIVE_COUNT} + open in-progress: ${IN_PROGRESS_COUNT}" \

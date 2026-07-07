@@ -50,11 +50,24 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PEER_POKE_SH="$SCRIPT_DIR/peer-poke.sh"
 
 # --- defaults ---
-DEFAULT_REPOS="atilproject/AtilCalculator,atilproject/dev-studio-template"
+# Sister-pattern to scripts/agent-watch.sh (e48dd96) and init-template-repo.sh
+# (99bb1c5): no hardcoded repo default. Source ~/.dev-studio-env first (AC3
+# contract from STORY-S21-010 / c638208), then derive from AGENT_CROSS_REPOS
+# or GITHUB_REPO env var.
+[ -f "${HOME}/.dev-studio-env" ] && . "${HOME}/.dev-studio-env" 2>/dev/null || true
+# silent-skip guard per ADR-0045 lens (d) and Issue #642 §Out of scope: emit
+# structured event when neither AGENT_CROSS_REPOS nor GITHUB_REPO is set, so
+# the soft-fall-through is observable rather than silent. Arch 9-Lens (d)
+# follow-up on PR #873.
+if [ -z "${AGENT_CROSS_REPOS:-}" ] && [ -z "${GITHUB_REPO:-}" ]; then
+  echo "silent_skip event=cross-repo-repos-empty layer=2 reason=no-env-or-env-file message=\"REPOS_RAW will be empty; scan no-ops until AGENT_CROSS_REPOS or GITHUB_REPO is set\"" >&2
+fi
+DEFAULT_REPOS=""
 KNOWN_ROLES="orchestrator product-manager architect developer tester human"
 
 # --- env / config ---
 MODE="${1:---once}"
+: "${AGENT_CROSS_REPOS:=${GITHUB_REPO:-}}"
 REPOS_RAW="${AGENT_CROSS_REPOS:-$DEFAULT_REPOS}"
 INTERVAL="${CROSS_REPO_SCAN_INTERVAL_SEC:-300}"
 
