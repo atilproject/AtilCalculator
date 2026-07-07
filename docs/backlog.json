@@ -1,6 +1,132 @@
 {
   "stories": [
     {
+      "id": "DEPLOY-001",
+      "title": "Trigger pipeline (.github/workflows/deploy.yml + scripts/deploy-runner.sh)",
+      "priority": "P0",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "tester"
+      ],
+      "story_points_proposed": 3,
+      "depends_on": [
+        "ADR-0027 (Accepted via PR #128 merge 2026-06-19T18:41:26Z)",
+        "DEPLOY-002 (secrets must exist before workflow can reference them)"
+      ],
+      "blocks": [
+        "Sprint 3+ feature work (any change to main without auto-deploy re-creates the prod-liveness gap)"
+      ],
+      "issue_pending": "PM to open at Sprint 3 kickoff",
+      "sprint": "Sprint 3",
+      "sprint_story_doc_pending": "docs/backlog/DEPLOY-001.md (PM to draft after Sprint 3 PM PR merges)",
+      "vision_metrics": [
+        "M2",
+        "M4"
+      ],
+      "notes": "Sprint 3 PM-groomed candidate (Issue #127 + ADR-0027). Owner gate: workflow-file approval per CLAUDE.md §File ownership matrix. appleboy/ssh-action (SHA-pinned) vs direct ssh command — owner preference flagged in ADR-0027 §Open questions.",
+      "v1_0_0_scope": "IN"
+    },
+    {
+      "id": "DEPLOY-002",
+      "title": "Secret wiring (DEPLOY_SSH_KEY + DEPLOY_HOST + DEPLOY_USER repo secrets)",
+      "priority": "P0",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "tester"
+      ],
+      "story_points_proposed": 2,
+      "depends_on": [
+        "ADR-0027 (Accepted)",
+        "ADR-0014 (PROJECT_TOKEN repo-secret precedent)"
+      ],
+      "blocks": [
+        "DEPLOY-001 (workflow references the secrets — without secrets, workflow fails)"
+      ],
+      "issue_pending": "PM to open at Sprint 3 kickoff",
+      "sprint": "Sprint 3",
+      "sprint_story_doc_pending": "docs/backlog/DEPLOY-002.md (PM to draft after Sprint 3 PM PR merges)",
+      "vision_metrics": [
+        "M2 (operational — enables deploy pipeline)"
+      ],
+      "notes": "Sprint 3 PM-groomed candidate. Owner gate: ed25519 keypair generation + authorized_keys + repo secret storage. Manual quarterly rotation per ADR-0027 §Decision.4.",
+      "v1_0_0_scope": "IN"
+    },
+    {
+      "id": "DEPLOY-003",
+      "title": "GET /healthz + smoke test + auto-rollback",
+      "priority": "P0",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "tester"
+      ],
+      "story_points_proposed": 3,
+      "depends_on": [
+        "ADR-0027 (Accepted)",
+        "ADR-0019 §HTTP API contract (Accepted — new endpoint extends the API surface)",
+        "DEPLOY-001 (smoke test runs in the workflow)",
+        "DEPLOY-002 (workflow uses secrets to SSH)"
+      ],
+      "blocks": [
+        "Sprint 3+ production hardening (no auto-rollback = regressions stay live)"
+      ],
+      "issue_pending": "PM to open at Sprint 3 kickoff",
+      "sprint": "Sprint 3",
+      "sprint_story_doc_pending": "docs/backlog/DEPLOY-003.md (PM to draft after Sprint 3 PM PR merges)",
+      "vision_metrics": [
+        "M2 (lower friction — owner trusts auto-deploy because rollback is automatic)"
+      ],
+      "notes": "Sprint 3 PM-groomed candidate. New GET /healthz endpoint with git_sha introspection. ADR-0019 amend-3 may be needed (architect's call at sizing). Auto-rollback on smoke-test failure per ADR-0027 §Decision.3.",
+      "v1_0_0_scope": "IN"
+    },
+    {
+      "id": "DEPLOY-004",
+      "title": "scripts/deploy-status.sh audit query (last deploy SHA, time, status)",
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "tester"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "DEPLOY-001 (deploy-marker file written by workflow)",
+        "DEPLOY-003 (healthz endpoint available for live status check)"
+      ],
+      "blocks": [],
+      "issue_pending": "PM to open at Sprint 3 kickoff (lower priority — can defer to Sprint 4)",
+      "sprint": "Sprint 3",
+      "sprint_story_doc_pending": "docs/backlog/DEPLOY-004.md (PM to draft after Sprint 3 PM PR merges)",
+      "vision_metrics": [],
+      "notes": "Sprint 3 PM-groomed OPTIONAL candidate. ADR-0027 §Decision.6 observability closure. CLI audit query — owner-self-service.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1"
+    },
+    {
+      "id": "RETRO-003",
+      "title": "Sprint 2 retrospective (PM drafts retro input, orchestrator publishes)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "orchestrator",
+      "cc": [
+        "product-manager"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "Sprint 2 P1 fully shipped (DONE — 2026-06-19T18:33:04Z via PR #122)",
+        "ADR-0023 PM review pass (open question flagged on PR #128 / #122 comment thread)"
+      ],
+      "blocks": [
+        "Sprint 3 kickoff ceremony (per Sprint 2 DoD #4)",
+        "Issue #48 unblock (per Sprint 1 retro — gate is Sprint 1+2 retro written)"
+      ],
+      "sprint": "Sprint 3",
+      "vision_metrics": [],
+      "notes": "Ceremony doc. PM drafts retro input; orchestrator publishes final retrospective.md. Should cover: PR #62 chronic re-fire loop resolution, ADR-driven design culture, owner-impl pattern (validated 6x in Sprint 2), branch contamination fix on PR #122, ADR-0023 PM review gap.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1"
+    },
+    {
       "id": "STORY-001",
       "title": "VM hardening",
       "issue": 15,
@@ -18,7 +144,8 @@
       ],
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/15",
       "merged_pr": "https://github.com/atilcan65/AtilCalculator/pull/40",
-      "notes": "Sprint 1 DONE — dev deliverable shipped (PR #40 merge 2026-06-17T21:14:04Z). Owner apply step on 192.168.1.199 pending (post-Sprint-1)."
+      "notes": "Sprint 1 DONE — dev deliverable shipped (PR #40 merge 2026-06-17T21:14:04Z). Owner apply step on 192.168.1.199 pending (post-Sprint-1).",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-002",
@@ -38,7 +165,8 @@
       ],
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/16",
       "merged_pr": "https://github.com/atilcan65/AtilCalculator/pull/26",
-      "notes": "Sprint 1 DONE — engine module merged via PR #26 (commit be90555, 2026-06-17T19:01:47Z). M1 acceptance (0.1+0.2 = 0.3) green. Extended in Sprint 2 by STORY-011 (transcendentals + factorial + DomainError via PR #117)."
+      "notes": "Sprint 1 DONE — engine module merged via PR #26 (commit be90555, 2026-06-17T19:01:47Z). M1 acceptance (0.1+0.2 = 0.3) green. Extended in Sprint 2 by STORY-011 (transcendentals + factorial + DomainError via PR #117).",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-003",
@@ -63,7 +191,8 @@
         "https://github.com/atilcan65/AtilCalculator/pull/42 (STORY-003a web shell core, 2026-06-18T04:37:00Z)",
         "https://github.com/atilcan65/AtilCalculator/pull/49 (STORY-003b deferred components + E2E + LAN-bind, 2026-06-18T11:54:53Z)"
       ],
-      "notes": "Sprint 1 DONE — split into STORY-003a (5 SP) + STORY-003b (3 SP), both shipped. M3 acceptance (keyboard-only) green. Family tracker #17 closable by orchestrator."
+      "notes": "Sprint 1 DONE — split into STORY-003a (5 SP) + STORY-003b (3 SP), both shipped. M3 acceptance (keyboard-only) green. Family tracker #17 closable by orchestrator.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-003a",
@@ -85,7 +214,8 @@
       ],
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/30",
       "merged_pr": "https://github.com/atilcan65/AtilCalculator/pull/42",
-      "notes": "Sprint 1 DONE — merged 2026-06-18T04:37:00Z. Includes d007 observability (issue #35). 65 contract tests green."
+      "notes": "Sprint 1 DONE — merged 2026-06-18T04:37:00Z. Includes d007 observability (issue #35). 65 contract tests green.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-003b",
@@ -106,7 +236,8 @@
       ],
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/31",
       "merged_pr": "https://github.com/atilcan65/AtilCalculator/pull/49",
-      "notes": "Sprint 1 DONE — merged 2026-06-18T11:54:53Z. Playwright E2E + LAN-bind green."
+      "notes": "Sprint 1 DONE — merged 2026-06-18T11:54:53Z. Playwright E2E + LAN-bind green.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-004",
@@ -128,7 +259,8 @@
       "merged_pr": "https://github.com/atilcan65/AtilCalculator/pull/13",
       "pm_verdict": "APPROVE (see PR #13 comment 2026-06-17 15:24 UTC)",
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/18",
-      "notes": "Sprint 1 DONE — vanilla JS + Web Components selected via ADR-0018 (PR #13 merged 2026-06-17T17:19:13Z). R-1 housekeeping flipped to Accepted at commit 9241d76."
+      "notes": "Sprint 1 DONE — vanilla JS + Web Components selected via ADR-0018 (PR #13 merged 2026-06-17T17:19:13Z). R-1 housekeeping flipped to Accepted at commit 9241d76.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-005",
@@ -146,7 +278,8 @@
       "blocks": [],
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/20",
       "merged_pr": "https://github.com/atilcan65/AtilCalculator/pull/36",
-      "notes": "Sprint 1 DONE — design shipped via PR #36 (merged 2026-06-17T20:09:39Z). Option C implementation cancelled by owner via Issue #38. Superseded by ADR-0024 verdict-by:<ts> schema (PR #108 + PR #98) in Sprint 2."
+      "notes": "Sprint 1 DONE — design shipped via PR #36 (merged 2026-06-17T20:09:39Z). Option C implementation cancelled by owner via Issue #38. Superseded by ADR-0024 verdict-by:<ts> schema (PR #108 + PR #98) in Sprint 2.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-006",
@@ -166,7 +299,8 @@
       ],
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/19",
       "merged_pr": "https://github.com/atilcan65/AtilCalculator/pull/9",
-      "notes": "Sprint 1 DONE — content-hash ID fix shipped via PR #9. Dedup working in production."
+      "notes": "Sprint 1 DONE — content-hash ID fix shipped via PR #9. Dedup working in production.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-007",
@@ -194,7 +328,8 @@
         "M2 (stickiness)",
         "M5 (history perf)"
       ],
-      "notes": "Sprint 2 DONE — shipped via PR #88 (commit merged 2026-06-19, M5 acceptance green). ADR-0022 (formerly R-5 placeholder) Accepted with shared-SQLite backend per PM recommendation."
+      "notes": "Sprint 2 DONE — shipped via PR #88 (commit merged 2026-06-19, M5 acceptance green). ADR-0022 (formerly R-5 placeholder) Accepted with shared-SQLite backend per PM recommendation.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-008",
@@ -220,7 +355,8 @@
         "M2",
         "M5"
       ],
-      "notes": "Sprint 2 DONE — shipped via PR #111 (merged 2026-06-19T11:21:14Z, commit c5e0ac4). M5 perf budget (1000+ records substring search <100ms p95) green per PR #111 test results."
+      "notes": "Sprint 2 DONE — shipped via PR #111 (merged 2026-06-19T11:21:14Z, commit c5e0ac4). M5 perf budget (1000+ records substring search <100ms p95) green per PR #111 test results.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-009",
@@ -247,7 +383,8 @@
       "vision_metrics": [
         "M4 (skin transition)"
       ],
-      "notes": "Sprint 2 DONE — shipped via PR #112 (merged 2026-06-19, commit ccad569). 3 CSS skin files + auto-discovery + Idempotency-Key header per ADR-0019. MVP-1 partial was shipped earlier via PR #37 (now superseded by PR #112 full impl)."
+      "notes": "Sprint 2 DONE — shipped via PR #112 (merged 2026-06-19, commit ccad569). 3 CSS skin files + auto-discovery + Idempotency-Key header per ADR-0019. MVP-1 partial was shipped earlier via PR #37 (now superseded by PR #112 full impl).",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-010",
@@ -272,7 +409,8 @@
       "vision_metrics": [
         "M4 cross-device clause"
       ],
-      "notes": "Sprint 2 DONE — shipped via PR #118. SQLite-backed skin state in src/atilcalc/persistence/skin.py per ADR-0022. Cross-device sync via shared SQLite file (NFS-equivalent). Design open question (localStorage vs SQLite) resolved at sizing in favor of SQLite per M4 cross-device clause."
+      "notes": "Sprint 2 DONE — shipped via PR #118. SQLite-backed skin state in src/atilcalc/persistence/skin.py per ADR-0022. Cross-device sync via shared SQLite file (NFS-equivalent). Design open question (localStorage vs SQLite) resolved at sizing in favor of SQLite per M4 cross-device clause.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-011",
@@ -297,7 +435,8 @@
       "vision_metrics": [
         "M2 (broader workflows — scientific functions unlock trig/log use cases)"
       ],
-      "notes": "Sprint 2 DONE — shipped via PR #117. Engine + API surface for sin/cos/tan/log/ln/sqrt/factorial via mpmath==1.3.0. DomainError exception per ADR-0019 amend-2. Single-letter scientific handlers (s/c/t/l/n/r/!) added in PR #122 (STORY-012 follow-up). Vision §Open Questions Q3 (scientific functions placement) implicitly answered by Sprint 1 plan.md: 'Out of scope: Scientific functions — Sprint 2 per owner Q3 answer.'"
+      "notes": "Sprint 2 DONE — shipped via PR #117. Engine + API surface for sin/cos/tan/log/ln/sqrt/factorial via mpmath==1.3.0. DomainError exception per ADR-0019 amend-2. Single-letter scientific handlers (s/c/t/l/n/r/!) added in PR #122 (STORY-012 follow-up). Vision §Open Questions Q3 (scientific functions placement) implicitly answered by Sprint 1 plan.md: 'Out of scope: Scientific functions — Sprint 2 per owner Q3 answer.'",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-012",
@@ -323,7 +462,8 @@
       "vision_metrics": [
         "M2 (lower friction)"
       ],
-      "notes": "Sprint 2 DONE — shipped via PR #122 (merged 2026-06-19T18:33:04Z, commit 34f4073). All 5 ACs (README + USER-GUIDE + in-app help + shortcuts.js registry + markdown lint) green. ADR-0023 implementation shipped as part of this PR; status flip Proposed→Accepted is a small follow-up. Branch contamination fix mid-PR (re-branch from main) noted in PR #122 body — Sprint 2 retro item."
+      "notes": "Sprint 2 DONE — shipped via PR #122 (merged 2026-06-19T18:33:04Z, commit 34f4073). All 5 ACs (README + USER-GUIDE + in-app help + shortcuts.js registry + markdown lint) green. ADR-0023 implementation shipped as part of this PR; status flip Proposed→Accepted is a small follow-up. Branch contamination fix mid-PR (re-branch from main) noted in PR #122 body — Sprint 2 retro item.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-013",
@@ -346,167 +486,8 @@
       ],
       "blocks": [],
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/179",
-      "notes": "PM-authored 2026-06-20 from owner directive (chat). Defer to Sprint 5+ (Sprint 4 capacity is full at 18.5 SP per PR #178). PM rough estimate: 2 SP — engine parameter + HTTP wiring + history integration + test plan. 10 Gherkin ACs covering happy path + error edges + Decimal precision regression + audit-style history. Owner can amend AC8 (keyboard FSM space-handling) at sizing."
-    },
-    {
-      "id": "DEPLOY-001",
-      "title": "Trigger pipeline (.github/workflows/deploy.yml + scripts/deploy-runner.sh)",
-      "priority": "P0",
-      "status": "backlog",
-      "agent": "tester",
-      "cc": [
-        "tester"
-      ],
-      "story_points_proposed": 3,
-      "depends_on": [
-        "ADR-0027 (Accepted via PR #128 merge 2026-06-19T18:41:26Z)",
-        "DEPLOY-002 (secrets must exist before workflow can reference them)"
-      ],
-      "blocks": [
-        "Sprint 3+ feature work (any change to main without auto-deploy re-creates the prod-liveness gap)"
-      ],
-      "issue_pending": "PM to open at Sprint 3 kickoff",
-      "sprint": "Sprint 3",
-      "sprint_story_doc_pending": "docs/backlog/DEPLOY-001.md (PM to draft after Sprint 3 PM PR merges)",
-      "vision_metrics": [
-        "M2",
-        "M4"
-      ],
-      "notes": "Sprint 3 PM-groomed candidate (Issue #127 + ADR-0027). Owner gate: workflow-file approval per CLAUDE.md §File ownership matrix. appleboy/ssh-action (SHA-pinned) vs direct ssh command — owner preference flagged in ADR-0027 §Open questions."
-    },
-    {
-      "id": "DEPLOY-002",
-      "title": "Secret wiring (DEPLOY_SSH_KEY + DEPLOY_HOST + DEPLOY_USER repo secrets)",
-      "priority": "P0",
-      "status": "backlog",
-      "agent": "tester",
-      "cc": [
-        "tester"
-      ],
-      "story_points_proposed": 2,
-      "depends_on": [
-        "ADR-0027 (Accepted)",
-        "ADR-0014 (PROJECT_TOKEN repo-secret precedent)"
-      ],
-      "blocks": [
-        "DEPLOY-001 (workflow references the secrets — without secrets, workflow fails)"
-      ],
-      "issue_pending": "PM to open at Sprint 3 kickoff",
-      "sprint": "Sprint 3",
-      "sprint_story_doc_pending": "docs/backlog/DEPLOY-002.md (PM to draft after Sprint 3 PM PR merges)",
-      "vision_metrics": [
-        "M2 (operational — enables deploy pipeline)"
-      ],
-      "notes": "Sprint 3 PM-groomed candidate. Owner gate: ed25519 keypair generation + authorized_keys + repo secret storage. Manual quarterly rotation per ADR-0027 §Decision.4."
-    },
-    {
-      "id": "DEPLOY-003",
-      "title": "GET /healthz + smoke test + auto-rollback",
-      "priority": "P0",
-      "status": "backlog",
-      "agent": "tester",
-      "cc": [
-        "tester"
-      ],
-      "story_points_proposed": 3,
-      "depends_on": [
-        "ADR-0027 (Accepted)",
-        "ADR-0019 §HTTP API contract (Accepted — new endpoint extends the API surface)",
-        "DEPLOY-001 (smoke test runs in the workflow)",
-        "DEPLOY-002 (workflow uses secrets to SSH)"
-      ],
-      "blocks": [
-        "Sprint 3+ production hardening (no auto-rollback = regressions stay live)"
-      ],
-      "issue_pending": "PM to open at Sprint 3 kickoff",
-      "sprint": "Sprint 3",
-      "sprint_story_doc_pending": "docs/backlog/DEPLOY-003.md (PM to draft after Sprint 3 PM PR merges)",
-      "vision_metrics": [
-        "M2 (lower friction — owner trusts auto-deploy because rollback is automatic)"
-      ],
-      "notes": "Sprint 3 PM-groomed candidate. New GET /healthz endpoint with git_sha introspection. ADR-0019 amend-3 may be needed (architect's call at sizing). Auto-rollback on smoke-test failure per ADR-0027 §Decision.3."
-    },
-    {
-      "id": "DEPLOY-004",
-      "title": "scripts/deploy-status.sh audit query (last deploy SHA, time, status)",
-      "priority": "P2",
-      "status": "backlog",
-      "agent": "tester",
-      "cc": [
-        "tester"
-      ],
-      "story_points_proposed": 1,
-      "depends_on": [
-        "DEPLOY-001 (deploy-marker file written by workflow)",
-        "DEPLOY-003 (healthz endpoint available for live status check)"
-      ],
-      "blocks": [],
-      "issue_pending": "PM to open at Sprint 3 kickoff (lower priority — can defer to Sprint 4)",
-      "sprint": "Sprint 3",
-      "sprint_story_doc_pending": "docs/backlog/DEPLOY-004.md (PM to draft after Sprint 3 PM PR merges)",
-      "vision_metrics": [],
-      "notes": "Sprint 3 PM-groomed OPTIONAL candidate. ADR-0027 §Decision.6 observability closure. CLI audit query — owner-self-service."
-    },
-    {
-      "id": "RETRO-003",
-      "title": "Sprint 2 retrospective (PM drafts retro input, orchestrator publishes)",
-      "priority": "P1",
-      "status": "backlog",
-      "agent": "orchestrator",
-      "cc": [
-        "product-manager"
-      ],
-      "story_points_proposed": 1,
-      "depends_on": [
-        "Sprint 2 P1 fully shipped (DONE — 2026-06-19T18:33:04Z via PR #122)",
-        "ADR-0023 PM review pass (open question flagged on PR #128 / #122 comment thread)"
-      ],
-      "blocks": [
-        "Sprint 3 kickoff ceremony (per Sprint 2 DoD #4)",
-        "Issue #48 unblock (per Sprint 1 retro — gate is Sprint 1+2 retro written)"
-      ],
-      "sprint": "Sprint 3",
-      "vision_metrics": [],
-      "notes": "Ceremony doc. PM drafts retro input; orchestrator publishes final retrospective.md. Should cover: PR #62 chronic re-fire loop resolution, ADR-driven design culture, owner-impl pattern (validated 6x in Sprint 2), branch contamination fix on PR #122, ADR-0023 PM review gap."
-    },
-    {
-      "id": "TEMPLATE-PORT",
-      "title": "Issue #48 — Template port: Sprint 1+2 lessons → dev-studio-template",
-      "issue": 48,
-      "priority": "P1",
-      "status": "backlog",
-      "agent": "developer",
-      "cc": [
-        "orchestrator",
-        "product-manager"
-      ],
-      "story_points_proposed": 3,
-      "depends_on": [
-        "Sprint 1 retro written (DONE — docs/sprints/sprint-01/retrospective.md)",
-        "Sprint 2 retro written (open — see RETRO-003)"
-      ],
-      "blocks": [
-        "Multi-project rollout (dev-studio-template adoption)"
-      ],
-      "sprint": "Sprint 3",
-      "vision_metrics": [],
-      "notes": "Sprint 1 retro gate is now met. Sprint 2 retro (RETRO-003) is the remaining gate. Per Sprint 1 retro: '.claude/CLAUDE.md.tmpl' updates with verdict-by schema, atomic hand-off, queue-empty wake; '.claude/agents/*.md.tmpl' updates with Sprint 2 PM/architect/dev/tester patterns."
-    },
-    {
-      "id": "STORY-013",
-      "title": "Implicit first operand from history (calc-ans style)",
-      "issue": 179,
-      "priority": "P1",
-      "status": "backlog",
-      "agent": "tester",
-      "cc": [
-        "architect",
-        "developer",
-        "product-manager"
-      ],
-      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/179",
-      "sprint_story_doc": "docs/backlog/STORY-013.md",
-      "notes": "PM-authored 2026-06-20 from owner directive. Defer to Sprint 5+ (Sprint 4 capacity full). 10 Gherkin ACs. PM rough estimate 2 SP. file_exists in docs/backlog/ but JSON tracking retrofitted on 2026-06-27 (RETRO-008 §6 sister-pattern backlog drift fix)."
+      "notes": "PM-authored 2026-06-20 from owner directive (chat). Defer to Sprint 5+ (Sprint 4 capacity is full at 18.5 SP per PR #178). PM rough estimate: 2 SP — engine parameter + HTTP wiring + history integration + test plan. 10 Gherkin ACs covering happy path + error edges + Decimal precision regression + audit-style history. Owner can amend AC8 (keyboard FSM space-handling) at sizing.",
+      "v1_0_0_scope": "IN"
     },
     {
       "id": "STORY-014",
@@ -537,228 +518,414 @@
       "sprint": "Sprint 14",
       "sprint_story_doc": "docs/backlog/STORY-014.md",
       "vision_metrics": [],
-      "notes": "Sprint 14 P1 #6 dev lane. PM-authored 2026-06-27T11:33+03:00 from peer-poke [DEV→PM] + [ARCH→PM] dual-channel. PR #504 squash ✅ DONE (ADR-0038 amendment on main). PR #506 SQUASHED ✅ @ 226b546 (owner-ratified 2026-06-27T12:03:07Z). Issue #505 auto-CLOSED @ 12:04:29Z (1m22s post-squash via Layer 5) with clean terminal hand-off (status:done). Joint sizing: arch + dev + tester per ADR-0024 (1.0 SP per arch reassessment, combined impl + d-test). d-test contract: 9/9 TCs per ADR-0044 RED-first (sister-pattern d031 5+2=7). d-test family coverage: 10-sister pattern on main (d046/d048/d050b/d051/d052/d053/d054/d055/d056/d058). AC5 follow-up (CI integration, human lane 0.5 SP) filed as separate issue. PM WIP: 0/2, Sprint 14 P1 PM lane COMPLETE ✅."
+      "notes": "Sprint 14 P1 #6 dev lane. PM-authored 2026-06-27T11:33+03:00 from peer-poke [DEV→PM] + [ARCH→PM] dual-channel. PR #504 squash ✅ DONE (ADR-0038 amendment on main). PR #506 SQUASHED ✅ @ 226b546 (owner-ratified 2026-06-27T12:03:07Z). Issue #505 auto-CLOSED @ 12:04:29Z (1m22s post-squash via Layer 5) with clean terminal hand-off (status:done). Joint sizing: arch + dev + tester per ADR-0024 (1.0 SP per arch reassessment, combined impl + d-test). d-test contract: 9/9 TCs per ADR-0044 RED-first (sister-pattern d031 5+2=7). d-test family coverage: 10-sister pattern on main (d046/d048/d050b/d051/d052/d053/d054/d055/d056/d058). AC5 follow-up (CI integration, human lane 0.5 SP) filed as separate issue. PM WIP: 0/2, Sprint 14 P1 PM lane COMPLETE ✅.",
+      "v1_0_0_scope": "IN"
     },
-  {
-    "id": "STORY-S21-014",
-    "title": "PR Template (.github/) — Doctrine checkpoint sections (Issue #645, P0 Sprint 24)",
-    "issue": 645,
-    "priority": "P0",
-    "status": "done",
-    "agent": "developer",
-    "cc": ["architect", "tester", "product-manager"],
-    "story_points_proposed": 1,
-    "depends_on": ["STORY-S21-021 (CONTRIBUTING.md cross-ref)"],
-    "blocks": ["All future PR creation flow"],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/645",
-    "sprint": "Sprint 24",
-    "sprint_story_doc": "docs/backlog/STORY-S21-014.md",
-    "vision_metrics": ["M5 (doctrine adherence)"],
-    "notes": "Sprint 24 P0 candidate. PM lens audit cycle ~#3228: existing `.github/pull_request_template.md` (12 sections incl. Summary/Related Issues/Changes/Type of Change/Testing/Checklist) is PARTIAL — does NOT yet have 'Doctrine impact', 'ADR cross-ref', or 'Owner checklist' sections per AC1. Real gap, NOT decom. Sprint 24 scope: append 3 sections; cross-ref via STORY-S21-021."
-  },
-  {
-    "id": "STORY-S21-021",
-    "title": "CONTRIBUTING.md (root) — first-time contributor orientation (Issue #648, P1 Sprint 24)",
-    "issue": 648,
-    "priority": "P1",
-    "status": "done",
-    "agent": "developer",
-    "cc": ["architect", "product-manager"],
-    "story_points_proposed": 0.5,
-    "depends_on": ["STORY-S21-014 (PR template cross-ref)"],
-    "blocks": ["External contributor onboarding"],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/648",
-    "sprint": "Sprint 24",
-    "sprint_story_doc": "docs/backlog/STORY-S21-021.md",
-    "vision_metrics": ["M5 (doctrine adherence)"],
-    "notes": "Sprint 24 P1 candidate. CONTRIBUTING.md does NOT exist in repo root (verified cycle ~#3228). Real gap. Sprint 24 scope: author CONTRIBUTING.md with sections — PR workflow, doctrine references (CLAUDE.md + ADRs), D2.2 wake trigger table, handoff label discipline."
-  },
-  {
-    "id": "STORY-S21-022",
-    "title": "Smoke Test Script (faz5-smoke.sh gap-closure) — Issue #649, P2 Sprint 24",
-    "issue": 649,
-    "priority": "P2",
-    "status": "backlog",
-    "agent": "tester",
-    "cc": ["developer", "architect", "product-manager"],
-    "story_points_proposed": 0.5,
-    "depends_on": ["STORY-S21-018 d070-template-render fixture sharing"],
-    "blocks": ["STORY-S21-023 fresh-clone validation (downstream consumer)"],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/649",
-    "sprint": "Sprint 24",
-    "sprint_story_doc": "docs/backlog/STORY-S21-022.md",
-    "vision_metrics": ["M5 (CI gating)"],
-    "notes": "Sprint 24 P2 candidate. PM lens audit cycle ~#3228: scripts/tests/faz5-smoke.sh ALREADY EXISTS (11KB, dated 2026-06-17, covers T1 dry-run). AC1 requires 5 sub-scenarios (dry-run/broken-tmpl/idempotency/fresh-clone/manual-edit). Partial coverage approx 1-2 of 5. Sprint 24 scope: add T2-T5 (3 new sub-scenarios) + AC2 ci.yml smoke step integration. Question for owner/architect: keep Sprint 24 OR move to decommission list?"
-  },
-  {
-    "id": "STORY-S21-010",
-    "title": "Scripts Parameterized — audit + close remaining gaps (Issue #642, P2 Sprint 24)",
-    "issue": 642,
-    "priority": "P2",
-    "status": "backlog",
-    "agent": "developer",
-    "cc": ["architect", "tester", "product-manager"],
-    "story_points_proposed": 0.5,
-    "depends_on": ["Sprint 22 PIVOT Faz 2.5b scripts/* parameterized baseline"],
-    "blocks": ["External tool integration (parameter contract stability)"],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/642",
-    "sprint": "Sprint 24",
-    "sprint_story_doc": "docs/backlog/STORY-S21-010.md",
-    "vision_metrics": ["M3 (tooling stability)"],
-    "notes": "Sprint 24 P2 candidate. PM note: scripts/ lane drift fix (PR #751, d116 sister) closed the d-test regression guard; remaining gap is full parameterization audit across 44 scripts (env-var precedence per ADR-0019 amendments 4+5)."
-  },
-  {
-    "id": "STORY-S21-009",
-    "title": "Full Script Library — Sprint 21 wave coverage check (Issue #640, P3 decom-pending)",
-    "issue": 640,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": ["Current scripts/ inventory (44 scripts above 25 target)"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/640",
-    "sprint_story_doc": "docs/backlog/STORY-S21-009.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: scripts/ has 44 entries (above 25 S21-009 target). Owner verdict pending per Eskalasyon scope-change equals HUMAN. PM recommendation: CLOSE issue #640 as superseded by current library."
-  },
-  {
-    "id": "STORY-S21-011",
-    "title": "All 10 Workflows — Sprint 21 exact-match (Issue #641, P3 decom-pending)",
-    "issue": 641,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": [".github/workflows/ inventory (10 files equals 10 S21-011 target)"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/641",
-    "sprint_story_doc": "docs/backlog/STORY-S21-011.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: .github/workflows/ has exactly 10 files (matches S21-011 target). PM recommendation: CLOSE issue #641 as exact-match covered."
-  },
-  {
-    "id": "STORY-S21-012",
-    "title": "PROJECT_TOKEN Secret Handling — Issue #643, P3 decom-pending",
-    "issue": 643,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": ["ADR-0014 PROJECT_TOKEN (already Accepted on main)", "scripts/dev-studio-init.sh PROJECT_TOKEN bootstrap"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/643",
-    "sprint_story_doc": "docs/backlog/STORY-S21-012.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: ADR-0014 covers token scope contract; init script handles bootstrap. PM recommendation: CLOSE issue #643 as covered (verify ADR-0014 still Accepted on main pre-close)."
-  },
-  {
-    "id": "STORY-S21-013",
-    "title": "All 6 Issue Templates — Sprint 21 exact-match (Issue #644, P3 decom-pending)",
-    "issue": 644,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": [".github/ISSUE_TEMPLATE/ inventory (6 templates equals 6 S21-013 target)"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/644",
-    "sprint_story_doc": "docs/backlog/STORY-S21-013.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: .github/ISSUE_TEMPLATE/ has exactly 6 templates (matches S21-013 target). PM recommendation: CLOSE issue #644 as exact-match covered."
-  },
-  {
-    "id": "STORY-S21-015",
-    "title": "Full ADR Library — Sprint 21 at-least 60 ADRs (Issue #646, P3 decom-pending)",
-    "issue": 646,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": ["docs/decisions/ inventory (65+ ADRs above 60 S21-015 target)"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/646",
-    "sprint_story_doc": "docs/backlog/STORY-S21-015.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: docs/decisions/ has 65+ ADRs (exceeds S21-015 60 target). PM recommendation: CLOSE issue #646 as exceeded target."
-  },
-  {
-    "id": "STORY-S21-016",
-    "title": "ADR-0001 Template Architecture — Sprint 21 coverage (Issue #634, P3 decom-pending)",
-    "issue": 634,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": ["ADR-0001-template-architecture.md (already Accepted on main)"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/634",
-    "sprint_story_doc": "docs/backlog/STORY-S21-016.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: docs/decisions/ADR-0001-template-architecture.md exists. PM recommendation: CLOSE issue #634 as superseded by existing ADR-0001."
-  },
-  {
-    "id": "STORY-S21-017",
-    "title": "All 40+ d-tests — Issue #647, P3 decom-pending",
-    "issue": 647,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": ["scripts/tests/ d-test family expansion (99 d-tests above 40 S21-017 target)"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/647",
-    "sprint_story_doc": "docs/backlog/STORY-S21-017.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: scripts/tests/ has 99 d-test files (well above 40+ S21-017 target). PM recommendation: CLOSE issue #647 as exceeded target."
-  },
-  {
-    "id": "STORY-S21-024",
-    "title": ".template-version Pin — Issue #650, P3 decom-pending",
-    "issue": 650,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": ["Existing .template-version file in repo root"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/650",
-    "sprint_story_doc": "docs/backlog/STORY-S21-024.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: .template-version pin story (Issue #650) is the meta-frame; specific S21-007 #639 (Soul File Template-Version Pin) was closed via dev lane per Issue #767 cross-refs. PM recommendation: CLOSE issue #650 as covered by S21-007."
-  },
-  {
-    "id": "STORY-S21-025",
-    "title": "CHANGELOG.md maintenance — Keep-a-Changelog compliance (Issue #654, P3 decom-pending)",
-    "issue": 654,
-    "priority": "P3",
-    "status": "decom-pending-owner-verdict",
-    "agent": "product-manager",
-    "cc": ["architect", "developer", "tester", "orchestrator", "human"],
-    "story_points_proposed": null,
-    "depends_on": ["CHANGELOG.md (Keep-a-Changelog 1.1.0 format, [Unreleased] + version sections)"],
-    "blocks": [],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/654",
-    "sprint_story_doc": "docs/backlog/STORY-S21-025.md",
-    "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: CHANGELOG.md head shows Keep-a-Changelog 1.1.0 format reference, [Unreleased] section + version entries below. PM recommendation: CLOSE issue #654 as covered (post-Sprint 23 cascade contains new entries)."
-  },
-  {
-    "id": "STORY-S21-023",
-    "title": "Fresh-Clone Validation (AC3 of S21-020) — Issue #653, 3sp Sprint 23 PM carry-over",
-    "issue": 653,
-    "priority": "P2",
-    "status": "backlog",
-    "agent": "product-manager",
-    "cc": ["tester", "developer", "orchestrator"],
-    "story_points_proposed": 3,
-    "depends_on": ["STORY-S21-022 faz5-smoke T2-T4 sub-scenarios (fresh-clone AC)"],
-    "blocks": ["Sprint 23 close-out ceremony (Fresh-Clone validation gate)"],
-    "story_url": "https://github.com/atilcan65/AtilCalculator/issues/653",
-    "sprint": "Sprint 23",
-    "sprint_story_doc": "docs/backlog/STORY-S21-023.md",
-    "vision_metrics": ["M5 (CI gating)"],
-    "notes": "Sprint 23 PM lane carry-over per Issue #767 cycle ~#3228 (PM lane candidate, AC3 of S21-020 Issue #652). Lane ambiguity (PM claims owner-steward but labels say agent:tester) — owner verdict pending per file ownership matrix."
-  }
+    {
+      "id": "STORY-S21-009",
+      "title": "Full Script Library — Sprint 21 wave coverage check (Issue #640, P3 decom-pending)",
+      "issue": 640,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        "Current scripts/ inventory (44 scripts above 25 target)"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/640",
+      "sprint_story_doc": "docs/backlog/STORY-S21-009.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: scripts/ has 44 entries (above 25 S21-009 target). Owner verdict pending per Eskalasyon scope-change equals HUMAN. PM recommendation: CLOSE issue #640 as superseded by current library.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-010",
+      "title": "Scripts Parameterized — audit + close remaining gaps (Issue #642, P2 Sprint 24)",
+      "issue": 642,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "architect",
+        "tester",
+        "product-manager"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "Sprint 22 PIVOT Faz 2.5b scripts/* parameterized baseline"
+      ],
+      "blocks": [
+        "External tool integration (parameter contract stability)"
+      ],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/642",
+      "sprint": "Sprint 24",
+      "sprint_story_doc": "docs/backlog/STORY-S21-010.md",
+      "vision_metrics": [
+        "M3 (tooling stability)"
+      ],
+      "notes": "Sprint 24 P2 candidate. PM note: scripts/ lane drift fix (PR #751, d116 sister) closed the d-test regression guard; remaining gap is full parameterization audit across 44 scripts (env-var precedence per ADR-0019 amendments 4+5).",
+      "v1_0_0_scope": "DEFERRED-to-v1.1"
+    },
+    {
+      "id": "STORY-S21-011",
+      "title": "All 10 Workflows — Sprint 21 exact-match (Issue #641, P3 decom-pending)",
+      "issue": 641,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        ".github/workflows/ inventory (10 files equals 10 S21-011 target)"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/641",
+      "sprint_story_doc": "docs/backlog/STORY-S21-011.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: .github/workflows/ has exactly 10 files (matches S21-011 target). PM recommendation: CLOSE issue #641 as exact-match covered.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-012",
+      "title": "PROJECT_TOKEN Secret Handling — Issue #643, P3 decom-pending",
+      "issue": 643,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        "ADR-0014 PROJECT_TOKEN (already Accepted on main)",
+        "scripts/dev-studio-init.sh PROJECT_TOKEN bootstrap"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/643",
+      "sprint_story_doc": "docs/backlog/STORY-S21-012.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: ADR-0014 covers token scope contract; init script handles bootstrap. PM recommendation: CLOSE issue #643 as covered (verify ADR-0014 still Accepted on main pre-close).",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-013",
+      "title": "All 6 Issue Templates — Sprint 21 exact-match (Issue #644, P3 decom-pending)",
+      "issue": 644,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        ".github/ISSUE_TEMPLATE/ inventory (6 templates equals 6 S21-013 target)"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/644",
+      "sprint_story_doc": "docs/backlog/STORY-S21-013.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: .github/ISSUE_TEMPLATE/ has exactly 6 templates (matches S21-013 target). PM recommendation: CLOSE issue #644 as exact-match covered.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-014",
+      "title": "PR Template (.github/) — Doctrine checkpoint sections (Issue #645, P0 Sprint 24)",
+      "issue": 645,
+      "priority": "P0",
+      "status": "done",
+      "agent": "developer",
+      "cc": [
+        "architect",
+        "tester",
+        "product-manager"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "STORY-S21-021 (CONTRIBUTING.md cross-ref)"
+      ],
+      "blocks": [
+        "All future PR creation flow"
+      ],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/645",
+      "sprint": "Sprint 24",
+      "sprint_story_doc": "docs/backlog/STORY-S21-014.md",
+      "vision_metrics": [
+        "M5 (doctrine adherence)"
+      ],
+      "notes": "Sprint 24 P0 candidate. PM lens audit cycle ~#3228: existing `.github/pull_request_template.md` (12 sections incl. Summary/Related Issues/Changes/Type of Change/Testing/Checklist) is PARTIAL — does NOT yet have 'Doctrine impact', 'ADR cross-ref', or 'Owner checklist' sections per AC1. Real gap, NOT decom. Sprint 24 scope: append 3 sections; cross-ref via STORY-S21-021.",
+      "v1_0_0_scope": "IN"
+    },
+    {
+      "id": "STORY-S21-015",
+      "title": "Full ADR Library — Sprint 21 at-least 60 ADRs (Issue #646, P3 decom-pending)",
+      "issue": 646,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        "docs/decisions/ inventory (65+ ADRs above 60 S21-015 target)"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/646",
+      "sprint_story_doc": "docs/backlog/STORY-S21-015.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: docs/decisions/ has 65+ ADRs (exceeds S21-015 60 target). PM recommendation: CLOSE issue #646 as exceeded target.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-016",
+      "title": "ADR-0001 Template Architecture — Sprint 21 coverage (Issue #634, P3 decom-pending)",
+      "issue": 634,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        "ADR-0001-template-architecture.md (already Accepted on main)"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/634",
+      "sprint_story_doc": "docs/backlog/STORY-S21-016.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: docs/decisions/ADR-0001-template-architecture.md exists. PM recommendation: CLOSE issue #634 as superseded by existing ADR-0001.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-017",
+      "title": "All 40+ d-tests — Issue #647, P3 decom-pending",
+      "issue": 647,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        "scripts/tests/ d-test family expansion (99 d-tests above 40 S21-017 target)"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/647",
+      "sprint_story_doc": "docs/backlog/STORY-S21-017.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: scripts/tests/ has 99 d-test files (well above 40+ S21-017 target). PM recommendation: CLOSE issue #647 as exceeded target.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-021",
+      "title": "CONTRIBUTING.md (root) — first-time contributor orientation (Issue #648, P1 Sprint 24)",
+      "issue": 648,
+      "priority": "P1",
+      "status": "done",
+      "agent": "developer",
+      "cc": [
+        "architect",
+        "product-manager"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "STORY-S21-014 (PR template cross-ref)"
+      ],
+      "blocks": [
+        "External contributor onboarding"
+      ],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/648",
+      "sprint": "Sprint 24",
+      "sprint_story_doc": "docs/backlog/STORY-S21-021.md",
+      "vision_metrics": [
+        "M5 (doctrine adherence)"
+      ],
+      "notes": "Sprint 24 P1 candidate. CONTRIBUTING.md does NOT exist in repo root (verified cycle ~#3228). Real gap. Sprint 24 scope: author CONTRIBUTING.md with sections — PR workflow, doctrine references (CLAUDE.md + ADRs), D2.2 wake trigger table, handoff label discipline.",
+      "v1_0_0_scope": "IN"
+    },
+    {
+      "id": "STORY-S21-022",
+      "title": "Smoke Test Script (faz5-smoke.sh gap-closure) — Issue #649, P2 Sprint 24",
+      "issue": 649,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "developer",
+        "architect",
+        "product-manager"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "STORY-S21-018 d070-template-render fixture sharing"
+      ],
+      "blocks": [
+        "STORY-S21-023 fresh-clone validation (downstream consumer)"
+      ],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/649",
+      "sprint": "Sprint 24",
+      "sprint_story_doc": "docs/backlog/STORY-S21-022.md",
+      "vision_metrics": [
+        "M5 (CI gating)"
+      ],
+      "notes": "Sprint 24 P2 candidate. PM lens audit cycle ~#3228: scripts/tests/faz5-smoke.sh ALREADY EXISTS (11KB, dated 2026-06-17, covers T1 dry-run). AC1 requires 5 sub-scenarios (dry-run/broken-tmpl/idempotency/fresh-clone/manual-edit). Partial coverage approx 1-2 of 5. Sprint 24 scope: add T2-T5 (3 new sub-scenarios) + AC2 ci.yml smoke step integration. Question for owner/architect: keep Sprint 24 OR move to decommission list?",
+      "v1_0_0_scope": "DEFERRED-to-v1.1"
+    },
+    {
+      "id": "STORY-S21-023",
+      "title": "Fresh-Clone Validation (AC3 of S21-020) — Issue #653, 3sp Sprint 23 PM carry-over",
+      "issue": 653,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "product-manager",
+      "cc": [
+        "tester",
+        "developer",
+        "orchestrator"
+      ],
+      "story_points_proposed": 3,
+      "depends_on": [
+        "STORY-S21-022 faz5-smoke T2-T4 sub-scenarios (fresh-clone AC)"
+      ],
+      "blocks": [
+        "Sprint 23 close-out ceremony (Fresh-Clone validation gate)"
+      ],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/653",
+      "sprint": "Sprint 23",
+      "sprint_story_doc": "docs/backlog/STORY-S21-023.md",
+      "vision_metrics": [
+        "M5 (CI gating)"
+      ],
+      "notes": "Sprint 23 PM lane carry-over per Issue #767 cycle ~#3228 (PM lane candidate, AC3 of S21-020 Issue #652). Lane ambiguity (PM claims owner-steward but labels say agent:tester) — owner verdict pending per file ownership matrix.",
+      "v1_0_0_scope": "IN"
+    },
+    {
+      "id": "STORY-S21-024",
+      "title": ".template-version Pin — Issue #650, P3 decom-pending",
+      "issue": 650,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        "Existing .template-version file in repo root"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/650",
+      "sprint_story_doc": "docs/backlog/STORY-S21-024.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. PM lens: .template-version pin story (Issue #650) is the meta-frame; specific S21-007 #639 (Soul File Template-Version Pin) was closed via dev lane per Issue #767 cross-refs. PM recommendation: CLOSE issue #650 as covered by S21-007.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "STORY-S21-025",
+      "title": "CHANGELOG.md maintenance — Keep-a-Changelog compliance (Issue #654, P3 decom-pending)",
+      "issue": 654,
+      "priority": "P3",
+      "status": "decom-pending-owner-verdict",
+      "agent": "product-manager",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": null,
+      "depends_on": [
+        "CHANGELOG.md (Keep-a-Changelog 1.1.0 format, [Unreleased] + version sections)"
+      ],
+      "blocks": [],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/654",
+      "sprint_story_doc": "docs/backlog/STORY-S21-025.md",
+      "notes": "DECOMMISSION CANDIDATE per Issue #767 cycle ~#3228 PM triage. Verified cycle ~#3228: CHANGELOG.md head shows Keep-a-Changelog 1.1.0 format reference, [Unreleased] section + version entries below. PM recommendation: CLOSE issue #654 as covered (post-Sprint 23 cascade contains new entries).",
+      "v1_0_0_scope": "DEFERRED-to-v1.1-PM-recommends-closure"
+    },
+    {
+      "id": "TEMPLATE-PORT",
+      "title": "Issue #48 — Template port: Sprint 1+2 lessons → dev-studio-template",
+      "issue": 48,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "orchestrator",
+        "product-manager"
+      ],
+      "story_points_proposed": 3,
+      "depends_on": [
+        "Sprint 1 retro written (DONE — docs/sprints/sprint-01/retrospective.md)",
+        "Sprint 2 retro written (open — see RETRO-003)"
+      ],
+      "blocks": [
+        "Multi-project rollout (dev-studio-template adoption)"
+      ],
+      "sprint": "Sprint 3",
+      "vision_metrics": [],
+      "notes": "Sprint 1 retro gate is now met. Sprint 2 retro (RETRO-003) is the remaining gate. Per Sprint 1 retro: '.claude/CLAUDE.md.tmpl' updates with verdict-by schema, atomic hand-off, queue-empty wake; '.claude/agents/*.md.tmpl' updates with Sprint 2 PM/architect/dev/tester patterns.",
+      "v1_0_0_scope": "DEFERRED-to-v1.1"
+    },
+    {
+      "id": "STORY-DEPLOY-INFRA-876",
+      "title": "Deploy to production AC4 false-negative (systemd user-bus missing) — Issue #876, Sprint 24 deploy-infra carry-over",
+      "issue": 876,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "orchestrator",
+        "architect",
+        "developer"
+      ],
+      "v1_0_0_scope": "DEFERRED-to-v1.1",
+      "depends_on": [
+        "ADR-0010 (systemd lifecycle)",
+        "Issue #872 (d642 cluster merged)",
+        "scripts/deploy-runner.sh AC4 check"
+      ],
+      "blocks": [
+        "v1.0.0 prod deploy validation"
+      ],
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/876",
+      "sprint_story_doc": null,
+      "notes": "Owner verdict (cycle ~#5078, 2026-07-07T16:54Z+0300): Accept as known-broken infra, defer fix to Sprint 23/24 wave. NOT blocking v1.0.0 GA cut (owner accepted). Recommended fix (a): add dbus-broker/dbus-user-session to runner setup script (preserves ADR-0010 lifecycle). Deploy script governance stays orchestrator lane; runner setup script edit = dev lane."
+    }
   ],
   "last_id": 14,
   "vision_source": "#4",
@@ -783,5 +950,11 @@
   "sprint_3_groomed_at": "2026-06-19T18:45:00Z",
   "sprint_3_pm_scoped_at": "2026-06-19T18:45:00Z",
   "created_at": "2026-06-17T13:30:00Z",
-  "notes": "Sprint 1: 8 stories filed (STORY-001/002/003/003a/003b/004/005/006), all DONE. Sprint 2: 6 PM-authored feature stories groomed (STORY-007/008/009/010/011/012), 23 SP proposed, ALL 6 SHIPPED via PR #88/#111/#112/#117/#118/#122 by 2026-06-19T18:33:04Z. MVP-1 features complete (M1+M2+M3+M4+M5 all shipped). Sprint 3: PM-groomed 2026-06-19T18:45:00Z with 4 deploy stories (DEPLOY-001/002/003/004 = 9 SP) + 1 retro doc (RETRO-003 = 1 SP) + 1 template port (Issue #48 = 3 SP) = 13 SP proposed. Sprint 3 is operational hardening + retro ceremony, NOT feature work — closes the prod-liveness gap (Issue #127 / ADR-0027). Architect-owned chore work tracked separately in issues (#46 closed, #65 done, #45 in flight, #48 unblocked by RETRO-003). Sprint 2 retro pending (RETRO-003 in Sprint 3 backlog)."
+  "notes": "Sprint 1: 8 stories filed (STORY-001/002/003/003a/003b/004/005/006), all DONE. Sprint 2: 6 PM-authored feature stories groomed (STORY-007/008/009/010/011/012), 23 SP proposed, ALL 6 SHIPPED via PR #88/#111/#112/#117/#118/#122 by 2026-06-19T18:33:04Z. MVP-1 features complete (M1+M2+M3+M4+M5 all shipped). Sprint 3: PM-groomed 2026-06-19T18:45:00Z with 4 deploy stories (DEPLOY-001/002/003/004 = 9 SP) + 1 retro doc (RETRO-003 = 1 SP) + 1 template port (Issue #48 = 3 SP) = 13 SP proposed. Sprint 3 is operational hardening + retro ceremony, NOT feature work — closes the prod-liveness gap (Issue #127 / ADR-0027). Architect-owned chore work tracked separately in issues (#46 closed, #65 done, #45 in flight, #48 unblocked by RETRO-003). Sprint 2 retro pending (RETRO-003 in Sprint 3 backlog).",
+  "version": "1.0.0",
+  "v1_0_0_audited_at": "2026-07-07T17:59:30Z",
+  "v1_0_0_auditor": "product-manager",
+  "v1_0_0_source_issue": 877,
+  "v1_0_0_sprint": 24,
+  "v1_0_0_notes": "v1.0.0 GA scope boundary audit per Issue #877 §@product-manager lane. IN = ships with v1.0.0 GA; DEFERRED-to-v1.1 = carries forward (PM-recommended closures await owner verdict per Issue #767). 9-decom closure candidates marked DEFERRED-to-v1.1-PM-recommends-closure per Issue #767 triage. STORY-013 deduped (was 2 entries). #876 Sprint 24 deploy-infra added."
 }
