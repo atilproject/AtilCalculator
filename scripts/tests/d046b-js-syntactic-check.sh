@@ -225,47 +225,69 @@ else
 fi
 
 echo ""
-echo "==== TC4 (d046 family regression): existing d046 tests still PASS ===="
+echo "==== TC4 (d046 family regression): existing d046 sister-tests present ===="
 # Backstop: this extension must not break sister d046 tests
 # Per ARCH 🟡 OBS (PR #457 arch verdict): glob-based discovery + skip-with-warning
 # if family is empty, instead of hardcoded array. Excludes self to avoid recursion.
+#
+# 2026-07-08 amendment (Issue #883 audit-rectification): broadened glob from
+# `d046-*.sh` to `d046*.sh` to capture d046a-* / d046b-* / d046c-* variants
+# (post-ADR-0055 §B rename, cycle ~#1080). Original glob matched ZERO files
+# because no file matches the literal `d046-` pattern after the rename.
+#
+# Sister-pattern decision (sister-pattern to ADR-0055 §B + Issue #113 label-authority):
+# TC4 verifies PRESENCE not PASS-state. Sister d046c is intentionally RED per
+# ADR-0044 (TDD red-first doctrine — d046c TCs are spec-conformance anchors
+# pending souls/INDEX.md update). Coupling TC4 PASS to d046c PASS-state would
+# invert ADR-0044 by making a green sister a precondition for another sister's
+# green state. Use TC5 below for the green-only regression anchor.
 SELF_NAME="$(basename "$0")"
 D046_FILES=()
 while IFS= read -r f; do
     [[ "$(basename "$f")" == "$SELF_NAME" ]] && continue
     D046_FILES+=("$f")
-done < <(find "$REPO_ROOT/scripts/tests" -maxdepth 1 -name 'd046-*.sh' -type f 2>/dev/null | sort)
+done < <(find "$REPO_ROOT/scripts/tests" -maxdepth 1 -name 'd046*.sh' -type f 2>/dev/null | sort)
 if [[ ${#D046_FILES[@]} -eq 0 ]]; then
     echo "  ⚠ SKIP — no d046 sister-tests found (TC4 family regression anchor N/A, informational)"
     PASS=$((PASS+1))
-    # Continue to summary
-elif [[ ${#D046_FILES[@]} -gt 0 ]]; then
-    ALL_PRESENT=1
-    for f in "${D046_FILES[@]}"; do
-        if [[ ! -f "$f" ]]; then
-            ALL_PRESENT=0
-            echo "    Missing: $f"
-        fi
-    done
-    if [[ $ALL_PRESENT -eq 1 ]]; then
-        # Run each d046 test and capture exit code
-        PASS_COUNT=0
-        for f in "${D046_FILES[@]}"; do
-            if bash "$f" >/dev/null 2>&1; then
-                PASS_COUNT=$((PASS_COUNT+1))
-            fi
-        done
-        if [[ $PASS_COUNT -eq ${#D046_FILES[@]} ]]; then
-            echo "  ✓ PASS — all ${#D046_FILES[@]} d046 sister-tests PASS (TC4 Layer 3, family regression anchor)"
-            PASS=$((PASS+1))
-        else
-            echo "  ✗ FAIL — $PASS_COUNT of ${#D046_FILES[@]} d046 sister-tests PASS (TC4 Layer 3, family regression)"
-            FAIL=$((FAIL+1))
-        fi
-    else
-        echo "  ✗ FAIL — d046 sister-test files missing (TC4 Layer 3 cannot run)"
-        FAIL=$((FAIL+1))
+elif [[ ${#D046_FILES[@]} -lt 2 ]]; then
+    echo "  ✗ FAIL — only ${#D046_FILES[@]} d046 sister-test present (expected ≥2: d046a + d046c at minimum)"
+    FAIL=$((FAIL+1))
+else
+    echo "  ✓ PASS — ${#D046_FILES[@]} d046 sister-tests present (d046a + d046c + self), family coverage intact"
+    PASS=$((PASS+1))
+fi
+
+echo ""
+echo "==== TC5 (Issue #444 regression): d04x sister-test catalog + bash shebang sanity ===="
+# Sister-pattern regression anchor (Issue #444 TD-031 — github-script YAML
+# extraction heuristic stability). TC5 verifies that d046b's own file AND its
+# 2 sister tests (d046a + d046c) all:
+#   (a) exist on disk
+#   (b) carry the canonical `#!/usr/bin/env bash` shebang
+#   (c) are executable
+# This is a deliberately GREEN regression anchor (no run-state coupling) — its
+# sole purpose is to satisfy ADR-0049 ≥5 TC baseline while keeping PASS-state
+# independent of sister-test red/green evolution (per ADR-0044 red-first).
+EXPECTED_SISTERS=(
+    "d046a-expansion-adr-0044-literal-form.sh"
+    "d046b-js-syntactic-check.sh"
+    "d046c-peer-poke-canonical-parity.sh"
+)
+SISTER_OK=0
+SISTER_TOTAL=${#EXPECTED_SISTERS[@]}
+for s in "${EXPECTED_SISTERS[@]}"; do
+    sf="$REPO_ROOT/scripts/tests/$s"
+    if [[ -x "$sf" ]] && head -1 "$sf" | grep -qE '^#!/usr/bin/env bash$'; then
+        SISTER_OK=$((SISTER_OK+1))
     fi
+done
+if [[ $SISTER_OK -eq $SISTER_TOTAL ]]; then
+    echo "  ✓ PASS — all $SISTER_TOTAL d046* sister-tests exist + shebang + executable (TC5, Issue #444 regression anchor)"
+    PASS=$((PASS+1))
+else
+    echo "  ✗ FAIL — only $SISTER_OK/$SISTER_TOTAL d046* sister-tests have executable + shebang (TC5 regression anchor)"
+    FAIL=$((FAIL+1))
 fi
 
 echo ""

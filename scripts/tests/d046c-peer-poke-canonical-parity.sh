@@ -64,7 +64,7 @@ for SOUL in "${SOULS[@]}"; do
     MISSING_HEADER+=("$SOUL_FILE (file missing)")
     continue
   fi
-  if ! grep -qE '^### §Peer-Poke Discipline — Dual-Channel Auto-Ping' "$SOUL_FILE"; then
+  if ! grep -qE '^## §Peer-Poke Discipline — Dual-Channel Auto-Ping' "$SOUL_FILE"; then
     MISSING_HEADER+=("$SOUL.md")
   fi
 done

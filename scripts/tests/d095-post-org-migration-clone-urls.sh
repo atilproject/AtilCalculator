@@ -225,6 +225,48 @@ else
 fi
 
 # ============================================================================
+# TC5: INDEX.md d046b/d050b/d095/d097 entries present + reference atilproject
+# ============================================================================
+# Sister-pattern to d116 (TD-038 scripts/ lane drift regression guard) +
+# Issue #883 Cadence Rule 1 atomic (ADR-0055 §1 — every d-test impl/add = INDEX.md
+# update in same PR). TC5 verifies the 4 d-tests in Issue #883 cycle scope
+# (d046b, d050b, d095, d097) are all registered in scripts/tests/INDEX.md
+# AND each registration row references the post-migration org (atilproject).
+#
+# Sister-pattern note: d116 TC3 marks INDEX.md as Category B PRESERVE-INVARIANT
+# (historical atilcan65 audit rows are intentional, MUST NOT TOUCH). This TC5
+# does NOT flag those rows — it only verifies the 4 SPECIFIC d-tests for this
+# cycle are registered in the NEW_ORG context.
+section "TC5: AC5 — INDEX.md registers d046b/d050b/d095/d097 with post-migration org (Cadence Rule 1)"
+INDEX_FILE="$REPO_ROOT/scripts/tests/INDEX.md"
+if [ ! -f "$INDEX_FILE" ]; then
+  fail "TC5 — INDEX.md missing at $INDEX_FILE (cannot verify registration)"
+  EXIT_CODE=1
+else
+  TC5_MISSING=()
+  for d in d046b d050b d095 d097; do
+    # Each target d-test must have an INDEX.md row referencing atilproject/AtilCalculator
+    # in its spec-ref / sister-pattern lineage (post-Faz-2.4 org migration).
+    # 2026-07-08 amendment (Issue #883 audit-rectification): switched from awk range
+    # (`/\*\*dN\*\*/,/Status/`) to single-line grep (`\*\*dN\*\*.*atilproject/AtilCalculator`).
+    # The awk-range version was FLAKY (range parser hit different `Status` anchors on
+    # different runs depending on row content / awk version); the single-line grep
+    # is deterministic and matches the d649 TC5 regex-discoverability sister-pattern.
+    if ! grep -qE "\\*\\*${d}\\*\\*.*${NEW_ORG}/AtilCalculator" "$INDEX_FILE"; then
+      TC5_MISSING+=("$d")
+    fi
+  done
+  if [ "${#TC5_MISSING[@]}" -eq 0 ]; then
+    pass "TC5 — INDEX.md registers d046b/d050b/d095/d097 with ${NEW_ORG}/AtilCalculator context (Cadence Rule 1 anchor)"
+  else
+    FAIL_LIST=$(IFS=', '; echo "${TC5_MISSING[*]}")
+    fail "TC5 — INDEX.md missing ${NEW_ORG} context for: ${FAIL_LIST}" \
+      "Per ADR-0055 §1 Cadence Rule 1 atomic + Issue #883 cycle scope: d046b + d050b + d095 + d097 must each have an INDEX.md row referencing ${NEW_ORG}/AtilCalculator. Add/refresh the row in the same PR."
+    EXIT_CODE=1
+  fi
+fi
+
+# ============================================================================
 # Summary
 # ============================================================================
 printf "\n${B}==== Summary ====${D}\n"
