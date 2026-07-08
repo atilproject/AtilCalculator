@@ -107,7 +107,7 @@ else
   fail "TC3 — filter does NOT include cc:human lane (owner merge gate verdict-authority missing — would regress ADR-0031)"
 fi
 
-# --- TC7: Layer 5.5 j.4 vacuous-pass regression (PR #804, cycle ~#3708 directive) ---
+# --- TC4: Layer 5.5 j.4 vacuous-pass regression (PR #804, cycle ~#3708 directive) ---
 #
 # Static-analysis regression anchor for the Layer 5 vacuous-pass bug:
 #   - Per cycle ~#3698 insight: Layer 5's PASSING state IS its desired state
@@ -127,48 +127,48 @@ fi
 # Issue: #789 Cluster A (d048 Layer 5 status:ready gating, owner scope).
 
 echo
-echo "==== TC7 (Layer 5.5 j.4 vacuous-pass regression): label-check.yml has vacuous-pass detection + PRESERVE semantics ===="
+echo "==== TC4 (Layer 5.5 j.4 vacuous-pass regression): label-check.yml has vacuous-pass detection + PRESERVE semantics ===="
 
 LABEL_CHECK="$REPO_ROOT/.github/workflows/label-check.yml"
 
 if [ ! -f "$LABEL_CHECK" ]; then
-  fail "TC7 — .github/workflows/label-check.yml not found at $LABEL_CHECK"
+  fail "TC4: .github/workflows/label-check.yml not found at $LABEL_CHECK"
 else
   # TC7a — Layer 5.5 j.4 vacuous-pass detection block exists
   if grep -qE 'Layer 5\.5|j\.4 vacuous-pass detection' "$LABEL_CHECK"; then
-    pass "TC7a — Layer 5.5 j.4 vacuous-pass detection block present in label-check.yml"
+    pass "TC4: Layer 5.5 j.4 vacuous-pass detection block present in label-check.yml"
   else
-    fail "TC7a — Layer 5.5 j.4 vacuous-pass detection block MISSING (PR #804 fix not applied yet)"
+    fail "TC4: Layer 5.5 j.4 vacuous-pass detection block MISSING (PR #804 fix not applied yet)"
   fi
 
   # TC7b — PRESERVE SEMANTICS comment block exists in Step 4 (reviewer chain preserved)
   if grep -qE 'PRESERVE SEMANTICS' "$LABEL_CHECK"; then
-    pass "TC7b — PRESERVE SEMANTICS comment block present in Step 4 (reviewer chain preserved on status:ready)"
+    pass "TC5: PRESERVE SEMANTICS comment block present in Step 4 (reviewer chain preserved on status:ready)"
   else
-    fail "TC7b — PRESERVE SEMANTICS comment block MISSING (reviewer chain auto-removal still possible)"
+    fail "TC5: PRESERVE SEMANTICS comment block MISSING (reviewer chain auto-removal still possible)"
   fi
 
   # TC7c — vacuous-pass FAIL path uses core.setFailed (not silent-skip)
   if grep -A 5 'vacuous-pass detected' "$LABEL_CHECK" | grep -qE 'core\.setFailed'; then
-    pass "TC7c — vacuous-pass detection uses core.setFailed (FAIL, not silent-skip per lens j.4)"
+    pass "TC6: vacuous-pass detection uses core.setFailed (FAIL, not silent-skip per lens j.4)"
   else
-    fail "TC7c — vacuous-pass detection does NOT use core.setFailed (silent-skip regression — lens j.4)"
+    fail "TC6: vacuous-pass detection does NOT use core.setFailed (silent-skip regression — lens j.4)"
   fi
 
   # TC7d — reviewer chain precondition asserted at check time (lens j.4 attestation)
   if grep -qE 'reviewer chain' "$LABEL_CHECK" && grep -qE 'j\.4 vacuous-pass' "$LABEL_CHECK"; then
-    pass "TC7d — 'reviewer chain' precondition referenced in j.4 vacuous-pass detection (lens j.4 attestation)"
+    pass "TC7: 'reviewer chain' precondition referenced in j.4 vacuous-pass detection (lens j.4 attestation)"
   else
-    fail "TC7d — 'reviewer chain' precondition NOT referenced in j.4 vacuous-pass detection (lens j.4 attestation gap)"
+    fail "TC7: 'reviewer chain' precondition NOT referenced in j.4 vacuous-pass detection (lens j.4 attestation gap)"
   fi
 
   # TC7e — scripts/tests/INDEX.md has d320 row (Cadence Rule 1 atomic per ADR-0055 §1)
   if [ ! -f "$INDEX" ]; then
-    fail "TC7e — scripts/tests/INDEX.md not found at $INDEX (Cadence Rule 1 attestation impossible — ADR-0055 §1)"
+    fail "TC8: scripts/tests/INDEX.md not found at $INDEX (Cadence Rule 1 attestation impossible — ADR-0055 §1)"
   elif grep -qE '\*\*d320\*\*' "$INDEX"; then
-    pass "TC7e — scripts/tests/INDEX.md has d320 row (Cadence Rule 1 atomic — d-test + INDEX.md same commit per ADR-0055 §1)"
+    pass "TC8: scripts/tests/INDEX.md has d320 row (Cadence Rule 1 atomic — d-test + INDEX.md same commit per ADR-0055 §1)"
   else
-    fail "TC7e — scripts/tests/INDEX.md MISSING d320 row (Cadence Rule 1 violation — ADR-0055 §1 atomic, d-test file shipped without INDEX.md entry)"
+    fail "TC8: scripts/tests/INDEX.md MISSING d320 row (Cadence Rule 1 violation — ADR-0055 §1 atomic, d-test file shipped without INDEX.md entry)"
   fi
 fi
 
