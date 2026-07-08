@@ -317,12 +317,12 @@ plural_method = len(re.findall(r'\.addLabels\(', region_str))
 # labels_array_correct=name_singular_wrong=both checked. The empty-list iteration
 # via any(...) returns False for both, contributing to the FAIL signal.
 addlabels_call_lines = [l for l in region if '.addLabels(' in l]
-# Issue #789 expansion: accept both literal array shape `labels: ['status:ready']`
-# AND variable-array shape `labels: labelsToAdd` (current workflow pattern, line 800).
-# Original regex `labels:\s*\[` only matched literal arrays. The structural fix
+# Issue #789 expansion: accept both literal array shape labels: ['status:ready']
+# AND variable-array shape labels: labelsToAdd (current workflow pattern, line 800).
+# Original regex labels:\s*\[ only matched literal arrays. The structural fix
 # (addLabels plural method) is preserved via plural_method >= 1 check; the array
 # shape check is loosened to accept variable references (still catches
-# `labels:\s*'status:ready'` which would be the singular-method regression).
+# labels:\s*'status:ready' which would be the singular-method regression).
 labels_array_correct = any(re.search(r'labels:\s*(\[[^\]]*\]|[A-Za-z_][A-Za-z0-9_]*)', l) for l in addlabels_call_lines)
 name_singular_wrong = any(re.search(r\"name:\s*['\\\"]status:ready['\\\"]\", l) for l in addlabels_call_lines)
 print(singular_method, plural_method, int(labels_array_correct), int(name_singular_wrong))
