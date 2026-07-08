@@ -8,7 +8,7 @@
 # script lacks proper interactive UX for P1 founder Day-0 experience — silent failures,
 # unclear error messages, no validation flow.
 #
-# 3 TCs (per ADR-0049 d-test framework sister-pattern):
+# 3 TCs (per ADR-0049 d-test framework sister-pattern) + Issue #890 expansion to 6 TCs:
 #   TC1: AC1 — 5 sequential interactive prompts with validation
 #        GITHUB_OWNER (alphanumeric), GITHUB_REPO (kebab-case), HUMAN_OWNER_NAME,
 #        PROJECT_NAME, PROJECT_TOKEN with default values + validation regex per variable.
@@ -18,6 +18,15 @@
 #   TC3: AC3 — `--non-interactive` flag with env vars pre-set
 #        CI-friendly mode: skips prompts when env vars (GITHUB_OWNER, GITHUB_REPO,
 #        HUMAN_OWNER_NAME, PROJECT_NAME, PROJECT_TOKEN) are pre-set.
+#   TC4: AC4 — Default value handling (${VAR:-default} pattern)
+#        Interactive prompts supply sane defaults (gh CLI / git config / basename auto-resolve)
+#        and accept Enter to keep the default without re-prompting.
+#   TC5: AC5 — Post-init success summary (paths + env file written)
+#        On successful init, script prints summary with rendered file paths + env file
+#        location (`~/.dev-studio-env` or similar) so user can verify outcome.
+#   TC6: AC6 — Idempotent re-run (dev-studio-init.sh can be re-invoked)
+#        Running init twice on the same clone does not duplicate work; detects existing
+#        rendered output and skips re-render (sister-pattern to d091 TC3).
 #
 # Pre-impl RED state (current main as of 2026-06-29, cycle ~#1255):
 #   - AC1: dev-studio-init.sh only has interactive prompt for PROJECT_TOKEN
@@ -192,6 +201,71 @@ if [ -n "$NON_INTERACTIVE_PATTERN" ]; then
 else
   fail "TC3 — dev-studio-init.sh has NO --non-interactive flag (AC3 not yet met)" \
     "expected --non-interactive arg parsing + skip-prompts branch when env vars (GITHUB_OWNER, GITHUB_REPO, etc.) pre-set. CI-friendly mode per Issue #693 AC3; enables d070b d-test in CI."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC4: AC4 — Default value handling (${VAR:-default} pattern)
+# ============================================================================
+section "TC4: AC4 — default value handling in interactive prompts (Enter to accept default)"
+# Pattern: interactive prompts supply default values via ${VAR:-default} or read -rp
+# with default string in prompt. Acceptable patterns:
+#   - read -rp "GITHUB_OWNER [${GITHUB_OWNER:-default}]: " GITHUB_OWNER
+#   - VAR="${VAR:-default}" before read
+#   - gh api user / git config auto-resolve as default
+DEFAULT_PATTERN="$(grep -nE \
+  '(\\\$\{[A-Z_]+:-\[?[^}]*\]?\}|default[ ]*=|read[ ]+-rp[ ]+.*:.*\])' \
+  "$INIT_SCRIPT" 2>/dev/null | head -5)"
+
+if [ -n "$DEFAULT_PATTERN" ]; then
+  info "TC4 — default value pattern found:"
+  printf "    %s\n" "$DEFAULT_PATTERN"
+  pass "TC4 — dev-studio-init.sh has default value handling for interactive prompts (AC4 met)"
+else
+  fail "TC4 — dev-studio-init.sh has NO default value handling (AC4 not yet met)" \
+    "expected \${VAR:-default} or read -rp with default in prompt. Issue #693 AC4 sister-invariant; Issue #890 dev-lane expansion."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC5: AC5 — Post-init success summary (paths + env file written)
+# ============================================================================
+section "TC5: AC5 — post-init success summary (rendered paths + env file location)"
+# Pattern: after successful init, script prints a summary block with:
+#   - Number of files rendered (e.g., "Rendered 12 files")
+#   - Env file location (~/.dev-studio-env or similar)
+#   - Optional next-step guidance
+SUMMARY_PATTERN="$(grep -nE \
+  '(echo[ ]+[\"'\''].*[Rr]endered|echo[ ]+[\"'\''].*env[ ]+file|echo[ ]+[\"'\''].*next[ ]+step|Rendered[ ]+[0-9]+|\\.dev-studio-env)' \
+  "$INIT_SCRIPT" 2>/dev/null | head -5)"
+
+if [ -n "$SUMMARY_PATTERN" ]; then
+  info "TC5 — post-init summary pattern found:"
+  printf "    %s\n" "$SUMMARY_PATTERN"
+  pass "TC5 — dev-studio-init.sh has post-init success summary (AC5 met)"
+else
+  fail "TC5 — dev-studio-init.sh has NO post-init success summary (AC5 not yet met)" \
+    "expected echo block with rendered file count + env file path after init completes. Issue #693 AC5 sister-invariant; Issue #890 dev-lane expansion."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC6: AC6 — Idempotent re-run (dev-studio-init.sh can be re-invoked)
+# ============================================================================
+section "TC6: AC6 — idempotent re-run (detect existing rendered output, skip re-render)"
+# Pattern: init script has skip-if-rendered logic OR md5sum check OR explicit
+# idempotency marker. Sister-pattern to d091 TC3 + d106 AC2.
+IDEMPOTENT_PATTERN="$(grep -nE \
+  '(skip[ ]+if[ ]+rendered|already[ -]rendered|idempotent|\[\[ -f .*rendered \]\])' \
+  "$INIT_SCRIPT" 2>/dev/null | head -5)"
+
+if [ -n "$IDEMPOTENT_PATTERN" ]; then
+  info "TC6 — idempotency pattern found:"
+  printf "    %s\n" "$IDEMPOTENT_PATTERN"
+  pass "TC6 — dev-studio-init.sh has idempotent re-run guard (AC6 met)"
+else
+  fail "TC6 — dev-studio-init.sh has NO idempotent re-run guard (AC6 not yet met)" \
+    "expected skip-if-rendered check OR md5sum comparison OR explicit idempotency marker. Issue #693 AC6 sister-invariant; Issue #890 dev-lane expansion; sister-pattern to d091 TC3 + d106 AC2."
   EXIT_CODE=1
 fi
 
