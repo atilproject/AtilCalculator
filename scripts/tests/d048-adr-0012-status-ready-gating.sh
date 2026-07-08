@@ -233,19 +233,24 @@ else
 fi
 
 # ============================================================================
-# T7 (Issue #441 P0 regression anchor, Issue #789 expansion): audit body
-# template-literal Trigger lines have balanced outer-open/close backticks.
-# Original Issue #441 AC2 specified L337/L476/L517; workflow evolved since
-# (PR #804 cycle ~#3698 j.4 vacuous-pass addition, Issue #680 DRAFT-PR
-# skip-guard addition). Trigger lines have MIGRATED to L411/L580/L759/L830.
-# Each current Trigger line: 1 outer-open + 6 escaped pairs (4 inner markdown
-# code spans: Trigger, eventName, action, label) + 1 outer-close = 6 escaped +
-# 2 unescaped (total 8 backticks). Expected counts updated.
+# T7 (Issue #441 P0 regression anchor, Issue #789 expansion, Issue #887
+# dynamic-discovery refactor): audit body template-literal Trigger lines have
+# balanced outer-open/close backticks. Line numbers discovered dynamically via
+# grep for the long-form `context.eventName || context.event_name` signature
+# (excludes the L617 short-form line which has a different backtick shape and
+# is intentionally NOT part of T7 scope). Sister-pattern: d649 TC5 regex
+# discoverability. Each long-form Trigger line: 1 outer-open + 6 escaped pairs
+# (4 inner markdown code spans: Trigger, eventName, action, label) + 1 outer-
+# close = 6 escaped + 2 unescaped (total 8 backticks). Expected counts unchanged.
 # ============================================================================
-section "T7 (Issue #441 P0, Issue #789 line-number migration): audit body Trigger lines have balanced template-literal backticks"
+section "T7 (Issue #441 P0, Issue #789 line-number migration, Issue #887 dynamic-discovery): audit body Trigger lines have balanced template-literal backticks"
 EXPECTED_ESCAPED=6
 EXPECTED_UNESCAPED=2
-TRIGGER_LINES=(411 580 759 830)
+# Dynamic discovery via mapfile (Bash 4+ builtin) — robust to future line-
+# number drift (Issue #787 sister-pattern resilience). The grep anchors on the
+# unique `eventName || context.event_name` signature so only long-form Trigger
+# lines are matched (L617 short-form intentionally excluded).
+mapfile -t TRIGGER_LINES < <(grep -nE "context\.eventName \|\| context\.event_name" "$WORKFLOW" | cut -d: -f1)
 TC7_FAILED=0
 TC7_OK=0
 for line_num in "${TRIGGER_LINES[@]}"; do
@@ -330,6 +335,24 @@ else
 fi
 
 # ============================================================================
+# T9 (Issue #887 regression anchor): dynamic discovery sentinel.
+# Verifies the mapfile-based TRIGGER_LINES discovery finds exactly the
+# expected count of long-form Trigger lines (4). If a future PR adds or
+# removes a Trigger line without updating this test, T9 fails first
+# (before T7) to flag the intentional scope change. Sister-pattern:
+# d649 TC5 regex discoverability test.
+# ============================================================================
+section "T9 (Issue #887 regression anchor): dynamic Trigger-line discovery count matches expected (sentinel)"
+EXPECTED_TRIGGER_COUNT=4
+TC9_DISCOVERED=${#TRIGGER_LINES[@]}
+if [ "$TC9_DISCOVERED" -eq "$EXPECTED_TRIGGER_COUNT" ]; then
+  pass "Trigger-line discovery count matches expected (discovered=$TC9_DISCOVERED, expected=$EXPECTED_TRIGGER_COUNT, lines=${TRIGGER_LINES[*]})"
+else
+  fail "Trigger-line discovery count drift (discovered=$TC9_DISCOVERED, expected=$EXPECTED_TRIGGER_COUNT, lines=${TRIGGER_LINES[*]})" \
+    "Issue #887 regression: dynamic discovery found $TC9_DISCOVERED Trigger lines but expected $EXPECTED_TRIGGER_COUNT. Either a new Trigger line was added (update EXPECTED_TRIGGER_COUNT + re-run) or one was removed (audit label-check.yml for unintended deletion). Sister-pattern: d649 TC5 regex discoverability."
+fi
+
+# ============================================================================
 # Summary
 # ============================================================================
 printf "\n${B}==== Summary ====${D}\n"
@@ -345,6 +368,7 @@ echo "             Issue #425 (this d-test tracker), Issue #423 (Part 1 sister),
 echo "             PR #393 (canonical case), ADR-0021 (docs PR convention),"
 echo "             ADR-0044 (TDD red-first doctrine),"
 echo "             Issue #441 (TC7 sister-pattern to TC5/TC6, regression anchor),"
-echo "             Issue #448 (TC8 sister-pattern to TC7, addLabels API regression anchor)."
+echo "             Issue #448 (TC8 sister-pattern to TC7, addLabels API regression anchor),"
+echo "             Issue #887 (TC9 dynamic-discovery sentinel, T7 mapfile refactor)."
 echo "  Sister regressions: d046-peer-poke-canonical-parity.sh (PR #405 MERGED)."
 exit 0
