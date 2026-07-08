@@ -29,6 +29,32 @@ from playwright.sync_api import (  # noqa: E402  (importorskip above)
     sync_playwright,
 )
 
+# Path 2 fix per Issue #876 — module-level skip if chromium binary is absent.
+# The browser fixture below already skips on launch failure, but doing so AFTER
+# the `server` fixture has spawned the uvicorn subprocess causes the cold-start
+# flake (uvicorn cold-start > SUBPROCESS_TIMEOUT_S on self-hosted VM, then
+# communicate(timeout=1) fires the spurious failure before the skip takes effect).
+# Probing chromium.executable_path BEFORE the server fixture avoids the
+# subprocess launch entirely when the binary is missing (the typical CI state
+# where the playwright Python lib IS installed via `pip install -e .[dev]`
+# but the browser binary is NOT — see [dev] extras line 109 in pyproject.toml).
+try:
+    with sync_playwright() as _pw_probe:
+        _chromium_exec = _pw_probe.chromium.executable_path
+    if not _chromium_exec or not Path(_chromium_exec).exists():
+        pytest.skip(
+            "chromium browser binary not installed "
+            "(run `playwright install chromium`); "
+            "skipped at module level per Issue #876 Path 2 cold-start flake RCA",
+            allow_module_level=True,
+        )
+except Exception as _pw_exc:
+    pytest.skip(
+        f"playwright chromium probe failed ({type(_pw_exc).__name__}: {_pw_exc}); "
+        "run `playwright install chromium` to enable E2E locally",
+        allow_module_level=True,
+    )
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RUN_SERVER_SH = REPO_ROOT / "scripts" / "run-server.sh"
 
