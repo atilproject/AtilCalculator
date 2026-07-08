@@ -174,6 +174,57 @@ else
 fi
 
 # ============================================================================
+# TC4: All workflow files use array-form runs-on (parameterization-friendly)
+# ============================================================================
+# Sister-pattern to d069 (Issue #666 workflow-file scope parameterization,
+# WORKFLOW_FILES array). Per ADR-0049 + Sprint 22 PIVOT: workflow files MUST
+# declare runs-on as YAML array `[self-hosted, Linux, X64, atilproject]`,
+# NOT as a single string `self-hosted, Linux, X64, atilproject`. Array form
+# enables per-runner override (e.g., `runs-on: [self-hosted, Linux, ARM64]`
+# for cross-arch CI without edit). Single-string form locks the label set.
+section "TC4: AC4 — all workflow files use array-form runs-on (d069 sister-pattern, parameterization-friendly)"
+TC4_NON_ARRAY=()
+for wf in "$WORKFLOWS_DIR"/*.yml; do
+  [ -f "$wf" ] || continue
+  # Match runs-on: <space> non-array (no leading `[` after the colon)
+  if grep -qE "^[[:space:]]*runs-on:[[:space:]]+[^\[]" "$wf"; then
+    TC4_NON_ARRAY+=("$(basename "$wf")")
+  fi
+done
+if [ "${#TC4_NON_ARRAY[@]}" -eq 0 ]; then
+  pass "TC4 — all ${TC1_TOTAL} workflow files use array-form runs-on (parameterization-friendly, d069 sister)"
+else
+  FAIL_LIST=$(IFS=', '; echo "${TC4_NON_ARRAY[*]}")
+  fail "TC4 — ${#TC4_NON_ARRAY[@]} workflow files use single-string runs-on: ${FAIL_LIST}" \
+    "expected all workflow files migrated to array-form runs-on: [self-hosted, Linux, X64, atilproject]. Per d069 (Issue #666 workflow-file parameterization) + ADR-0049. Array form is parameterization-friendly; single-string locks the label set."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC5: d097 self-test script is ADR-0049 baseline-compliant (≥3 TCs + has --self-test flag)
+# ============================================================================
+# Sister-pattern to ADR-0049 §Framework (≥3 TCs minimum) + ADR-0044 §Decision
+# (every d-test must expose --self-test flag for CI integration). TC5 is a
+# meta-regression guard: prevents future d-test refactors from silently
+# dropping the --self-test entrypoint or shrinking below the ≥3 TC baseline.
+# Issue #113 (label-authority) sister-pattern: number-slot d-tests must each
+# self-verify their own structural compliance.
+section "TC5: AC5 — d097 self-test ADR-0049 baseline-compliant (≥3 TCs + --self-test flag)"
+SELF="$REPO_ROOT/scripts/tests/d097-self-hosted-runner-migration.sh"
+if [[ ! -f "$SELF" ]]; then
+  fail "TC5 — d097 self-script missing at $SELF (cannot verify self-compliance)"
+  EXIT_CODE=1
+elif ! grep -qE '^if \[ "\$\{1:-?\}" != "--self-test" \];' "$SELF"; then
+  fail "TC5 — d097 missing --self-test flag guard (ADR-0044 §Decision violation)"
+  EXIT_CODE=1
+elif [[ $TC1_TOTAL -lt 3 ]]; then
+  fail "TC5 — only $TC1_TOTAL TC sections found (ADR-0049 baseline requires ≥3)"
+  EXIT_CODE=1
+else
+  pass "TC5 — d097 has --self-test flag + ≥3 TC sections ($TC1_TOTAL workflow files scanned = AC1-TC1 input) — ADR-0049 baseline intact"
+fi
+
+# ============================================================================
 # Summary
 # ============================================================================
 printf "\n${B}==== Summary ====${D}\n"
