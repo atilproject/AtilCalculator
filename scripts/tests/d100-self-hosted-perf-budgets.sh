@@ -222,6 +222,65 @@ if [ "$GH_BRANCH_PRESENT" -eq 0 ]; then
 fi
 
 # ============================================================================
+# TC5: cold-start fixture for self-hosted runners (warm-up vs cold budget branch)
+# ============================================================================
+section "TC5: cold-start fixture for self-hosted runners"
+
+COLD_START_PRESENT=0
+
+# Look for cold-start detection: warmup iteration, @pytest.mark.cold, or env-aware cold branch
+for cold_file in \
+  "${TESTS_DIR}/conftest.py" \
+  "${TESTS_DIR}/api/conftest.py" \
+  "${TESTS_DIR}/history/conftest.py"
+do
+  if [ -f "$cold_file" ]; then
+    if grep -qE 'cold[_-]?start|cold_start|warmup|warm_up|@pytest\.fixture.*cold' "$cold_file" 2>/dev/null; then
+      COLD_START_PRESENT=1
+      pass "${cold_file##*/} has cold-start fixture / warm-up pattern"
+    fi
+  fi
+done
+
+# Or inline cold-start detection in perf test files
+INLINE_COLD=$(grep -rlE 'cold[_-]?start|warmup|warm_up' "${TESTS_DIR}" --include="*.py" 2>/dev/null | head -1 || true)
+if [ -n "$INLINE_COLD" ] && [ "$COLD_START_PRESENT" -eq 0 ]; then
+  COLD_START_PRESENT=1
+  pass "Inline cold-start detection in test files: ${INLINE_COLD##*/}"
+fi
+
+if [ "$COLD_START_PRESENT" -eq 0 ]; then
+  fail "TC5 RED: no cold-start fixture or warm-up pattern" \
+    "Expected: tests/conftest.py (or per-test conftest) has cold-start detection OR pytest warmup fixture per Sprint 22 PIVOT Faz 1.2 (sister to TC3 subprocess timeout bump). Issue #890 dev-lane expansion."
+fi
+
+# ============================================================================
+# TC6: pytest conftest.py has env-aware skipif guard (mark skipif not self-hosted)
+# ============================================================================
+section "TC6: pytest conftest.py has env-aware skipif guard"
+
+SKIPIF_PRESENT=0
+
+for skipif_file in \
+  "${TESTS_DIR}/conftest.py" \
+  "${TESTS_DIR}/api/conftest.py" \
+  "${TESTS_DIR}/history/conftest.py" \
+  "${TESTS_DIR}/web/conftest.py"
+do
+  if [ -f "$skipif_file" ]; then
+    if grep -qE 'pytest\.skipif|@pytest\.mark\.skipif|skipif\(|skip[_-]?if[_-]?self[_-]?hosted' "$skipif_file" 2>/dev/null; then
+      SKIPIF_PRESENT=1
+      pass "${skipif_file##*/} has env-aware pytest.skipif guard"
+    fi
+  fi
+done
+
+if [ "$SKIPIF_PRESENT" -eq 0 ]; then
+  fail "TC6 RED: no pytest.skipif guard for env-aware test skipping" \
+    "Expected: tests/conftest.py has @pytest.mark.skipif(not self_hosted, reason=...) or similar. Sister-pattern to TC1 env detection + ADR-0019 amendment 3 env-aware. Issue #890 dev-lane expansion."
+fi
+
+# ============================================================================
 # Summary
 # ============================================================================
 section "Summary"
