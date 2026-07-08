@@ -7,13 +7,19 @@
 # the foundation story for Wave 2 (downstream: S21-003, S21-006, S21-008, S21-009, S21-011).
 # Without .tmpl sources, every template change means editing rendered output, losing the source.
 #
-# 3 TCs (per ADR-0049 d-test framework sister-pattern):
+# 3 TCs (per ADR-0049 d-test framework sister-pattern) + Issue #890 expansion to 6 TCs:
 #   TC1: AC1 .tmpl source files exist (≥20 per Leading Metrics)
 #        count of files matching `*.tmpl` (excluding .venv, .git, .mypy_cache internals).
 #   TC2: AC2 init script reads .tmpl and writes rendered output
 #        init-template-repo.sh has .tmpl processing logic (loop OR placeholder resolution).
 #   TC3: AC3 idempotent — two consecutive init runs on same clone = 0 diff
 #        init-template-repo.sh has skip-if-rendered OR explicit idempotency marker for .tmpl handling.
+#   TC4: AC4 .tmpl files have `<!-- template-version: {{TEMPLATE_VERSION}} -->` header
+#        Sister-invariant to d106 AC1: each .tmpl carries version-pin header (first line).
+#   TC5: AC5 init script substitutes {{PROJECT_NAME}} / {{GITHUB_OWNER}} placeholders
+#        Sister-invariant to d106 AC2: sed/envsubst pipeline substitutes all 5 placeholder vars.
+#   TC6: AC6 .tmpl files have no hardcoded refs (AtilCalculator / atilcan65 absent)
+#        Sister-invariant to d105 AC1: tpl-source files use {{...}} placeholders only.
 #
 # Pre-impl RED state (current main as of 2026-06-29, cycle ~#1243):
 #   - AC1: 1 .tmpl file exists (CLAUDE.md.tmpl from prior partial work) → 1/20 → FAIL
@@ -183,6 +189,83 @@ if [ -n "$IDEMPOTENCY_PATTERN" ]; then
 else
   fail "TC3 — init-template-repo.sh has NO .tmpl idempotency marker (AC3 not yet met)" \
     "expected skip-if-rendered pattern ([ -f \"\$rendered\" ]) OR explicit idempotency marker in .tmpl context. Issue #635 AC3; ensures deterministic re-runs."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC4: AC4 — .tmpl files have template-version header (sister-invariant to d106 AC1)
+# ============================================================================
+section "TC4: AC4 — .tmpl files have template-version header (d106 sister-invariant)"
+# Per Issue #639 (template-version pinning) + d106 AC1: each .tmpl file should
+# carry `<!-- template-version: {{TEMPLATE_VERSION}} -->` header as first line.
+EXPECTED_TMPL_COUNT=5
+TMPL_WITH_HEADER=0
+TMPL_WITHOUT_HEADER=()
+while IFS= read -r tmpl_file; do
+  if [ -f "$tmpl_file" ]; then
+    FIRST_LINE=$(head -1 "$tmpl_file")
+    if echo "$FIRST_LINE" | grep -qE "^<!-- template-version: \{\{TEMPLATE_VERSION\}\} -->$"; then
+      TMPL_WITH_HEADER=$((TMPL_WITH_HEADER + 1))
+    else
+      TMPL_WITHOUT_HEADER+=("$(basename "$tmpl_file")")
+    fi
+  fi
+done < <(find "$REPO_ROOT" -name '*.tmpl' -type f -not -path '*/.git/*' -not -path '*/.venv/*' 2>/dev/null | head -10)
+
+if [ "$TMPL_WITH_HEADER" -ge "$EXPECTED_TMPL_COUNT" ]; then
+  pass "TC4 — ${TMPL_WITH_HEADER} .tmpl files have template-version header (sister-invariant to d106 AC1 met)"
+else
+  fail "TC4 — Only ${TMPL_WITH_HEADER}/${EXPECTED_TMPL_COUNT} .tmpl files have template-version header (sister-invariant to d106 AC1, missing: ${TMPL_WITHOUT_HEADER[*]:-none})" \
+    "expected: each .tmpl file has `<!-- template-version: {{TEMPLATE_VERSION}} -->` as first line per Issue #639 + d106 AC1. Issue #890 dev-lane expansion."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC5: AC5 — init script substitutes {{PROJECT_NAME}} / {{GITHUB_OWNER}} placeholders
+# ============================================================================
+section "TC5: AC5 — init script sed pipeline substitutes {{PROJECT_NAME}} / {{GITHUB_OWNER}}"
+# Sister-invariant to d106 AC2: init script's sed/envsubst pipeline substitutes
+# all 5 placeholder vars: GITHUB_OWNER, GITHUB_REPO, HUMAN_OWNER_NAME, PROJECT_NAME, PROJECT_TOKEN.
+PROJECT_NAME_SUBST="$(grep -nE 's\|\{\{PROJECT_NAME\}\}|.*\|g' "$INIT_SCRIPT" 2>/dev/null | head -3)"
+GITHUB_OWNER_SUBST="$(grep -nE 's\|\{\{GITHUB_OWNER\}\}|.*\|g' "$INIT_SCRIPT" 2>/dev/null | head -3)"
+
+if [ -n "$PROJECT_NAME_SUBST" ] && [ -n "$GITHUB_OWNER_SUBST" ]; then
+  pass "TC5 — init script substitutes {{PROJECT_NAME}} + {{GITHUB_OWNER}} placeholders (sister-invariant to d106 AC2 met)"
+else
+  fail "TC5 — init script does NOT substitute {{PROJECT_NAME}} + {{GITHUB_OWNER}} (sister-invariant to d106 AC2 not yet met)" \
+    "expected: sed pipeline with 's|{{PROJECT_NAME}}|<value>|g' AND 's|{{GITHUB_OWNER}}|<value>|g' substitutions. Issue #890 dev-lane expansion; sister-pattern to d106 AC2."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC6: AC6 — .tmpl files have no hardcoded refs (sister-invariant to d105 AC1)
+# ============================================================================
+section "TC6: AC6 — .tmpl files use {{...}} placeholders, no hardcoded AtilCalculator/atilcan65 (d105 sister)"
+# Per Issue #651 + d105 AC1: tpl-source files should use {{...}} placeholders,
+# no hardcoded project name or owner. Search .tmpl files for hardcoded refs.
+HARDCODED_REFS_FOUND=0
+HARDCODED_FILES=()
+while IFS= read -r tmpl_file; do
+  if [ -f "$tmpl_file" ]; then
+    # Use fixed-string grep to avoid regex expansion issues
+    if grep -qF 'AtilCalculator' "$tmpl_file" 2>/dev/null || \
+       grep -qF 'atilcan65' "$tmpl_file" 2>/dev/null || \
+       grep -qF 'atilproject' "$tmpl_file" 2>/dev/null; then
+      # Allow comments (placeholder example patterns are OK)
+      HARDCODED_LINE=$(grep -nE 'AtilCalculator|atilcan65|atilproject' "$tmpl_file" 2>/dev/null | grep -vE ':\s*<!--|:\s*#' | head -1 || true)
+      if [ -n "$HARDCODED_LINE" ]; then
+        HARDCODED_REFS_FOUND=$((HARDCODED_REFS_FOUND + 1))
+        HARDCODED_FILES+=("$(basename "$tmpl_file")")
+      fi
+    fi
+  fi
+done < <(find "$REPO_ROOT" -name '*.tmpl' -type f -not -path '*/.git/*' -not -path '*/.venv/*' 2>/dev/null | head -10)
+
+if [ "$HARDCODED_REFS_FOUND" -eq 0 ]; then
+  pass "TC6 — .tmpl files use {{...}} placeholders only, no hardcoded refs (sister-invariant to d105 AC1 met)"
+else
+  fail "TC6 — ${HARDCODED_REFS_FOUND} .tmpl files have hardcoded refs: ${HARDCODED_FILES[*]} (sister-invariant to d105 AC1, Issue #651 contract gap)" \
+    "expected: 0 hardcoded (AtilCalculator, atilcan65, atilproject) refs in .tmpl files (use {{PROJECT_NAME}} / {{GITHUB_OWNER}} placeholders). Issue #890 dev-lane expansion; sister-pattern to d105 AC1."
   EXIT_CODE=1
 fi
 
