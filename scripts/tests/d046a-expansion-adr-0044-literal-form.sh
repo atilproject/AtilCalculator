@@ -127,16 +127,16 @@ fi
 # ============================================================================
 # T4: Sister-test regression — d046-peer-poke-canonical-parity.sh still PASS
 # ============================================================================
-section "T4: d046-peer-poke-canonical-parity.sh regression — sister test still green"
-SISTER_TEST="$REPO_ROOT/scripts/tests/d046-peer-poke-canonical-parity.sh"
+section "T4: d046c-peer-poke-canonical-parity.sh regression — sister test still green"
+SISTER_TEST="$REPO_ROOT/scripts/tests/d046c-peer-poke-canonical-parity.sh"
 if [ -f "$SISTER_TEST" ]; then
   if bash "$SISTER_TEST" >/dev/null 2>&1; then
-    pass "d046-peer-poke-canonical-parity.sh still PASS (sister test regression)"
+    pass "d046c-peer-poke-canonical-parity.sh still PASS (sister test regression)"
   else
-    fail "d046-peer-poke-canonical-parity.sh FAIL — sibling-script regression detected"
+    fail "d046c-peer-poke-canonical-parity.sh FAIL — sibling-script regression detected"
   fi
 else
-  echo "  ${B}⊘ SKIP${D} — d046-peer-poke-canonical-parity.sh not found (sister test absent in this environment)"
+  echo "  ${B}⊘ SKIP${D} — d046c-peer-poke-canonical-parity.sh not found (sister test absent in this environment)"
 fi
 
 # ============================================================================
