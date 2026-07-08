@@ -1,6 +1,6 @@
 # ADR-0057: Closes-anchor guard — codify parser-friendly issue close formats (closes Issue #560 AC1, RETRO-010 #33 NEW Bug variant)
 
-- **Status**: Proposed (Sprint 16 P1 doctrine hardening workshop, Closes Issue #560 AC1)
+- **Status**: Accepted (ratified 2026-07-07 cycle ~#5079 per Issue #877 Phase 2 v1.0.0 audit; was Sprint 16 P1 doctrine hardening workshop, Closes Issue #560 AC1; 6-sprint adoption window validated)
 - **Date**: 2026-06-28
 - **Deciders**: @architect (doctrine/spec), @developer (label-check.yml parser-friendly integration — owner merge required), @tester (d-test framework integration), @product-manager (Sprint 16 P1 workshop ratification per Issue #560 kickoff), @atilcan65 (owner squash gate)
 - **Sister-patterns**: ADR-0015 (atomic 4-flag handoff = terminal hand-off fallback), ADR-0045 (9-Lens (j) auto-gen file refs + live-state), ADR-0056 (Layer 5 idempotency reconcile — cheaper fix sister-pattern), RETRO-010 #33 NEW (false-positive auto-add codification cluster)

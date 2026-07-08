@@ -1,6 +1,6 @@
 # ADR-0057 Amendment #1: §Closes-vs-Refs Intent Rule (codify when to use Closes: vs Refs:)
 
-- **Status:** Proposed (Sprint 24 W2 doctrine hardening, Closes Issue #860 codification)
+- **Status:** Accepted (ratified 2026-07-07 cycle ~#5079 per Issue #877 Phase 2 v1.0.0 audit; was Sprint 24 W2 doctrine hardening, Closes Issue #860 codification)
 - **Date:** 2026-07-07
 - **Deciders:** @architect (doctrine/spec), @tester (tester.md doctrine doc follow-up per Issue #860 Path A), @product-manager (Sprint 24 W2 retro candidate), @atilcan65 (owner squash gate)
 - **Parent ADR:** [ADR-0057](./ADR-0057-closes-anchor-guard.md) — Closes-anchor guard (parser-friendly issue close formats)
