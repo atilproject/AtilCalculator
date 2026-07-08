@@ -105,11 +105,20 @@ def server():
                 proc.wait(timeout=wait_budget)
             except subprocess.TimeoutExpired:
                 proc.kill()
-                proc.wait(timeout=1)
+                # Env-aware cleanup timeout: max(int(SUBPROCESS_TIMEOUT_S/5), 1)
+                # scales with the main wait budget (5s on github-hosted → 1s,
+                # 10s on self-hosted → 2s) — sufficient for kernel to reap a
+                # SIGKILL'd process + drain the subprocess pipes, but tight
+                # enough to not block CI on a truly stuck proc.
+                # Issue #876 cold-start flake RCA: hardcoded 1s was insufficient
+                # when uvicorn was still flushing pipes on the failed /healthz
+                # timeout path on self-hosted VM 192.168.1.197.
+                cleanup_timeout_s = max(int(SUBPROCESS_TIMEOUT_S / 5), 1)
+                proc.wait(timeout=cleanup_timeout_s)
             # Proc is now dead — communicate() drains the buffered pipes
-            # immediately and returns EOF. A 1s ceiling here is paranoia;
+            # immediately and returns EOF. Same env-aware cap as above;
             # under normal conditions the call returns in microseconds.
-            stdout, stderr = proc.communicate(timeout=1)
+            stdout, stderr = proc.communicate(timeout=cleanup_timeout_s)
             pytest.fail(
                 f"Server did not become healthy at {base_url} within "
                 f"{SUBPROCESS_TIMEOUT_S}s.\n"
@@ -126,7 +135,10 @@ def server():
             proc.wait(timeout=wait_timeout)
         except subprocess.TimeoutExpired:
             proc.kill()
-            proc.wait(timeout=1)
+            # Same env-aware cleanup cap as the failure-path above — see comment
+            # in the if-block for Issue #876 cold-start flake RCA + derivation.
+            cleanup_timeout_s = max(int(SUBPROCESS_TIMEOUT_S / 5), 1)
+            proc.wait(timeout=cleanup_timeout_s)
 
 
 @pytest.fixture(scope="module")
