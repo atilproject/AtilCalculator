@@ -45,12 +45,14 @@ try:
         pytest.skip(
             "chromium browser binary not installed "
             "(run `playwright install chromium`); "
-            "skipped at module level per Issue #876 Path 2 cold-start flake RCA"
+            "skipped at module level per Issue #876 Path 2 cold-start flake RCA",
+            allow_module_level=True,
         )
 except Exception as _pw_exc:
     pytest.skip(
         f"playwright chromium probe failed ({type(_pw_exc).__name__}: {_pw_exc}); "
-        "run `playwright install chromium` to enable E2E locally"
+        "run `playwright install chromium` to enable E2E locally",
+        allow_module_level=True,
     )
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
