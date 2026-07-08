@@ -1,55 +1,59 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 22 — PIVOT: Self-Hosted Runner + 3-Repo Org Migration + Template Visibility**
+> **Active sprint:** **Sprint 24 — Cluster close + Sprint 24 plan scaffolding (Issue #767)**
 >
-> 📄 **Orchestrator-published plan (DRAFTED cycle ~1519):** [../sprint-22/plan.md](../sprint-22/plan.md) (5-Phase Plan, 8 risks, 8 DoD criteria, 10 open Q's — owner verdict pending on Q1/Q2/Q4-Q12)
-> 📄 **PM-drafted scope (owner GO):** [Issue #708](https://github.com/atilproject/AtilCalculator/issues/708) (Plan v3 final, owner GO verdict cycle ~#1512 follow-up, 5-Phase Plan + 10 Open Questions + 8 Risk register)
-> 📄 **Predecessor (Sprint 21 STALLED → carry-over):** [../sprint-21/close.md](../sprint-21/close.md) (Wave 1 pre-dispatch, PRs ready, sizing never executed — Q6 owner-decision: abandonment vs carry-over, **default carry-over per Issue #708 §In-flight migration continuity**, skeleton drafted cycle ~#1552)
-> 📄 **Predecessor (Sprint 18 PROJECT CLOSED):** [../sprint-18/close.md](../sprint-18/close.md) (AtilCalculator FINAL 8/8 SHIPPED, PR #625 squash @ e4bfa3e)
-> 📄 **Predecessor (Sprint 20 folded):** [../sprint-18/RETRO-014.md](../sprint-18/RETRO-014.md) §6
+> 📄 **Orchestrator-published plan (DRAFTED cycle ~#3419):** [../sprint-24/plan.md](../sprint-24/plan.md) (PM-visible scope 6.0sp + 3sp carry, 9-decom + #653 + #649 owner verdict dependencies, advisory per cycle #3190)
+> 📄 **Sprint 24 v1.0.0 audit report (PHASE 2 COMPLETE):** [PR #881](https://github.com/atilproject/AtilCalculator/pull/881) (4/4 lanes 🟢 GREEN, 4 PRs at owner squash gate per cycle ~#5087-followup3) — file `docs/sprints/sprint-24/v1.0.0-audit-report.md` lands on main post-#881-squash
+> 📄 **Phase 2 coordination:** [Issue #877](https://github.com/atilcan65/AtilCalculator/issues/877) — `[Phase 2] Template v1.0.0 GA release-readiness audit (kickoff post-PR #869)` (status:in-progress, agent:orchestrator + agent:product-manager)
 >
-> **Mode:** 🚀 **SPRINT 22 PIVOT EXECUTION** — owner GO verdict (Issue #708, status:in-progress, agent:orchestrator + agent:developer — co-piloted). Strategy v3 final: 8 self-hosted runners (atilproject org, owner VM 192.168.1.197) + 3-repo org migration (atilcalculator + dev-studio-template + dev-studio-launcher → atilproject) + template visibility default-private. GH-hosted runner dependency ZERO. R3 SPOF (single VM) → 2. VM redundancy Sprint 23+.
+> 📄 **Predecessors:**
+> - Sprint 23 close (cluster-squash 5 PRs, cycle ~#3418): PR #778 squash-merged
+> - Sprint 22 PIVOT close (12-PR cluster, 2026-07-02T13:37:50Z): PR #778 squash-merged (Faz 2.5b owner-action landed, atilproject org-runner enabled)
+> - Sprint 21 close (STALLED → carry-over per Q6 owner-default): [../sprint-21/close.md](../sprint-21/close.md) (skeleton drafted cycle ~#1552)
+> - Sprint 18 close (FINAL 8/8 SHIPPED): [../sprint-18/close.md](../sprint-18/close.md) (PR #625 squash @ e4bfa3e)
 >
-> ⚠️ **CRITICAL CORRECTION cycle ~#1566** (arch v3 CORRECTION cmt 4841705205): Sprint 22 PIVOT critical-path STILL BLOCKED. PR #710 (clone-URL scripts) did NOT validate self-hosted runner infra — it modified 0 workflow files and its CI ran on GH-hosted `ubuntu-latest`. **NEW IMPLICIT Faz 2.5b (owner-action ~5-10min)** filed as Issue #711 — enable atilproject org-runner access for atilproject/AtilCalculator repo (Settings → Actions → Runners). Sprint scope-change (19 phases, was 18). See plan.md §Faz 1.1 correction note + §Faz 2.5b.
+> **Mode:** 🚀 **SPRINT 24 PHASE 2 COMPLETE — AWAITING OWNER SQUASH** (4 PRs at human merge gate per ADR-0031). All 4 lanes (tester/developer/architect/product-manager) 🟢 GREEN on v1.0.0 GA release-readiness audit. Phase 3 trigger pending owner sign-off on #878 (arch ADR-0057/0070 Accepted), #879 (PM backlog.json v1.0.0), #880 (arch TD-054 docs-tree ID/path drift fix), #881 (orchestrator Phase 2 consolidation report — this cycle's deliverable).
 >
 > **Status:**
-> - 🟢 **Sprint 18 PROJECT CLOSED** (PR #625 squash @ e4bfa3e, all 8 stories SHIPPED)
-> - 🟢 **Sprint 20 PROJECT CLOSED** (PM RECOMMENDATION (b) ACHIEVED — folded into Sprint 18 squash)
-> - 🟡 **Sprint 21 SCOPE RATIFIED** (PR #626 squash @ a5e0942) but **STALLED at Wave 1 pre-dispatch** — 10 PRs all MERGEABLE + ready, sizing never executed, Wave 1 dispatch never landed. **Q6 owner-decision (default carry-over per Issue #708), close-out skeleton drafted cycle ~#1552**
-> - 🚀 **Sprint 22 PIVOT EXECUTION** (owner GO, Issue #708 status:in-progress, 5-Phase Plan underway)
+> - 🟢 **Sprint 18 PROJECT CLOSED** (PR #625 squash @ e4bfa3e, 8/8 SHIPPED)
+> - 🟢 **Sprint 20 PROJECT CLOSED** (folded into Sprint 18 per PM RECOMMENDATION (b))
+> - 🟡 **Sprint 21 SCOPE RATIFIED** but STALLED — Q6 default carry-over per Issue #708
+> - 🟢 **Sprint 22 PIVOT CLOSED** (12-PR cluster, 2026-07-02T13:37:50Z, 3-repo org migration + template visibility default-private + atilproject org-runner enabled via Faz 2.5b owner-action per Issue #711)
+> - 🟢 **Sprint 23 CLOSED** (5-PR cluster-squash cycle ~#3418, d-tests d121 + d642 + d649 all GREEN)
+> - 🚀 **Sprint 24 ACTIVE** — Phase 2 v1.0.0 GA audit 🟢 COMPLETE, 4 PRs at owner squash gate, Phase 3 pending owner sign-off
 >
-> **Origin directive (Sprint 22 PIVOT trigger, Issue #708 author @atilcan65)**:
-> Owner pivot: GH-hosted runner dependency eliminated via 8 self-hosted runners on owner's VM. 3 repos (atilcalculator + dev-studio-template + dev-studio-launcher) migrated to atilproject org. Template visibility default-private. Self-hosted runner auto-discovery replaces GH-hosted at PR open time. "Hiçbir detayı kaçırma" — full infra sovereignty.
+> **In-flight (Phase 2 owner squash cluster — disjoint paths, recommend squash order #879 → #878 → #880 → #881):**
+> - **PR #879** (PM backlog.json v1.0.0, +519/-346, 1 file `docs/backlog.json`, version=null→1.0.0 + 37 per-story v1_0_0_scope tags + v1_0_0_audited_at/auditor/source_issue/sprint/notes) — Closes #877 §@product-manager lane
+> - **PR #878** (arch ADR-0057 + ADR-0070 amendment status:Proposed→Accepted, INDEX.md row 68 cross-ref fix per arch verdict 🟡→fix landed) — Refs #877
+> - **PR #880** (arch TD-054 docs-tree ID/path drift, 1 commit 0000fc2 rebased onto main, +1/-0 `docs/tech-debt.md`, P0 fix landed re: 3 broken-link regex)
+> - **PR #881** (orchestrator Phase 2 v1.0.0 GA audit consolidation, `docs/sprints/sprint-24/v1.0.0-audit-report.md` +152/-0, 4-cat labels intact, head=cfead77) — Closes #877 §orchestrator lane
 >
-> **In-flight migration continuity (must survive 3-repo org migration):**
-> - **PR #694** (tester d-test, agent:tester, status:ready, cc:human) — Closes #633
-> - **PR #695** (feat/docs S21-019, agent:developer, status:ready, verdict-by:2026-06-30T16:52:15Z) — Closes #633
-> - **Issue #652** (STORY-S21-020 ONBOARDING.md, agent:product-manager, status:backlog, parked Wave 5 per Issue #685) — Sprint 22 candidate
+> **All 4 PRs verified:** state=open, draft=False, mergeable=clean (status-label-to-board sync pre-merge), all 5 CI checks ✅ GREEN (incl. Lint & Test post P0/P1 fix paths), disjoint paths (no overlap), agent:<owner> + cc:<owners> + cc:human labels (4-cat invariant per ADR-0012).
 >
-> **Lane discipline**: PM lane = docs/sprints/souls PRs, NOT scripts/ refactors (Sprint 13+ LOCKED, per [ORCH→PM-CLARIFY-ACK] @ 22:42:21 +03)
+> **Cross-refs:**
+> - Sprint 24 plan: [../sprint-24/plan.md](../sprint-24/plan.md) (orchestrator-published, PM-visible scope ~6.0sp + 3sp carry, IN PROGRESS)
+> - Issue #767: [Sprint 24] Backlog Grooming Ceremony (PM source)
+> - Issue #877: [Phase 2] Template v1.0.0 GA release-readiness audit (4-lane coordination, IN PROGRESS, awaits owner squash)
+> - Sprint 22 close: [../sprint-22/close.md](../sprint-22/close.md) (PR #778 squash)
+> - Sprint 21 close: [../sprint-21/close.md](../sprint-21/close.md) (Faz 4.5 lane, skeleton drafted)
+> - Sprint 18 close: [../sprint-18/close.md](../sprint-18/close.md) (FINAL 8/8 SHIPPED)
+> - RETRO-014: [../sprint-18/RETRO-014.md](../sprint-18/RETRO-014.md) (FINAL substantive retro)
+> - RETRO-016: https://github.com/atilcan65/AtilCalculator/issues/680 (Layer 5 initial-add race, ADR-0048 amendment)
+> - Issue #876: `[INFRA] Self-hosted runner systemd user-bus missing — Deploy to production AC4 false-negative` (status:backlog, agent:developer, P2 — NOT Phase 2 blocker, Sprint 24+ PM/developer lane)
 >
-> **Cross-refs**:
-> - Sprint 22 plan: [../sprint-22/plan.md](../sprint-22/plan.md) (orchestrator-published, 5-Phase Plan, IN PROGRESS)
-> - Issue #708: https://github.com/atilproject/AtilCalculator/issues/708 (Sprint 22 PIVOT coordination, owner GO, status:in-progress)
-> - Sprint 21 close-out: [../sprint-21/close.md](../sprint-21/close.md) (Faz 4.5 lane, skeleton drafted cycle ~#1552, awaits Q6 owner verdict annotation)
-> - Sprint 18 close: [../sprint-18/close.md](../sprint-18/close.md) (AtilCalculator FINAL wave, 8/8 SHIPPED)
-> - RETRO-014 codification: [../sprint-18/RETRO-014.md](../sprint-18/RETRO-014.md) (AtilCalculator FINAL substantive retro)
-> - RETRO-016: https://github.com/atilproject/AtilCalculator/issues/680 (Layer 5 initial-add race — Faz 4.2 ADR-0048 amendment codification)
+> **Post-Phase-2-GO action sequence (Phase 3 trigger conditions):**
+> 1. ⏳ **Owner squash on #879** (PM backlog.json v1.0.0) — recommended FIRST (largest diff + lowest complexity, pure docs/, no workflow edits)
+> 2. ⏳ **Owner squash on #878** (arch ADR-0057 + ADR-0070 Accepted, INDEX.md row 68 fix) — recommended SECOND (docs/, sister-pattern compliant per ADR-0024 x2 + ADR-0048 x2)
+> 3. ⏳ **Owner squash on #880** (arch TD-054 docs-tree ID/path drift, +1/-0 tech-debt entry, P0 fix landed) — recommended THIRD (docs/, 1 commit on main rebase)
+> 4. ⏳ **Owner squash on #881** (orchestrator Phase 2 consolidation report, this cycle's deliverable) — recommended LAST (depends on #879+#878+#880 for referenced evidence)
+> 5. ⏳ **Orchestrator flips #877 status:in-progress → status:done** after all 4 squashes
+> 6. ⏳ **Phase 3 trigger** — PM lane (Issue #870 closed by owner 17:59:28Z, deferred to v1.1 per PM Decision #870 close-out batch) + Issue #653 transfer (3sp carry-over) + Issue #649 partial-coverage decision (P2 0.5sp gap-closure)
+> 7. ⏳ **Sprint 25+ kickoff** once Issue #876 (infra bug, P2) + d-test gap-closure (6 d-tests below ≥5 baseline per Issue #877 §@tester lane follow-up row) sized
 >
-> **Post-Issue-#708-GO action sequence (per Issue #708 §5-Phase Plan):**
-> 1. ✅ Owner GO on Issue #708 — DONE cycle ~1512 (Plan v3 final)
-> 2. ✅ Orchestrator publishes `docs/sprints/sprint-22/plan.md` — DONE cycle ~1519 (this pointer refresh)
-> 3. ✅ `current/plan.md` pointer refresh Sprint 21 ACTIVE → Sprint 22 PIVOT — DONE cycle ~1519 (this file)
-> 4. ⏳ Pre-Kickoff Gate stamp on Issue #708 — DONE cycle ~1519 (plan_freshness_check)
-> 5. ⏳ [ORCH→ALL] auto-ping broadcast (peer-poke.sh loop) — IN PROGRESS cycle ~1519
-> 6. ⏳ Faz 0 Pre-Flight Snapshot (PM + Developer | Owner Accountable)
-> 7. ⏳ Faz 4.5 Sprint 21 close-out (`docs/sprints/sprint-21/close.md`) — orchestrator lane, awaiting Q6 owner verdict
-> 8. ⏳ Faz 4.2 Architect ADR set (5 ADRs: self-hosted runner arch + visibility design + monitoring strategy + redundancy plan + re-test criteria)
-> 9. ⏳ Faz 4.3 Sizing joint (PM + arch + dev + tester) — Sprint 22 stories
-> 10. ⏳ Faz 1-3 sprint execution (workflow update + 3-repo migration + visibility param) per Issue #708 lane assignments
-> 11. ⏳ Faz 5 Post-Migration Continuity + Runner Monitoring + Re-Test (24h+)
+> **Open owner questions (carry-over from Sprint 22 advisory + Sprint 24 plan advisory):**
+> - Sprint 22: Q1 (atilproject org plan tier) | Q2 (VM availability) | Q4 (template visibility) | Q5 (runner label) | Q6 (S21 abandonment) | Q7 (#652 rename) | Q8 (launcher scope) | Q9 (runner monitoring) | Q10 (workload balancing) | Q11 (2.VM timeline) | Q12 (Faz 5.9 re-test) — Q3 closed
+> - Sprint 24: 9-decom verdict (#634/#640/#641/#643/#644/#646/#647/#650/#654) | #653 lane transfer (tester→PM) | #649 partial-coverage (Keep 0.5sp) — advisory per cycle #3190 directive ("tarih beklemeyin, devam edin")
 >
-> **Open owner questions (10 remaining, Q3 closed):**
-> Q1 (atilproject org plan tier — Team minimum) | Q2 (VM 192.168.1.197 7/24 availability) | Q4 (template visibility default policy) | Q5 (runner label convention) | Q6 (Sprint 21 abandonment rationale — default carry-over) | Q7 (Issue #652 rename) | Q8 (dev-studio-launcher scope inclusion) | Q9 (runner monitoring strategy) | Q10 (workload balancing) | Q11 (2. VM redundancy timeline) | Q12 (Faz 5.9 re-test criteria)
+> **Lane discipline** (LOCKED Sprint 13+): PM lane = docs/sprints/souls PRs, NOT scripts/ refactors. Per [ORCH→PM-CLARIFY-ACK] @ 22:42:21+03:00. See `.claude/CLAUDE.md §PM lane definition`.
 
-— @orchestrator, 2026-06-30T10:45+03:00 = 07:45Z, current/plan.md pointer refresh (Sprint 21 ACTIVE → Sprint 22 PIVOT, per Issue #708 owner GO + Faz 4.4 lane per file ownership matrix `docs/sprints/**` = @orchestrator)
+— @orchestrator, 2026-07-07T18:38Z, current/plan.md pointer refresh (Sprint 22 PIVOT ACTIVE → Sprint 24 ACTIVE — Phase 2 v1.0.0 audit COMPLETE, 4 PRs at owner squash gate), per file ownership matrix `docs/sprints/**` = @orchestrator + Issue #238 no-standby doctrine (took local action despite GH-GraphQL rate-limit window, REST API used for ground-truth re-query)
