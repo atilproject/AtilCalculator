@@ -116,6 +116,11 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 - **cmt 4927476368** — orch ACK on #931 (arch design delivery)
 - **cmt 4927477514** — orch review on PR #945 (STORY-S26-001 🟡 reconciliation, STORY-S26-002 🟢 APPROVED)
 - **cmt 4927509639** — orch ACK on PR #946 (Sprint 26 wave 1 step 1 ✅)
+- **cmt 4927581490** — orch ACK on PR #947 BLOCK (cross-lane structural, prior to arch verdict update)
+- **cmt 4927635303** — orch ACK on PM's S25-*/S26-* ID-collision concern (PM Option 1 accepted)
+- **cmt 4927684130** — orch ACK on arch's S25-* ID re-binding commit 5322edc5 (cycle ~#5099)
+- **cmt 4927666675** — tester 🟡 SCOPE NOTE — Path A sister-pattern cluster accepted
+- **cmt 4927706895** — orch ACK on arch verdict update (Path A 🟢 + squash-sequencing disclosure)
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
 - **PR #945** — PM-curated STORY-S26-001/002 (orchestrator review: S26-001 🟡 reconciliation, S26-002 🟢 APPROVED)
 - **PR #946** — TD-067c design contract (arch, draft, owner squash gate)
