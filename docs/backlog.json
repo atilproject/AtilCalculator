@@ -1090,7 +1090,7 @@
     },
     {
       "id": "STORY-S26-001",
-      "title": "d-test ≥5 TC baseline gap-closure — 6 d-tests below ADR-0049 floor",
+      "title": "d-test ≥5 TC baseline gap-closure — d296 (3 → ≥5 TCs)",
       "issue": null,
       "priority": "P2",
       "status": "backlog",
@@ -1101,11 +1101,12 @@
         "developer",
         "human"
       ],
-      "story_points_proposed": 1.5,
+      "story_points_proposed": 0.5,
       "depends_on": [
-        "Issue #877 §tester lane follow-up row (canonical source)",
+        "Issue #877 §tester lane follow-up row (canonical source, retro estimate of 6)",
         "Issue #883 v5 audit (parent, closed 2026-07-08T05:24:56Z)",
-        "Issue #890 sister-pattern (dev-lane 9 d-tests expanded to ≥5 baseline)",
+        "Issue #890 sister-pattern cluster (dev-lane 9 d-tests expanded, closed 5 of 6)",
+        "Issue #943 tester audit 2026-07-09T16:30Z (authoritative ground truth: 1 d-test = d296)",
         "Sprint 25+ Wave 1 deferral via Issue #939 (carryover NOT_PLACED → Sprint 26)"
       ],
       "blocks": [
@@ -1115,8 +1116,11 @@
       "sprint": "Sprint 26",
       "sprint_story_doc": "docs/backlog/STORY-S26-001.md",
       "vision_metrics": [],
-      "notes": "PM-curated from Issue #941 (Sprint 26 Kickoff) §Scope row 3 (tester lane authoritative source: 6 d-tests below ≥5 baseline). Local audit (PM 2026-07-09T16:30Z) confirms: d120 (1 TC), d106 (3), d319 (3), d043 (3), d296 (3), d067 (4). Sister-pattern: Issue #890 cluster expansion precedent (9 d-tests in dev lane). Open question at sizing: 1 umbrella PR vs 6 small PRs (arch+tester decision). Tester lane primary ownership per Issue #113.",
-      "v1_0_0_scope": "OUT"
+      "notes": "PM-curated from Issue #941 (Sprint 26 Kickoff) §Scope row 3 — RECONCILED 2026-07-09T18:30Z per Issue #943 tester authoritative audit (117 d-test files, 116 PASS / 1 FAIL = d296). Original 6-d-test estimate from Issue #877 retro is OUTDATED post-cluster #890 (5 of 6 closed via PRs #885/#892/#894/#895/#896/#897/#898/#899/#913/#914). Final scope: 1 d-test (d296-peer-poke-helper.sh, 3 TCs → ≥5 TCs). SP re-estimate: 1.5sp → 0.5sp. Sprint 26 capacity: 1.0sp reclaimed for re-fill or Sprint 27 carry. Sister-pattern: Issue #890 cluster expansion precedent. Tester lane primary ownership per Issue #113. Reconciliation history documented in STORY-S26-001.md §Reconciliation history.",
+      "v1_0_0_scope": "OUT",
+      "reconciled_at": "2026-07-09T18:30:00Z",
+      "reconciled_by": "product-manager",
+      "reconciled_via": "Issue #943 tester audit cycle ~#5095"
     },
     {
       "id": "STORY-S26-002",
