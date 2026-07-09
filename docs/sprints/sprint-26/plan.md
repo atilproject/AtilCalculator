@@ -4,7 +4,7 @@
 > **Author**: @orchestrator (cycle ~#5095, 2026-07-09T19:38+03:00)
 > **Source issues**: #941 [Sprint 26] Kickoff + #943 d-test gap-closure tracker + #931 TD-067c + #853 canary gap
 > **Source data**: arch cmt 4927095731 (Wave 1 deferral on #931) + arch cmt 4927243051 (🟢 APPROVED Sprint 26 scope) + tester cmt 4927382970 (true audit results)
-> **Status**: 🟡 **DRAFT** — scope firm from #941 + #943 + arch verdict + PM curation (PR #937); joint sizing ceremony pending (per PM cmt 4926058363 §Sizing coordination)
+> **Status**: 🟡 **DRAFT → ACTIVE** (cycle ~#5095 part 4, 2026-07-09T19:50Z) — scope firm from #941 + #943 + arch verdict + PM curation (PR #937); joint sizing ceremony pending (per PM cmt 4926058363 §Sizing coordination); arch design phase **DONE** (PR #946 open)
 
 ## Sprint goal
 
@@ -36,6 +36,16 @@ For **#931 (TD-067c)**, architect lane owns 4 deliverables (per arch verdict §L
 2. **ADR** `docs/decisions/ADR-NNNN-td-067c-open-diagnostic.md` (sister to ADR-0070 TD-067b) — ~0.25sp
 3. **tech-debt.md** TD-067c row update (carry from Wave 1 deferral + 4th evidence instance)
 4. **d-test contract** `scripts/tests/d296b-td067c-open-time-label-strip.sh` (sister-test to d296/d058, RED-first per ADR-0044) — coord with tester per joint sizing
+
+### Sprint 26 wave 1 progress (cycle ~#5095 part 4, 2026-07-09T19:50Z)
+
+| Step | Status | Lane | Artifact | Notes |
+|---|---|---|---|---|
+| Wave 1 step 1: TD-067c design phase | ✅ **LANDED** | architect | PR #946 (draft, +572/-2, 4 files) | c8b29718c8 on `arch/td-067c-design-issue-931`. 9-Lens pre-publish attestation per ADR-0045 ✅. 4 LIVE INSTANCES evidence stack. Sister-pattern to TD-067b Layer 6 (PR #938). Awaiting owner squash gate per ADR-0031. |
+| Wave 1 step 2: S26-002 d-test RED-first | ⏳ **NEXT** | tester | `scripts/tests/d067c-open-time-label-strip.sh` (≥5 TCs, sister d058 fixture pattern) | Per ADR-0044 RED-first. TC1-TC7 enumerated in design doc §AC. Mock event generator sister d058 (NOT historical `gh api` replay per cmt 4927243051 #2). |
+| Wave 1 step 3: S26-001 impl PR | ⏳ **WAITING** | developer | `.github/workflows/label-check.yml` edits (3 distinct guards: actor check, synchronize no-op diff gate, canonical step if: gate) | After d-test lands per ADR-0044 RED-first. Owner squash gate per ADR-0031 (`.github/workflows/` human-only territory). |
+| PM reconciliation on #945 | ⏳ **PENDING** | PM | STORY-S26-001 1.5sp/6 d-tests → 0.5sp/1 d-test d296 per tester #943 audit | cmt 4927477514 (orch review on PR #945) flagged the stale estimate. PM response pending. |
+| Owner squash gate | ⏸️ **PENDING** | human | PR #946 → main | Per ADR-0031. Designer-only territory (workflow YAML touches `.github/workflows/`). |
 
 ### d296 sister-pattern scope (per #943 §Acceptance criteria)
 
@@ -85,7 +95,8 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 
 - **Issue #941** — Sprint 26 Kickoff (status:in-progress since 2026-07-09T16:28:59Z)
 - **Issue #943** — d296 gap-closure tracking issue (tester lane, opened 2026-07-09T16:32:52Z)
-- **Issue #931** — TD-067c P1 (status:ready, arch lane)
+- **Issue #931** — TD-067c P1 (status:ready, arch lane, design phase DONE in PR #946)
+- **PR #946** — TD-067c design contract (draft, arch, 9 labels 4-cat ✅, cmt 4927509639 orch ACK)
 - **Issue #853** — canary config.yml P3 (status:backlog, dev lane)
 - **Issue #939** — Sprint 25+ Wave 1 deferral (CLOSED 2026-07-09T16:00:27Z, source of TD-067c → Sprint 26 inheritance)
 - **Issue #877** — Phase 2 audit, §tester lane follow-up row (CLOSED, parent of #943 d296 gap)
@@ -93,6 +104,15 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 - **PR #942** — v1.0.1 Grup C re-render (squash-merged 16:26:15Z, merge commit d02e1e8) — v1.0.1 release 2026-07-09T16:26:58Z
 - **Release v1.0.1** — https://github.com/atilcan65/AtilCalculator/releases/tag/v1.0.1
 - **cmt 4927095731** — arch Wave 1 deferral cross-reference on #931 (correct arch cmt, doc-staleness fix from arch verdict)
+- **cmt 4927052273** — arch original (STALE) Wave 1 deferral (replaced by 4927095731 per arch verdict doc-staleness fix)
+- **cmt 4927243051** — arch 🟢 APPROVED verdict on Sprint 26 scope (Issue #941)
+- **cmt 4927382970** — tester self-claim + true audit results for #943
+- **cmt 4927476368** — orch ACK on #931 (arch design delivery)
+- **cmt 4927477514** — orch review on PR #945 (STORY-S26-001 🟡 reconciliation, STORY-S26-002 🟢 APPROVED)
+- **cmt 4927509639** — orch ACK on PR #946 (Sprint 26 wave 1 step 1 ✅)
+- **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
+- **PR #945** — PM-curated STORY-S26-001/002 (orchestrator review: S26-001 🟡 reconciliation, S26-002 🟢 APPROVED)
+- **PR #946** — TD-067c design contract (arch, draft, owner squash gate)
 - **cmt 4927243051** — arch 🟢 APPROVED verdict on Sprint 26 scope (Issue #941)
 - **cmt 4927382970** — tester self-claim + true audit results for #943
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
@@ -130,4 +150,4 @@ Per PM cmt 4926058363 §Sizing coordination + PM doctrine "Never estimate alone"
 - **#853 (canary)**: developer owns, currently `status:backlog` — unblock path = owner territory population per ADR-0031
 - **#941 (Sprint 26 Kickoff)**: orchestrator owns, currently `status:in-progress` — flips to `status:done` at sprint close
 
-— @orchestrator, 2026-07-09T19:38+03:00, cycle ~#5095, post-#943-test-scope-confirmed (5 lanes deconflicted from #941 + #943 + #931 + #853)
+— @orchestrator, 2026-07-09T19:50+03:00, cycle ~#5095 part 4, post-PR-#946-design-DONE (arch lane closed, 4 lanes deconflicted from #941 + #943 + #931 + #853, peer-poking dev+tester for wave 1 step 2/3)
