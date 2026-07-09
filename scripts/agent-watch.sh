@@ -1900,6 +1900,18 @@ poll_once() {
   # because self-heal is rare; the cmd_mark flock at line 215 uses blocking too).
   if jq -e '.processed_event_ids | type == "null"' "$state_file" >/dev/null 2>&1; then
     echo "ALERT: $state_file processed_event_ids is null — auto-healing to []" >&2
+    # TD-068 observability (Issue #925): structured JSON Lines for downstream
+    # tooling / production telemetry (arch 9-Lens lens f). Plain-text line
+    # above is the human-readable fallback (AC4); the JSON line below is the
+    # machine-readable contract (AC3 schema).
+    jq -nc \
+      --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      --arg role "${ROLE:-watcher}" \
+      --arg event "watcher_self_heal" \
+      --arg reason "processed_event_ids_null" \
+      --arg fallback_action "write_empty_array" \
+      --arg state_file "$state_file" \
+      '{ts:$ts, role:$role, event:$event, reason:$reason, fallback_action:$fallback_action, state_file:$state_file}' >&2
     (
       flock 9
       jq '.processed_event_ids = []' "$state_file" > "${state_file}.tmp"
