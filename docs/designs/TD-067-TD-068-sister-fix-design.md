@@ -45,7 +45,7 @@ Both have the same failure shape: a documented invariant is violated silently by
 ## High-level diagram
 
 ```mermaid
-graph LR
+flowchart LR
     subgraph TD-067 [PR-axis: post-merge label-strip]
       A[PR squash-merged] --> B[label-cleanup.yml trigger<br/>pull_request: closed]
       B --> C{New logic:<br/>only strip needs-* + agent-stall}
