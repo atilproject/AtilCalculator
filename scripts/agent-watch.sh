@@ -1887,10 +1887,32 @@ poll_once() {
   # Filter out events already in processed_event_ids
   local state_file new_events
   state_file="$("$STATE_HELPER" path "$ROLE")"
+  # TD-068 Fix 4 (Issue #920): null guard + self-heal on processed_event_ids.
+  # Without this, when processed_event_ids is null (e.g., from external JSON
+  # merge or cross-session state-file corruption), the jq filter below runs
+  # `index($id)` against null → "Cannot index null with null" error → watcher
+  # exits silently, autonomy loop dies without surfacing ALERT. Sister-pattern
+  # to d027-state-recovery (cmd_rebuild on jq parse error) + d068 d-test TC4.
+  # Race mitigation (per design Risk #4): exclusive flock around the write;
+  # if held by another process, retry next poll cycle (flock is blocking here
+  # because self-heal is rare; the cmd_mark flock at line 215 uses blocking too).
+  if jq -e '.processed_event_ids | type == "null"' "$state_file" >/dev/null 2>&1; then
+    echo "ALERT: $state_file processed_event_ids is null — auto-healing to []" >&2
+    (
+      flock 9
+      jq '.processed_event_ids = []' "$state_file" > "${state_file}.tmp"
+      sync "${state_file}.tmp" 2>/dev/null || true
+      mv -f "${state_file}.tmp" "$state_file"
+    ) 9>"${state_file}.lock"
+  fi
+  # TD-068 Fix 4 (sub-fix TD-068B): defensive jq filter — `// []` fallback
+  # covers any race where processed_event_ids gets nulled between the guard
+  # above and the read here. Without `// []`, a null pid would crash the filter.
   new_events="$(jq -n \
     --slurpfile state "$state_file" \
     --argjson events "$merged" '
-    [ $events[] | select((.id as $id | $state[0].processed_event_ids | index($id)) == null) ]
+    [ $events[] | . as $e | ($state[0].processed_event_ids // []) as $pids |
+      select(($pids | index($e.id)) == null) ]
   ')"
 
   # Emit
