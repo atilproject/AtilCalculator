@@ -9,9 +9,17 @@ So that **I can quickly decide which Q's land in PM lane for direct answer vs. d
 Sprint 24 §Phase 3 sister-handoff (per #916 + orchestrator dual-channel wake 2026-07-09T09:25Z) put PM on backlog lane. Sprint 22 advisory Q's have been open since Sprint 22 close (2026-07-02T13:37:50Z) — 7+ days. Owner can act faster with a lane pre-classification than scanning 11 Q's cold.
 
 ## Acceptance Criteria
-- **AC1** — Given Issue tracking the 11 Q's, When PM produces the mapping comment, Then each Q (Q1, Q2, Q4, Q5, Q6, Q7, Q8, Q9, Q10, Q11, Q12) has a lane classification (PM-direct / PM-defer-to-other-lane / owner-only / not-actionable).
-- **AC2** — For PM-direct Q's, draft 1-line answer per Q ready for owner review (≤10 words each).
-- **AC3** — For PM-defer-to-other-lane Q's, identify target role + reference to relevant ADR/Issue.
+- **AC1** — Given Issue tracking the 11 Q's, When PM produces the mapping comment, Then each Q (Q1, Q2, Q4, Q5, Q6, Q7, Q8, Q9, Q10, Q11, Q12) has a lane classification using **canonical owner labels per `.claude/CLAUDE.md §File ownership matrix`**:
+
+  | PM-friendly category | Canonical owner label | What it means |
+  |---|---|---|
+  | `PM-direct` | `@product-manager` | PM can author the 1-line answer in AC2 |
+  | `PM-defer-to-other-lane` | `@architect` / `@developer` / `@tester` / `@orchestrator` | PM flags + identifies the SPECIFIC target role (not "other") |
+  | `owner-only` | `@human` | Escalation per `.claude/CLAUDE.md §Auto-Ping Hard-Rule` — owner decides, no lane can author |
+  | `not-actionable` | (close as `status:done`) | Not in scope for any lane — close with 1-line rationale |
+
+- **AC2** — For Q's classified `PM-direct` (`@product-manager`), draft 1-line answer per Q ready for owner review (≤10 words each).
+- **AC3** — For Q's classified `PM-defer-to-other-lane` (`@architect` / `@developer` / `@tester` / `@orchestrator`), identify the specific target role + reference to relevant ADR/Issue. **Hand-off uses atomic 4-flag flip per ADR-0015** (issue/PR creation with `agent:<target>` + `cc:<target>` labels), **NOT verbal flagging** — matches peer-poke discipline (ADR-0033) and `.claude/CLAUDE.md §Handoff Label Discipline`.
 - **AC4** — Output posted as comment on #916 (PM-lane ACTIVE thread) + cross-ref to this STORY.
 - **AC5** — Mapping is ≤2 pages, scannable in ≤30 seconds by owner.
 
