@@ -36,6 +36,10 @@
 #       "simplification" PRs that remove escape levels break this TC.
 #   T4: Sister-test regression — d046-peer-poke-canonical-parity.sh
 #       still PASS (regression backstop, sister pattern per ADR-0046).
+#   T5: Negative scope guard — canonical §A pattern must NOT appear in
+#       any scripts/*.sh other than scripts/agent-watch.sh. Prevents
+#       copy-paste drift that would silently break T1 anchor count
+#       (== 2) and re-open TD-031 (Issue #883 STORY-882 TC2).
 #
 # Exit code: 0 = all pass, 1 = at least one fail.
 # Run standalone: bash scripts/tests/d046-expansion-adr-0044-literal-form.sh
@@ -137,6 +141,31 @@ if [ -f "$SISTER_TEST" ]; then
   fi
 else
   echo "  ${B}⊘ SKIP${D} — d046c-peer-poke-canonical-parity.sh not found (sister test absent in this environment)"
+fi
+
+# ============================================================================
+# T5: Negative scope guard — canonical §A pattern scope-locked to agent-watch.sh
+# ============================================================================
+section "T5: Canonical §A pattern scope guard — must NOT appear in other scripts"
+# Per ADR-0046 §A: canonical §A pattern is load-bearing for scripts/agent-watch.sh
+# only (T1 verifies it appears exactly 2x at line-1003 + line-1065). If a future
+# PR copy-pastes the §A pattern into another script, the agent-watch.sh-specific
+# anchor count would silently break. TC5 prevents this drift.
+#
+# Scope: scripts/*.sh (excluding scripts/tests/ — d-test scripts legitimately
+# reference the canonical pattern in test fixtures, e.g., d046b TC1 inventory).
+# Excluded: scripts/agent-watch.sh (T1 anchor site) and scripts/tests/*.sh
+# (d-test fixtures — sibling-test catalog per d046b TC4-TC5).
+SCRIPT_DIR="$REPO_ROOT/scripts"
+LEAKED_FILES=$(grep -lF "$CANONICAL_PATTERN" "$SCRIPT_DIR"/*.sh 2>/dev/null \
+  | grep -v "agent-watch.sh" \
+  | grep -v "/tests/" \
+  || true)
+if [ -z "$LEAKED_FILES" ]; then
+  pass "§A pattern scope-locked to scripts/agent-watch.sh only (no leakage to other scripts)"
+else
+  fail "§A pattern leaked to other scripts: $LEAKED_FILES" \
+    "Canonical §A pattern is load-bearing for scripts/agent-watch.sh only (T1 verifies 2x). Copy-paste into other scripts silently breaks the T1 anchor count and re-opens TD-031."
 fi
 
 # ============================================================================
