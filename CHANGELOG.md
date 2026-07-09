@@ -4,6 +4,32 @@ All notable changes to this project are recorded here. The format is based
 on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-07-09
+
+### Template v1.0.0 GA — Single-Repo Template
+
+First GA release of the dev-studio-template. Enables `git clone` +
+`bash scripts/dev-studio-init.sh` to bootstrap a new single-repo
+Python project on Ubuntu 24.04 LTS. Includes:
+
+- dev-studio-init.sh + dev-studio-start.sh (template renderer + agent launchers)
+- agent-watch.sh autonomy loop (ADR-0002)
+- claim-next-ready.sh (ADR-0038 §Layer 2 atomic claim)
+- 4-cat label invariant + atomic hand-off (ADR-0012 / ADR-0015)
+- RED-first TDD d-test framework (ADR-0044 / ADR-0049)
+- 9-Lens pre-publish gate (ADR-0045)
+- 60+ ADRs in `docs/decisions/`
+- Persona/vision cycle + RETRO ritual + `docs/product/glossary.md`
+
+### Added
+- (entries accumulate from Sprint 23 cluster-squash + Sprint 24 PR cluster)
+
+### Fixed
+- (run-off entries from [Unreleased] section)
+
+### Security
+- (SHA-pinned actions per ADR-0027; secrets-canary workflow)
+
 ## [Unreleased]
 
 ### Fixed
