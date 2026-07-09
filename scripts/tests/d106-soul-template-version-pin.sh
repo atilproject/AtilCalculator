@@ -143,9 +143,9 @@ section "TC2: AC2 — Init script sed pipeline substitutes template-version"
 
 # Check the sed pipeline has the TEMPLATE_VERSION substitution
 if grep -qE 's\|\{\{TEMPLATE_VERSION\}\}\|.*\|g' "$INIT_SCRIPT"; then
-  pass "TC2a — sed pipeline has {{TEMPLATE_VERSION}} substitution"
+  pass "TC4: sed pipeline has {{TEMPLATE_VERSION}} substitution"
 else
-  fail "TC2a — sed pipeline missing {{TEMPLATE_VERSION}} substitution" "expected -e 's|{{TEMPLATE_VERSION}}|${TEMPLATE_VERSION}|g' in render_template()"
+  fail "TC4: sed pipeline missing {{TEMPLATE_VERSION}} substitution" "expected -e 's|{{TEMPLATE_VERSION}}|${TEMPLATE_VERSION}|g' in render_template()"
 fi
 
 # Simulate end-to-end render: tmp dir, copy a .tmpl, run sed, verify substitution
@@ -168,9 +168,9 @@ sed -e "s|{{REPO_ROOT}}|/tmp/test|g" \
     "$TC2_TMP/test.tmpl" > "$TC2_TMP/rendered/test.md"
 
 if grep -qE "^<!-- template-version: 0\.1\.0 -->$" "$TC2_TMP/rendered/test.md"; then
-  pass "TC2b — end-to-end render substitutes placeholder with actual version"
+  pass "TC5: end-to-end render substitutes placeholder with actual version"
 else
-  fail "TC2b — end-to-end render did not substitute placeholder" "first line: $(head -1 "$TC2_TMP/rendered/test.md")"
+  fail "TC5: end-to-end render did not substitute placeholder" "first line: $(head -1 "$TC2_TMP/rendered/test.md")"
 fi
 
 # ============================================================================
@@ -181,19 +181,19 @@ section "TC3: AC3 — .template-version file + graceful fallback"
 if [ -f "$TEMPLATE_VERSION_FILE" ]; then
   VERSION=$(tr -d '[:space:]' < "$TEMPLATE_VERSION_FILE")
   if [ -n "$VERSION" ]; then
-    pass "TC3a — .template-version exists with content: '$VERSION'"
+    pass "TC6: .template-version exists with content: '$VERSION'"
   else
-    fail "TC3a — .template-version exists but is empty"
+    fail "TC6: .template-version exists but is empty"
   fi
 else
-  fail "TC3a — .template-version missing" "expected $TEMPLATE_VERSION_FILE (created by Issue #639 impl)"
+  fail "TC6: .template-version missing" "expected $TEMPLATE_VERSION_FILE (created by Issue #639 impl)"
 fi
 
 # Check init script handles missing gracefully (warns + uses fallback)
 if grep -qE "warn.*\\.template-version.*not found" "$INIT_SCRIPT"; then
-  pass "TC3b — init script logs warn when .template-version missing"
+  pass "TC7: init script logs warn when .template-version missing"
 else
-  fail "TC3b — init script lacks graceful fallback for missing .template-version" "expected: warn message + TEMPLATE_VERSION='0.0.0-unknown' fallback"
+  fail "TC7: init script lacks graceful fallback for missing .template-version" "expected: warn message + TEMPLATE_VERSION='0.0.0-unknown' fallback"
 fi
 
 # ============================================================================

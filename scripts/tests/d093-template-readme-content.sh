@@ -6,7 +6,7 @@
 # Sprint 21 Wave 1 dispatch (Issue #689): STORY-S21-019 TEMPLATE-README.md Polish —
 # the README is the first impression for new users. Polish = trust signal.
 #
-# 3 TCs (per ADR-0049 d-test framework sister-pattern):
+# 3 TCs (per ADR-0049 d-test framework sister-pattern) + Issue #890 expansion to 6 TCs:
 #   TC1: AC1 badges (CI status, license, template-version)
 #        Each badge = either shields.io markdown image OR GitHub Actions badge URL.
 #   TC2: AC2 agents (5) + workflows (5) enumerated
@@ -14,6 +14,12 @@
 #   TC3: AC3 links (4 doc files)
 #        ONBOARDING.md + TELEGRAM-SETUP.md + CONTEXT-HYGIENE.md + ADR-INDEX.md
 #        — each as markdown link or anchor reference text.
+#   TC4: AC4 sister-pattern references (≥3 d-tests NAMED)
+#        TEMPLATE-README.md references ≥3 sister d-tests (sister-pattern lineage attestation).
+#   TC5: AC5 ADR/INDEX references (≥5 ADRs NAMED)
+#        ≥5 ADRs cited by ID/anchor in body text (doctrinal home visibility).
+#   TC6: AC6 issue labels mentioned (4-cat invariant visibility)
+#        type:*, status:*, agent:*, cc:* categories explicitly referenced in TEMPLATE-README.
 #
 # Pre-impl RED state (current main as of 2026-06-29):
 #   - AC1: 0/3 badge patterns matched (no shields.io badges present)
@@ -185,6 +191,61 @@ else
   DOC_NAMES=$(IFS=', '; echo "${TC3_MISSING[*]}")
   fail "TC3 — ${TC3_FOUND}/4 doc links present, MISSING: ${DOC_NAMES}" \
     "expected markdown link OR anchor reference text for: ONBOARDING.md (Wave 5 placeholder OK), TELEGRAM-SETUP.md, CONTEXT-HYGIENE.md, ADR-INDEX.md. Issue #633 AC3; PM Wave 1 polish."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC4: AC4 — sister-pattern references (≥3 d-tests NAMED)
+# ============================================================================
+section "TC4: AC4 — sister-pattern d-test references (≥3 sister-tests NAMED)"
+# Per ADR-0049 §Sister-pattern: TEMPLATE-README should reference ≥3 sister d-tests
+# (or families) so users discover the regression-guard framework.
+TC4_SISTER_REFS=$(grep -cE '\bd[0-9]+(-[a-z]+)?\b' "$TARGET" 2>/dev/null || echo "0")
+if [ "$TC4_SISTER_REFS" -ge 3 ]; then
+  pass "TC4 — TEMPLATE-README references ${TC4_SISTER_REFS} sister d-tests (ADR-0049 §Sister-pattern met)"
+else
+  fail "TC4 — TEMPLATE-README references only ${TC4_SISTER_REFS}/3 sister d-tests (ADR-0049 §Sister-pattern not yet met)" \
+    "expected ≥3 d-test references (e.g., d058, d091, d296) for sister-pattern discoverability. Issue #633 AC4 sister-invariant; Issue #890 dev-lane expansion."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC5: AC5 — ADR/INDEX references (≥5 ADRs NAMED)
+# ============================================================================
+section "TC5: AC5 — ADR references (≥5 ADRs NAMED in body text)"
+# Per ADR-0012 §Documentation: TEMPLATE-README should reference ≥5 ADRs by ID
+# so users discover the doctrinal homes.
+TC5_ADR_REFS=$(grep -cE 'ADR-[0-9]+' "$TARGET" 2>/dev/null || echo "0")
+if [ "$TC5_ADR_REFS" -ge 5 ]; then
+  pass "TC5 — TEMPLATE-README references ${TC5_ADR_REFS} ADRs (ADR-0012 documentation met)"
+else
+  fail "TC5 — TEMPLATE-README references only ${TC5_ADR_REFS}/5 ADRs (ADR-0012 documentation not yet met)" \
+    "expected ≥5 ADR-ID references in body text. Issue #633 AC5 sister-invariant; Issue #890 dev-lane expansion."
+  EXIT_CODE=1
+fi
+
+# ============================================================================
+# TC6: AC6 — 4-cat label invariant visibility (type:*, status:*, agent:*, cc:*)
+# ============================================================================
+section "TC6: AC6 — 4-cat label categories referenced (ADR-0012 visibility)"
+# Per ADR-0012 §Required Label Set: TEMPLATE-README should reference all 4 label
+# categories so new users understand the birth contract.
+TC6_CATS_FOUND=0
+TC6_CATS_MISSING=()
+for cat in "type:" "status:" "agent:" "cc:"; do
+  if grep -qF "$cat" "$TARGET" 2>/dev/null; then
+    TC6_CATS_FOUND=$((TC6_CATS_FOUND + 1))
+  else
+    TC6_CATS_MISSING+=("$cat")
+  fi
+done
+
+if [ "$TC6_CATS_FOUND" -eq 4 ]; then
+  pass "TC6 — all 4 label categories referenced (type:*, status:*, agent:*, cc:* per ADR-0012)"
+else
+  CAT_NAMES=$(IFS=', '; echo "${TC6_CATS_MISSING[*]}")
+  fail "TC6 — ${TC6_CATS_FOUND}/4 label categories referenced, MISSING: ${CAT_NAMES}" \
+    "expected all 4 categories (type, status, agent, cc) referenced in TEMPLATE-README per ADR-0012 §Required Label Set. Issue #633 AC6 sister-invariant; Issue #890 dev-lane expansion."
   EXIT_CODE=1
 fi
 

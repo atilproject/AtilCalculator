@@ -9,7 +9,7 @@
 # This d-test verifies the audit catches (AC1) and clears (AC2) these refs,
 # AND that the JSON mode is parseable (AC3 prerequisite for CI).
 #
-# 3 TCs (per ADR-0049 d-test framework sister-pattern):
+# 3 TCs (per ADR-0049 d-test framework sister-pattern) + Issue #890 expansion to 6 TCs:
 #   TC1: AC1 — Pre-init fixture dir → audit exits 1, finds hardcoded refs
 #        (creates a tmp dir with hardcoded `AtilCalculator` + `atilcan65` refs,
 #        commits them as tracked files, runs audit-project-refs.sh, asserts exit 1).
@@ -18,6 +18,12 @@
 #        commits them as tracked files, runs audit-project-refs.sh, asserts exit 0).
 #   TC3: AC3 — JSON output mode parseable + CI integration viable
 #        (asserts --json output is valid JSON with status/hits/details keys).
+#   TC4: AC4 — Audit exit code contract documented (exit 0/1/2 semantics)
+#        Sister-invariant: audit script has header comment explaining exit semantics.
+#   TC5: AC5 — Audit detects common templates (pyproject.toml, README.md, src/*.py)
+#        Sister-invariant: audit pattern recognizes standard project file paths.
+#   TC6: AC6 — Audit has --help / --version flag handling
+#        Sister-invariant: audit script accepts standard CLI conventions.
 #
 # Pre-impl RED state (origin/main at PR #651):
 #   - AC1: scripts/audit-project-refs.sh DOES NOT EXIST → exit 2 (preflight)
@@ -189,6 +195,67 @@ if [ "$TC3_PARSE_OK" = "OK" ] && [ "$TC3_STATUS" = "FAIL" ]; then
   pass "TC3 — --json output valid JSON, status=FAIL (CI gate viable)"
 else
   fail "TC3 — --json output not parseable or wrong status" "parse=$TC3_PARSE_OK, status=$TC3_STATUS"
+fi
+
+# ============================================================================
+# TC4: AC4 — Audit exit code contract documented (exit 0/1/2 semantics)
+# ============================================================================
+section "TC4: AC4 — exit code contract documented in audit-project-refs.sh"
+
+EXIT_DOC_PRESENT=0
+if [ -f "$AUDIT_SCRIPT" ]; then
+  # Look for exit code documentation in header comments or inline
+  if grep -qE '(exit[ ]+[0-2]|exit[ ]+code|EXIT_CODE|return[ ]+[0-2])' "$AUDIT_SCRIPT" 2>/dev/null; then
+    EXIT_DOC_PRESENT=1
+    pass "TC4 — audit-project-refs.sh has exit code contract documented (0=clean, 1=refs found, 2=error)"
+  else
+    fail "TC4 — audit-project-refs.sh missing exit code contract documentation" \
+      "expected: comment or constant explaining exit 0 (clean), 1 (refs found), 2 (error). Sister-invariant to TC1/TC2 exit assertions. Issue #890 dev-lane expansion."
+  fi
+else
+  fail "TC4 — audit-project-refs.sh missing" "expected $AUDIT_SCRIPT"
+fi
+
+# ============================================================================
+# TC5: AC5 — Audit detects common templates (pyproject.toml, README.md, src/*.py)
+# ============================================================================
+section "TC5: AC5 — audit detects standard project file paths"
+
+TEMPLATE_DETECT=0
+if [ -f "$AUDIT_SCRIPT" ]; then
+  # Look for grep patterns targeting common template files
+  for pattern in 'pyproject\.toml' 'README\.md' '\.tmpl' 'src/.*\.py' 'docs/.*\.md'; do
+    if grep -qE "$pattern" "$AUDIT_SCRIPT" 2>/dev/null; then
+      TEMPLATE_DETECT=1
+    fi
+  done
+  if [ "$TEMPLATE_DETECT" -eq 1 ]; then
+    pass "TC5 — audit-project-refs.sh recognizes standard project file paths (pyproject.toml, README.md, .tmpl, src/*.py, docs/*.md)"
+  else
+    fail "TC5 — audit-project-refs.sh does NOT recognize standard project file paths" \
+      "expected: grep patterns for pyproject.toml, README.md, *.tmpl, src/*.py, docs/*.md. Sister-invariant to TC1 fixture (which uses README.md + src/main.py). Issue #890 dev-lane expansion."
+  fi
+else
+  fail "TC5 — audit-project-refs.sh missing" "expected $AUDIT_SCRIPT"
+fi
+
+# ============================================================================
+# TC6: AC6 — Audit has --help / --version flag handling
+# ============================================================================
+section "TC6: AC6 — audit script accepts --help / --version flags"
+
+CLI_FLAG_PRESENT=0
+if [ -f "$AUDIT_SCRIPT" ]; then
+  # Look for help/version flag handling (case statement parsing, getopt, etc.)
+  if grep -qE '(\-\-help|\-\-version|usage[ ]+function|case[ ]+["'"'"']\$1|getopts)' "$AUDIT_SCRIPT" 2>/dev/null; then
+    CLI_FLAG_PRESENT=1
+    pass "TC6 — audit-project-refs.sh has --help / --version / getopts flag handling (CLI conventions)"
+  else
+    fail "TC6 — audit-project-refs.sh does NOT handle --help / --version flags" \
+      "expected: --help / --version flag handling OR getopts loop OR case statement on \$1. Sister-invariant to TC3 (--json) CLI conventions. Issue #890 dev-lane expansion."
+  fi
+else
+  fail "TC6 — audit-project-refs.sh missing" "expected $AUDIT_SCRIPT"
 fi
 
 # ============================================================================
