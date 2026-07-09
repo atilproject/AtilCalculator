@@ -42,7 +42,7 @@ TD-067b adds a **forward-action diagnostic** to `label-check.yml`: a new job `cl
 ## High-level diagram
 
 ```mermaid
-graph LR
+flowchart LR
     subgraph TD-067b [Closed-Event 4-cat Diagnostic]
       A[PR squash-merged<br/>merge commit on main] --> B[label-cleanup.yml<br/>pull_request: closed]
       B --> C[Strip needs-* + agent-stall<br/>Advance status → done]
