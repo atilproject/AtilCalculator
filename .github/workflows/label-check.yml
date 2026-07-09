@@ -32,7 +32,7 @@ on:
   issues:
     types: [opened, reopened, labeled, unlabeled]
   pull_request_target:
-    types: [opened, reopened, labeled, unlabeled]
+    types: [opened, reopened, labeled, unlabeled, closed]
 
 permissions:
   issues: write
@@ -856,3 +856,132 @@ jobs:
             }
 
             core.info(`✅ Layer 5: status:ready auto-added to PR #${number} (type=${type}).`);
+
+      # -----------------------------------------------------------------------
+      # TD-067b Part 2 IMPL — Closed-Event 4-cat Invariant Diagnostic (ADR-0070, Issue #934)
+      #
+      # Sister-pattern of Layer 1-5 + Auto-Verdict-By hook. Layer 6 = NEW.
+      # Fires on `pull_request_target: closed` events with `merged == true` gate
+      # (per design doc §API contract; R3 mitigation: closed-not-merged PRs leave
+      # labels intact for operator review per `label-cleanup.yml` L23-25).
+      #
+      # Logic:
+      #   1. Read fresh PR labels via pulls.get (Issue #819 fix sister-pattern —
+      #      stale webhook snapshot can be 1-30s behind reality).
+      #   2. Compare to expected post-cleanup baseline (design §Data model):
+      #        REQUIRED: type:* (exactly 1) + status:done (exactly 1)
+      #        OPTIONAL: priority:*, sprint:*, security, good-first-issue
+      #        EXPECTED-ABSENT (stripped by design): agent:*, cc:*, needs-*,
+      #                    agent-stall, verdict-by:*
+      #   3. If baseline match → silent_skip log (per ADR-0045 lens d).
+      #   4. If deviation → post idempotent bot comment with marker
+      #      `<!-- adr-0070-closed-diagnostic -->` (Layer 1-5 sister-pattern).
+      #
+      # Concurrency: reuses parent `label-check-${{...number}}` group (ADR-0012
+      # §Layer 4 cascade-strip). Permissions inherit from workflow-level block
+      # (L37-39). Runner: self-hosted `atilproject/Linux/X64`.
+      # -----------------------------------------------------------------------
+      - name: TD-067b closed-event 4-cat diagnostic (ADR-0070, Issue #934)
+        if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
+        env:
+          MARKER: "<!-- adr-0070-closed-diagnostic -->"
+        with:
+          script: |
+            const marker = process.env.MARKER;
+            const pr = context.payload.pull_request;
+            const number = pr.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Issue #819 fix sister-pattern: fresh PR labels via pulls.get
+            // (webhook snapshot is frozen at fire time; subsequent label mutations
+            // by label-cleanup.yml are invisible without API re-fetch).
+            const { data: freshPR } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+            const labels = (freshPR.labels || []).map(l => (typeof l === 'string' ? l : l.name));
+
+            // Expected post-cleanup baseline (design doc §Data model, condensed).
+            // After `label-cleanup.yml` runs on a squash-merged PR, label set MUST equal:
+            const typeLabels = labels.filter(l => l.startsWith('type:'));
+            const statusLabels = labels.filter(l => l.startsWith('status:'));
+            const priorityLabels = labels.filter(l => l.startsWith('priority:'));
+            const sprintLabels = labels.filter(l => l.startsWith('sprint:'));
+
+            const missing = [];
+            const extra = [];
+
+            if (typeLabels.length === 0) {
+              missing.push('MISSING type:* (one of: vision|feature|bug|docs|chore|refactor|incident)');
+            } else if (typeLabels.length > 1) {
+              extra.push(`MULTIPLE type:* labels: ${typeLabels.join(', ')}`);
+            }
+
+            if (statusLabels.length === 0) {
+              missing.push('MISSING status:done (post-cleanup baseline invariant)');
+            } else if (statusLabels.length > 1) {
+              extra.push(`MULTIPLE status:* labels: ${statusLabels.join(', ')}`);
+            } else if (statusLabels[0] !== 'status:done') {
+              extra.push(`UNEXPECTED status:* = ${statusLabels[0]} (expected status:done)`);
+            }
+
+            if (priorityLabels.length > 1) {
+              extra.push(`MULTIPLE priority:* labels: ${priorityLabels.join(', ')}`);
+            }
+            if (sprintLabels.length > 1) {
+              extra.push(`MULTIPLE sprint:* labels: ${sprintLabels.join(', ')}`);
+            }
+
+            // Detect labels that should have been stripped by label-cleanup.yml
+            const expectedStripped = ['agent-stall'];
+            const strippedPrefixes = ['agent:', 'cc:', 'needs-', 'verdict-by:'];
+            for (const l of labels) {
+              if (expectedStripped.includes(l)) {
+                extra.push(`UNEXPECTED label (should be stripped): ${l}`);
+              } else if (strippedPrefixes.some(p => l.startsWith(p))) {
+                extra.push(`UNEXPECTED label (should be stripped): ${l}`);
+              }
+            }
+
+            core.info(`closed_diagnostic event=triggered pr=${number} labels=${labels.join(', ') || '(none)'}`);
+            core.info(`closed_diagnostic result missing=${missing.length} extra=${extra.length}`);
+
+            if (missing.length === 0 && extra.length === 0) {
+              core.info(`closed_diagnostic event=baseline-match pr=${number} labels=${labels.join(',')} message="Post-cleanup label state matches expected baseline (ADR-0070 §Data model)"`);
+              return;
+            }
+
+            core.warning(`closed_diagnostic event=deviation-detected pr=${number} missing=${missing.length} extra=${extra.length} message="Post-cleanup label state deviates from expected baseline — diagnostic comment posted"`);
+
+            const body = [
+              marker,
+              '## 🚨 TD-067b closed-event 4-cat diagnostic — DEVIATION DETECTED',
+              '',
+              `Closed-merged PR #${number} has a post-cleanup label state that deviates from the expected baseline.`,
+              '',
+              ...(missing.length ? ['### Missing labels', '', ...missing.map(m => `- ❌ ${m}`), ''] : []),
+              ...(extra.length ? ['### Unexpected labels', '', ...extra.map(e => `- ⚠️ ${e}`), ''] : []),
+              '',
+              '### Expected post-cleanup baseline (per `docs/designs/TD-067b-design.md` §Data model)',
+              '',
+              '- `type:<vision|feature|bug|docs|chore|refactor|incident>` (exactly 1)',
+              '- `status:done` (exactly 1)',
+              '- `priority:<P0|P1|P2|P3|unknown>` (optional, 0 or 1)',
+              '- `sprint:<sprint-id>` (optional, 0 or 1)',
+              '- `security` (optional, 0 or 1)',
+              '- `good-first-issue` (optional, 0 or 1)',
+              '',
+              '`agent:*`, `cc:*`, `needs-*`, `agent-stall`, `verdict-by:*` are stripped by design — their absence is expected.',
+              '',
+              '---',
+              '',
+              `_This is an automated diagnostic. See \`docs/designs/TD-067b-design.md\` + ADR-0070 + Issue #934._`,
+            ].join('\n');
+
+            // Bot comment idempotency (Layer 1-5 sister-pattern: L108-110, L851)
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: number, per_page: 100 });
+            const existing = comments.find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body });
+            }
