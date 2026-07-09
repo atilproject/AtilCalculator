@@ -46,12 +46,12 @@ For **#931 (TD-067c)**, architect lane owns 4 deliverables (per arch verdict §L
 | Step | Status | Lane | Artifact | Notes |
 |---|---|---|---|---|
 | Wave 1 step 1: TD-067c design phase | ✅ **LANDED** | architect | PR #946 (draft, +572/-2, 4 files) | c8b29718c8 on `arch/td-067c-design-issue-931`. 9-Lens pre-publish attestation per ADR-0045 ✅. 4 LIVE INSTANCES evidence stack. Sister-pattern to TD-067b Layer 6 (PR #938). Awaiting owner squash gate per ADR-0031. |
-| Wave 1 step 1.5: d296 gap-closure PR (no Story ID, ad-hoc test gap) | ⛔ **BLOCKED** | tester | PR #947 (draft, +813/-6, 7 files) | Cross-lane structural issue: 4 architect-lane files (ADR-0071 + design doc + INDEX.md + tech-debt.md) DUPLICATED from PR #946. Arch 🔴 BLOCK verdict; tester needs PR shape fix (rebase/stack/replace per arch Options 1-3). d-test code itself GREEN per arch 9-Lens. cmt 4927581490 orch ACK; cmt 4927510XXX arch BLOCK. |
+| Wave 1 step 1.5: d296 gap-closure PR (no Story ID, ad-hoc test gap) | 🟡 **PARTIAL** (arch 🟢 Path A + CI red) | tester | PR #947 (draft, +813/-6, 7 files) | Arch verdict update: 🔴 → 🟢 (Path A sister-pattern cluster accepted, cmt 4927706895 orch ACK). 4 arch files duplicated stay per Path A (tester cmt 4927666675 + dev pre-approved). CI Test (Python) STILL RED job 86176395549 — needs tester fix (likely markdown link in duplicated arch files). Squash-sequencing disclosure: PR #946 FIRST → main, then PR #947 SECOND (arch content no-op). |
 | Wave 1 step 2: S25-002 (carryover) d-test RED-first | ⏳ **NEXT** | tester | `scripts/tests/d067c-open-time-label-strip.sh` (≥5 TCs, sister d058 fixture pattern) | Per ADR-0044 RED-first. TC1-TC7 enumerated in design doc §AC. Mock event generator sister d058 (NOT historical `gh api` replay per cmt 4927243051 #2). After #947 PR shape fix lands. S25-002 = carryover ID per PM Option 1. |
 | Wave 1 step 3: S25-001 (carryover) impl PR | ⏳ **WAITING** | developer | `.github/workflows/label-check.yml` edits (3 distinct guards: actor check, synchronize no-op diff gate, canonical step if: gate) | After d-test lands per ADR-0044 RED-first. Owner squash gate per ADR-0031 (`.github/workflows/` human-only territory). S25-001 = carryover ID per PM Option 1. |
 | PM S26-001 reconciliation | ⏳ **PENDING** | PM | STORY-S26-001 1.5sp/6 d-tests → 0.5sp/1 d-test d296 per tester #943 audit | cmt 4927477514 (orch review on PR #945) flagged the stale estimate. PM response pending. S26-001 = new PM-curated d-test umbrella. |
 | PM S26-002 (canary config) | ⏳ **PENDING** | dev | `atilproject/dev-studio-template-smoke/.github/ISSUE_TEMPLATE/config.yml` (mirror fix) | Per PM PR #945, P3. S26-002 = new PM-curated canary config. |
-| Owner squash gate | ⏸️ **PENDING** | human | PR #946 → main | Per ADR-0031. Designer-only territory (workflow YAML touches `.github/workflows/`). |
+| Owner squash gate (Sprint 26 wave 1) | ⏸️ **PENDING** | human | PR #946 → main FIRST, then PR #947 → main SECOND | Per ADR-0031. **Sequencing disclosure** (arch cmt 4927706895): PR #946 squash-first lands 4 arch files on main; PR #947 squash-second becomes no-op for arch content. Designer-only territory (workflow YAML touches `.github/workflows/`). PR #947 also needs CI fix before squash. |
 
 ### d296 sister-pattern scope (per #943 §Acceptance criteria)
 
@@ -119,7 +119,7 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
 - **PR #945** — PM-curated STORY-S26-001/002 (orchestrator review: S26-001 🟡 reconciliation, S26-002 🟢 APPROVED)
 - **PR #946** — TD-067c design contract (arch, draft, owner squash gate)
-- **PR #947** — d296 gap-closure (tester, draft, BLOCKED — PR shape fix needed)
+- **PR #947** — d296 gap-closure (tester, draft, arch 🟢 Path A, CI Test Python RED — squash after PR #946 + CI fix)
 - **cmt 4927243051** — arch 🟢 APPROVED verdict on Sprint 26 scope (Issue #941)
 - **cmt 4927382970** — tester self-claim + true audit results for #943
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
