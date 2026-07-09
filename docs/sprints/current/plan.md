@@ -36,7 +36,16 @@
 > - **PR #924** (dev TD-068 4-tier fix, Closes #920) — merged 2026-07-09T11:32:47Z ✅
 > - **PR #926** (arch TD-067 TRANSIENT_REGEX narrowing, Closes #922) — merged 2026-07-09T11:34:03Z ✅
 >
-> **Issues CLOSED in this cluster cascade:**
+> **Issues CLOSED in this cluster cascade (Phase 3 impl wave 2026-07-09T14:10-14:16Z):**
+> - **#925** (TD-068 observability JSON Lines @ 3 sites) — closed 14:15:46Z via PR #930, terminal handoff `[type:refactor, status:done]`
+> - **#935** (TD-068b tmux send-keys text+enter split+sleep env-override) — closed 14:10:04Z via PR #936, terminal handoff `[priority:P3, type:refactor, status:done]`
+>
+> **Owner-merged PRs (Phase 3 impl wave):**
+> - **PR #930** (dev TD-068 observability JSON Lines @ 3 sites, Refs #925) — merged 2026-07-09T14:15:44Z ✅
+> - **PR #933** (arch TD-067 + TD-068 sister-pattern architectural narrative, Refs #920, #922) — merged 2026-07-09T14:16:02Z ✅
+> - **PR #936** (dev TD-068b tmux send-keys split+sleep env-override, Refs #935) — merged 2026-07-09T14:10:03Z ✅
+>
+> **Issues CLOSED (Phase 2 baseline):**
 > - **#920** (TD-068 silent watcher break) — closed 11:32:48Z via PR #924, terminal handoff `[priority:P2, type:bug, status:done]`
 > - **#922** (TD-067 post-merge label-strip) — closed 11:34:04Z via PR #926, terminal handoff `[priority:P2, type:bug, status:done]`
 >
