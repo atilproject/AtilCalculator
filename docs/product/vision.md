@@ -117,7 +117,7 @@ Per the orchestrator-led Template v1.0.0 GA release path, this project's (`AtilC
   - RED-first TDD d-test framework (ADR-0044 / ADR-0049)
   - 9-Lens pre-publish gate (ADR-0045)
   - 60+ ADRs in `docs/decisions/`
-  - Persona/vision cycle + RETRO ritual + `docs/product/glossary.md` (this release)
+  - Persona/vision cycle + RETRO ritual + `docs/glossary.md` (this release)
 
 - **v1.1 = PIVOT infrastructure (deferred)**. Sprint 22 PIVOT 5-Phase Plan introduces: org-runner (self-hosted GitHub Actions), 3-repo org migration (template + canary + adopter), multi-repo coordination. v1.0 adopters do **NOT** get PIVOT — they get the single-repo template only.
 
