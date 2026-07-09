@@ -37,15 +37,20 @@ For **#931 (TD-067c)**, architect lane owns 4 deliverables (per arch verdict §L
 3. **tech-debt.md** TD-067c row update (carry from Wave 1 deferral + 4th evidence instance)
 4. **d-test contract** `scripts/tests/d296b-td067c-open-time-label-strip.sh` (sister-test to d296/d058, RED-first per ADR-0044) — coord with tester per joint sizing
 
-### Sprint 26 wave 1 progress (cycle ~#5095 part 4, 2026-07-09T19:50Z)
+### Sprint 26 wave 1 progress (cycle ~#5098 part 2, 2026-07-09T20:00Z, post-PM-ID-collision-fix)
+
+**Sprint 26 ID convention** (PM Option 1, accepted by orchestrator per cmt 4927635303 on PR #946):
+- **S25-001/002/003** = TD-067c carryover IDs (impl / d-test / observability) — keep S25-* namespace, do NOT renumber
+- **S26-001/002** = PM-curated new Sprint 26 grooming (d-test umbrella / canary config) — distinct from S25-*
 
 | Step | Status | Lane | Artifact | Notes |
 |---|---|---|---|---|
 | Wave 1 step 1: TD-067c design phase | ✅ **LANDED** | architect | PR #946 (draft, +572/-2, 4 files) | c8b29718c8 on `arch/td-067c-design-issue-931`. 9-Lens pre-publish attestation per ADR-0045 ✅. 4 LIVE INSTANCES evidence stack. Sister-pattern to TD-067b Layer 6 (PR #938). Awaiting owner squash gate per ADR-0031. |
-| Wave 1 step 1.5: S26-001 d296 gap-closure PR | ⛔ **BLOCKED** | tester | PR #947 (draft, +813/-6, 7 files) | Cross-lane structural issue: 4 architect-lane files (ADR-0071 + design doc + INDEX.md + tech-debt.md) DUPLICATED from PR #946. Arch 🔴 BLOCK verdict; tester needs PR shape fix (rebase/stack/replace per arch Options 1-3). d-test code itself GREEN per arch 9-Lens. cmt 4927581490 orch ACK; cmt 4927510XXX arch BLOCK. |
-| Wave 1 step 2: S26-002 d-test RED-first | ⏳ **NEXT** | tester | `scripts/tests/d067c-open-time-label-strip.sh` (≥5 TCs, sister d058 fixture pattern) | Per ADR-0044 RED-first. TC1-TC7 enumerated in design doc §AC. Mock event generator sister d058 (NOT historical `gh api` replay per cmt 4927243051 #2). After #947 PR shape fix lands. |
-| Wave 1 step 3: S26-001 impl PR | ⏳ **WAITING** | developer | `.github/workflows/label-check.yml` edits (3 distinct guards: actor check, synchronize no-op diff gate, canonical step if: gate) | After d-test lands per ADR-0044 RED-first. Owner squash gate per ADR-0031 (`.github/workflows/` human-only territory). |
-| PM reconciliation on #945 | ⏳ **PENDING** | PM | STORY-S26-001 1.5sp/6 d-tests → 0.5sp/1 d-test d296 per tester #943 audit | cmt 4927477514 (orch review on PR #945) flagged the stale estimate. PM response pending. |
+| Wave 1 step 1.5: d296 gap-closure PR (no Story ID, ad-hoc test gap) | ⛔ **BLOCKED** | tester | PR #947 (draft, +813/-6, 7 files) | Cross-lane structural issue: 4 architect-lane files (ADR-0071 + design doc + INDEX.md + tech-debt.md) DUPLICATED from PR #946. Arch 🔴 BLOCK verdict; tester needs PR shape fix (rebase/stack/replace per arch Options 1-3). d-test code itself GREEN per arch 9-Lens. cmt 4927581490 orch ACK; cmt 4927510XXX arch BLOCK. |
+| Wave 1 step 2: S25-002 (carryover) d-test RED-first | ⏳ **NEXT** | tester | `scripts/tests/d067c-open-time-label-strip.sh` (≥5 TCs, sister d058 fixture pattern) | Per ADR-0044 RED-first. TC1-TC7 enumerated in design doc §AC. Mock event generator sister d058 (NOT historical `gh api` replay per cmt 4927243051 #2). After #947 PR shape fix lands. S25-002 = carryover ID per PM Option 1. |
+| Wave 1 step 3: S25-001 (carryover) impl PR | ⏳ **WAITING** | developer | `.github/workflows/label-check.yml` edits (3 distinct guards: actor check, synchronize no-op diff gate, canonical step if: gate) | After d-test lands per ADR-0044 RED-first. Owner squash gate per ADR-0031 (`.github/workflows/` human-only territory). S25-001 = carryover ID per PM Option 1. |
+| PM S26-001 reconciliation | ⏳ **PENDING** | PM | STORY-S26-001 1.5sp/6 d-tests → 0.5sp/1 d-test d296 per tester #943 audit | cmt 4927477514 (orch review on PR #945) flagged the stale estimate. PM response pending. S26-001 = new PM-curated d-test umbrella. |
+| PM S26-002 (canary config) | ⏳ **PENDING** | dev | `atilproject/dev-studio-template-smoke/.github/ISSUE_TEMPLATE/config.yml` (mirror fix) | Per PM PR #945, P3. S26-002 = new PM-curated canary config. |
 | Owner squash gate | ⏸️ **PENDING** | human | PR #946 → main | Per ADR-0031. Designer-only territory (workflow YAML touches `.github/workflows/`). |
 
 ### d296 sister-pattern scope (per #943 §Acceptance criteria)
@@ -152,4 +157,4 @@ Per PM cmt 4926058363 §Sizing coordination + PM doctrine "Never estimate alone"
 - **#853 (canary)**: developer owns, currently `status:backlog` — unblock path = owner territory population per ADR-0031
 - **#941 (Sprint 26 Kickoff)**: orchestrator owns, currently `status:in-progress` — flips to `status:done` at sprint close
 
-— @orchestrator, 2026-07-09T19:50+03:00, cycle ~#5095 part 4, post-PR-#946-design-DONE (arch lane closed, 4 lanes deconflicted from #941 + #943 + #931 + #853, peer-poking dev+tester for wave 1 step 2/3)
+— @orchestrator, 2026-07-09T20:00+03:00, cycle ~#5098 part 2, post-PM-ID-collision-ACK (S25-* for carryovers, S26-* for new Sprint 26 grooming per PM Option 1)
