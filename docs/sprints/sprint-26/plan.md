@@ -127,7 +127,7 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 - **cmt 4927837459** — arch ACK on tester verdict (Cross-watchdog per Issue #682, no re-flag required)
 - **cmt 4927849737** — orch ACK on PR #948 status:ready flip + 4-PR squash-sequence disclosure (PR #946 → #948 → #947 → #945)
 - **cmt 4927888825** — orch ACK on PR #948 CI red revert (status:ready → status:in-review, Dispatch Discipline step 3 violation, pre-existing perf flake per ADR-0051)
-- **Issue #950** — **[TD-069] label-check.yml L461 Layer 5 script body exceeds 21000-char GH Actions expression limit** (P1, type:bug, status:ready, agent:architect, td-debt, opened 18:10:30Z). Root cause: Layer 5 status:ready auto-add script body grew to 27,227 bytes (30% over 21,000 limit) over 6 PRs from 2026-06-29 to 2026-07-09. Sister-pattern: TD-029 (lens i, ADR-0043 platform hard constraints) + TD-016 (lens d, silent-skip risk). Orch ACK cmt 4928170363. **This is the gating fix for PR #946 + PR #947 (label-check is real blocker) + ALL PRs systemically**.
+- **Issue #950** — **[TD-069] label-check.yml L461 Layer 5 script body exceeds 21000-char GH Actions expression limit** (P1, type:bug, **status:in-progress (transitioned 18:12:28Z from status:ready, arch active fix on branch arch/td-069-tech-debt-row)**, agent:architect, td-debt, opened 18:10:30Z). Root cause: Layer 5 status:ready auto-add script body grew to 27,227 bytes (30% over 21,000 limit) over 6 PRs from 2026-06-29 to 2026-07-09. Sister-pattern: TD-029 (lens i, ADR-0043 platform hard constraints) + TD-016 (lens d, silent-skip risk). Orch ACK cmt 4928170363. **This is the gating fix for PR #946 + PR #947 (label-check is real blocker) + ALL PRs systemically**.
 - **Issue #949** — BUG filed by tester: test_arithmetic_p99_under_50ms_still_holds flake (P3, transient, +0.5% over budget, 3 root-cause hypotheses ranked, sister-pattern d112 + TD-049 deferred, **dev triage COMPLETE 17:42:31Z cmt 4927941972** = waiver + TD-049 Sprint 27+, NOT multiplier bump per ADR-0051+d112; **NEW 18:01:08Z cmt 4928085326** = dev claimed in-progress, actively investigating local p99 characterization per arch dual-channel ping 20:58:56+03 PR #946 perf hand-off p99=814.78ms)
 - **commits a56bb7e + b7288f5** — arch link fix on PR #946: 6 broken ADR-0071 slugs resolved + ADR-0057 redirected to amendment-closes-vs-refs-intent (Amendment #1, post-Issue #877 Phase 2 v1.0.0 audit ratification)
 - **cmt 4927941972** — dev triage decision on Issue #949: (c) acknowledge waiver on PR #948 + (b) TD-049 Sprint 27+ (NOT a/b multiplier bump per d112 sister-pattern)
@@ -141,9 +141,9 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 - **PR #946** — TD-067c design contract (arch, draft, owner squash gate)
 - **PR #948** — S25-002 d-test RED-first (tester, draft, +541/-0, 3 files, needs-architect-review on, arch review + tester self-approval needed before S25-001 impl PR opens)
 - **PR #947** — d296 gap-closure (tester, draft, arch 🟢 Path A confirmed via needs-architect-review removal 18:03:56Z, dev 🟢 d296 APPROVED 16:52:01Z, **MISSING**: tester verdict + dev waiver confirm in PR thread + CI COMPLETED + flake resolution; CI Test Python RED job 86176395549 — 6 broken ADR-0071 links + 1 perf flake; arch fix on PR #946 in flight; SAME dual blocker as PR #946)
-- **cmt 4927243051** — arch 🟢 APPROVED verdict on Sprint 26 scope (Issue #941)
-- **cmt 4927382970** — tester self-claim + true audit results for #943
-- **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
+- **cmt 4928188432** — orch sprint-26 mid-day standup note on Issue #941 (cycle ~#5100 part 9, full board state with dual blockers + Issue #950 RCA)
+- **label_change event** — Issue #950 status:ready → status:in-progress at 18:12:28Z (arch started active fix on branch `arch/td-069-tech-debt-row`, watcher wake-nudge cycle ~#5100 part 10)
+- **Issue #931** — TD-067c P1: status:ready → status:in-progress (arch active on Path A design contract PR #946 + ADR-0071 link-fix commits a56bb7e + b7288f5 already merged-via-squash to local arch branch)
 - **ADR-0012** — 4-cat label invariant
 - **ADR-0015** — atomic 4-flag hand-off
 - **ADR-0031** — owner squash gate
@@ -174,8 +174,11 @@ Per PM cmt 4926058363 §Sizing coordination + PM doctrine "Never estimate alone"
 ## Sub-tracking
 
 - **#943 (d296)**: tester owns, currently `status:in-progress` per self-claim (cmt 4927382970)
-- **#931 (TD-067c)**: architect owns design, currently `status:ready` per orchestrator flip (16:28:59Z)
+- **#931 (TD-067c)**: architect owns design, currently `status:in-progress` (arch active on Path A design contract PR #946)
+- **#950 (TD-069 P1 label-check L461)**: architect owns, currently `status:in-progress` (arch active fix on branch `arch/td-069-tech-debt-row` since 18:12:28Z)
 - **#853 (canary)**: developer owns, currently `status:backlog` — unblock path = owner territory population per ADR-0031
 - **#941 (Sprint 26 Kickoff)**: orchestrator owns, currently `status:in-progress` — flips to `status:done` at sprint close
 
 — @orchestrator, 2026-07-09T21:10+03:00, cycle ~#5100 part 8, post-Issue-#950-(TD-069-P1-arch-fix-in-flight)-formal-RCA-acknowledged (cmt 4928170363) + label-check.yml L461 systemic bug now has agent:architect owner with status:ready + sister-pattern TD-029/TD-016 identified; PR #946 holding on #950 fix + #949 flake; PR #947 holding on #950 fix + #949 flake + tester verdict; PR #948 STATUS:READY owner GATE open (can squash independently of #950/#949); PR #945 pending PM (4-PR squash-sequence: #946/#950-fix-dep, #948 READY, #947/#950-fix-dep, #945 PM-pending)
+
+— @orchestrator, 2026-07-09T21:20+03:00, cycle ~#5100 part 10, post-REPRIME + Issue #950 status:ready → status:in-progress (arch active fix on `arch/td-069-tech-debt-row` since 18:12:28Z); Issue #931 status:ready → status:in-progress (arch active on Path A PR #946); PR #948 still STATUS:READY (owner GATE open, can squash independently of #950 fix + #949 flake); PR #946 holding on #950 fix + #949 flake; PR #947 holding on #950 fix + #949 flake + tester verdict; PR #945 pending PM S26-001 reconciliation
