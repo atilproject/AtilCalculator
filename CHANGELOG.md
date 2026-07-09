@@ -19,7 +19,7 @@ Python project on Ubuntu 24.04 LTS. Includes:
 - RED-first TDD d-test framework (ADR-0044 / ADR-0049)
 - 9-Lens pre-publish gate (ADR-0045)
 - 60+ ADRs in `docs/decisions/`
-- Persona/vision cycle + RETRO ritual + `docs/product/glossary.md`
+- Persona/vision cycle + RETRO ritual + `docs/glossary.md`
 
 ### Added
 - (entries accumulate from Sprint 23 cluster-squash + Sprint 24 PR cluster)
