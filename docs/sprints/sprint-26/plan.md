@@ -175,7 +175,7 @@ Per PM cmt 4926058363 §Sizing coordination + PM doctrine "Never estimate alone"
 ## Sub-tracking
 
 - **#943 (d296)**: tester owns, currently `status:in-progress` per self-claim (cmt 4927382970)
-- **#931 (TD-067c)**: architect owns design, currently `status:in-progress` (closure trigger moved PR #946 → PR #952 per supersession, cycle ~#5100 part 25)
+- **#931 (TD-067c)**: architect owns design, currently `status:in-progress` (closure trigger moved PR #946 → PR #952 per supersession, cycle ~#5100 part 25). **TD-067c d-test lands via PR #948** (agent:tester, status:ready).
 - **#950 (TD-069 P1 label-check L461)**: architect owns, currently `status:in-progress` (arch active fix on branch `arch/td-069-tech-debt-row` since 18:12:28Z)
 - **#853 (canary)**: developer owns, currently `status:backlog` — unblock path = owner territory population per ADR-0031
 - **#941 (Sprint 26 Kickoff)**: orchestrator owns, currently `status:in-progress` — flips to `status:done` at sprint close
