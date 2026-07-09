@@ -46,7 +46,7 @@ For **#931 (TD-067c)**, architect lane owns 4 deliverables (per arch verdict §L
 | Step | Status | Lane | Artifact | Notes |
 |---|---|---|---|---|
 | Wave 1 step 1: TD-067c design phase | ✅ **LANDED** | architect | PR #946 (draft, +572/-2, 4 files) | c8b29718c8 on `arch/td-067c-design-issue-931`. 9-Lens pre-publish attestation per ADR-0045 ✅. 4 LIVE INSTANCES evidence stack. Sister-pattern to TD-067b Layer 6 (PR #938). Awaiting owner squash gate per ADR-0031. |
-| Wave 1 step 1.5: d296 gap-closure PR (no Story ID, ad-hoc test gap) | 🟡 **PARTIAL** (arch 🟢 Path A + CI red) | tester | PR #947 (draft, +813/-6, 7 files) | Arch verdict update: 🔴 → 🟢 (Path A sister-pattern cluster accepted, cmt 4927706895 orch ACK). 4 arch files duplicated stay per Path A (tester cmt 4927666675 + dev pre-approved). CI Test (Python) STILL RED job 86176395549 — needs tester fix (likely markdown link in duplicated arch files). Squash-sequencing disclosure: PR #946 FIRST → main, then PR #947 SECOND (arch content no-op). |
+| Wave 1 step 1.5: d296 gap-closure PR (no Story ID, ad-hoc test gap) | 🟡 **PARTIAL** (arch 🟢 Path A + CI red → arch fix in flight) | tester (CI flake rerun) + arch (link fix) | PR #947 (draft, +813/-6, 7 files) | Arch verdict update: 🔴 → 🟢 (Path A sister-pattern cluster accepted, cmt 4927706895 orch ACK). 4 arch files duplicated stay per Path A (tester cmt 4927666675 + dev pre-approved). **CI Test (Python) FAILURE job 86176395549 diagnosed** (cycle ~#5099 part 4, 2026-07-09T17:18Z): (a) 6 broken relative links in ADR-0071 (Path A arch content) — bounced to arch via cmt 4927769597 on PR #946 (surgical fix on master, then PR #947 arch content becomes no-op per squash-sequencing); (b) 1 unrelated perf flake `test_arithmetic_p99_under_50ms_still_holds` 502.52ms vs 500ms budget (pre-existing CI infra, not PR #947's content, tester re-run after arch fix). Squash-sequencing disclosure: PR #946 FIRST → main, then PR #947 SECOND (arch content no-op). |
 | Wave 1 step 2: S25-002 (carryover) d-test RED-first | ⏳ **NEXT** | tester | `scripts/tests/d067c-open-time-label-strip.sh` (≥5 TCs, sister d058 fixture pattern) | Per ADR-0044 RED-first. TC1-TC7 enumerated in design doc §AC. Mock event generator sister d058 (NOT historical `gh api` replay per cmt 4927243051 #2). After #947 PR shape fix lands. S25-002 = carryover ID per PM Option 1. |
 | Wave 1 step 3: S25-001 (carryover) impl PR | ⏳ **WAITING** | developer | `.github/workflows/label-check.yml` edits (3 distinct guards: actor check, synchronize no-op diff gate, canonical step if: gate) | After d-test lands per ADR-0044 RED-first. Owner squash gate per ADR-0031 (`.github/workflows/` human-only territory). S25-001 = carryover ID per PM Option 1. |
 | PM S26-001 reconciliation | ⏳ **PENDING** | PM | STORY-S26-001 1.5sp/6 d-tests → 0.5sp/1 d-test d296 per tester #943 audit | cmt 4927477514 (orch review on PR #945) flagged the stale estimate. PM response pending. S26-001 = new PM-curated d-test umbrella. |
@@ -121,10 +121,11 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 - **cmt 4927684130** — orch ACK on arch's S25-* ID re-binding commit 5322edc5 (cycle ~#5099)
 - **cmt 4927666675** — tester 🟡 SCOPE NOTE — Path A sister-pattern cluster accepted
 - **cmt 4927706895** — orch ACK on arch verdict update (Path A 🟢 + squash-sequencing disclosure)
+- **cmt 4927769597** — orch → arch fix request on PR #946: 6 broken relative links in ADR-0071 (Path A arch content) — surgical fix needed on master, then PR #947 arch content becomes no-op per squash-sequencing
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
 - **PR #945** — PM-curated STORY-S26-001/002 (orchestrator review: S26-001 🟡 reconciliation, S26-002 🟢 APPROVED)
 - **PR #946** — TD-067c design contract (arch, draft, owner squash gate)
-- **PR #947** — d296 gap-closure (tester, draft, arch 🟢 Path A, CI Test Python RED — squash after PR #946 + CI fix)
+- **PR #947** — d296 gap-closure (tester, draft, arch 🟢 Path A, CI Test Python RED job 86176395549 — 6 broken ADR-0071 links + 1 perf flake, arch fix on PR #946 in flight)
 - **cmt 4927243051** — arch 🟢 APPROVED verdict on Sprint 26 scope (Issue #941)
 - **cmt 4927382970** — tester self-claim + true audit results for #943
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
