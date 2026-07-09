@@ -384,10 +384,35 @@ cmd_validate() {
   if jq -e '.processed_event_ids | type == "null"' "$file" >/dev/null 2>&1; then
     if [ "$auto_heal" = "true" ]; then
       echo "AUTO-HEAL: processed_event_ids null → backfilling to []" >&2
+      # TD-068 observability (Issue #925): structured JSON Lines for downstream
+      # tooling / production telemetry (arch 9-Lens lens f). Plain-text line
+      # above is the human-readable fallback (AC4: tail -f readability); the
+      # JSON line below is the machine-readable contract (AC2 schema).
+      # jq -c emits compact single-line JSON (one JSON object per line on stderr).
+      jq -nc \
+        --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --arg role "$role" \
+        --arg event "auto_heal" \
+        --arg from_value "null" \
+        --arg to_value "[]" \
+        --arg state_file "$file" \
+        '{ts:$ts, role:$role, event:$event, from_value:$from_value, to_value:$to_value, state_file:$state_file}' >&2
       jq_inplace "$file" '.processed_event_ids = []'
       echo "Healed $file. Re-run validate to confirm." >&2
     else
       echo "VALIDATE FAIL (5: processed_event_ids null): $file" >&2
+      # TD-068 observability (Issue #925): structured JSON Lines for downstream
+      # tooling / production telemetry (arch 9-Lens lens f). Plain-text line
+      # above is the human-readable fallback (AC4); the JSON line below is the
+      # machine-readable contract (AC1 schema).
+      jq -nc \
+        --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --arg role "$role" \
+        --arg event "validate_failure" \
+        --argjson fail_code 5 \
+        --arg reason "processed_event_ids_null" \
+        --arg state_file "$file" \
+        '{ts:$ts, role:$role, event:$event, fail_code:$fail_code, reason:$reason, state_file:$state_file}' >&2
     fi
     return 5
   fi

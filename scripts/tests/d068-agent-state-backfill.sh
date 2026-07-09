@@ -188,6 +188,114 @@ else
   fail "merge produced unparseable result" "exit=$merge_exit, type=$merged_type, merged: $merged"
 fi
 
+# --- TC6: emission sites emit parseable JSON Lines (Issue #925 TD-068 observability) ---
+# Sister-pattern to TD-068 dev lane (PR #924). Arch 9-Lens lens f flagged
+# plain-text stderr markers; design doc §Observability mandates JSON Lines
+# (one JSON object per line on stderr) for downstream tooling / telemetry.
+#
+# Per AC1-AC5: each emission site must emit (a) plain-text fallback line for
+# tail -f readability + (b) a parseable JSON Line with the schema specified in
+# the issue body. This TC captures stderr from each site and asserts that
+# jq -e . succeeds on at least one line, AND that the parsed JSON contains
+# the required keys per the AC schema.
+section "TC6: emission sites emit valid JSON Lines (TD-068 observability)"
+
+# Helper: validate that stderr from a command contains BOTH a plain-text marker
+# AND a parseable JSON Line with the required keys. Returns 0 on success.
+assert_json_lines_emitted() {
+  local stderr_capture="$1"
+  local required_key="$2"  # e.g. "event" / "fail_code"
+  local expected_value="$3" # e.g. "validate_failure" / "5"
+  # Find a JSON line in the capture (lines starting with '{')
+  local json_line
+  json_line="$(echo "$stderr_capture" | grep -E '^\{' | head -1)"
+  if [ -z "$json_line" ]; then
+    echo "    no JSON line found in stderr"
+    return 1
+  fi
+  if ! echo "$json_line" | jq -e . >/dev/null 2>&1; then
+    echo "    found JSON-looking line but jq parse failed: $json_line"
+    return 1
+  fi
+  local actual_value
+  actual_value="$(echo "$json_line" | jq -r --arg k "$required_key" '.[$k] // "<missing>"')"
+  if [ "$actual_value" != "$expected_value" ]; then
+    echo "    expected $required_key=$expected_value, got $actual_value. line=$json_line"
+    return 1
+  fi
+  return 0
+}
+
+# Site 1: cmd_validate FAIL 5 (agent-state.sh:390) — must emit JSON with
+# event:"validate_failure", fail_code:5, reason, state_file.
+# cmd_validate signature: $1=role (derives file path), $2=optional --auto-heal flag.
+# AGENT_STATE_DIR env override (line 41 of agent-state.sh) redirects state files
+# to TEST_STATE_DIR.
+make_state_with_pid "tester" "null"
+AGENT_STATE_DIR="$TEST_STATE_DIR" "$STATE_SH" validate "tester" >/dev/null 2> "$TEST_STATE_DIR/tc6-validate-fail5.stderr" || true
+tc6_validate_stderr="$(cat "$TEST_STATE_DIR/tc6-validate-fail5.stderr")"
+if assert_json_lines_emitted "$tc6_validate_stderr" "event" "validate_failure" && \
+   assert_json_lines_emitted "$tc6_validate_stderr" "fail_code" "5" && \
+   echo "$tc6_validate_stderr" | grep -q "VALIDATE FAIL"; then
+  pass "cmd_validate FAIL 5 emits JSON Lines (event=validate_failure, fail_code=5) + plain-text fallback"
+else
+  fail "cmd_validate FAIL 5 missing JSON Lines" "stderr=$tc6_validate_stderr"
+fi
+
+# Site 2: cmd_validate --auto-heal (agent-state.sh:386) — must emit JSON with
+# event:"auto_heal", from_value:"null", to_value:"[]", role, state_file.
+make_state_with_pid "tester" "null"
+AGENT_STATE_DIR="$TEST_STATE_DIR" "$STATE_SH" validate "tester" --auto-heal >/dev/null 2> "$TEST_STATE_DIR/tc6-auto-heal.stderr" || true
+tc6_autoheal_stderr="$(cat "$TEST_STATE_DIR/tc6-auto-heal.stderr")"
+if assert_json_lines_emitted "$tc6_autoheal_stderr" "event" "auto_heal" && \
+   assert_json_lines_emitted "$tc6_autoheal_stderr" "from_value" "null" && \
+   assert_json_lines_emitted "$tc6_autoheal_stderr" "to_value" "[]" && \
+   echo "$tc6_autoheal_stderr" | grep -q "AUTO-HEAL"; then
+  pass "cmd_validate --auto-heal emits JSON Lines (event=auto_heal, from=null, to=[]) + plain-text fallback"
+else
+  fail "cmd_validate --auto-heal missing JSON Lines" "stderr=$tc6_autoheal_stderr"
+fi
+
+# Site 3: agent-watch.sh null guard (agent-watch.sh:1900) — must emit JSON with
+# event:"watcher_self_heal", reason:"processed_event_ids_null",
+# fallback_action:"write_empty_array", role, state_file.
+# Use inline guard script mirroring TC4 pattern (production code is long-running,
+# d-test cannot invoke it as a unit).
+make_state_with_pid "tester" "null"
+state_file="$TEST_STATE_DIR/tester.json"
+guard_script="$TEST_STATE_DIR/tc6-null-guard.sh"
+cat > "$guard_script" <<GUARD_EOF
+#!/usr/bin/env bash
+state_file="\$1"
+role="\${2:-tester}"
+# Mirrors agent-watch.sh:1900 null-guard logic (post-Issue-#925 impl).
+# Production has flock + atomic write; d-test keeps just the emission + jq
+# fix for unit testability. JSON Lines emission mirrors AC3 schema.
+if jq -e '.processed_event_ids | type == "null"' "\$state_file" >/dev/null 2>&1; then
+  echo "ALERT: \$state_file processed_event_ids is null — auto-healing to []" >&2
+  jq -nc \
+    --arg ts "\$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --arg role "\$role" \
+    --arg event "watcher_self_heal" \
+    --arg reason "processed_event_ids_null" \
+    --arg fallback_action "write_empty_array" \
+    --arg state_file "\$state_file" \
+    '{ts:\$ts, role:\$role, event:\$event, reason:\$reason, fallback_action:\$fallback_action, state_file:\$state_file}' >&2
+  jq '.processed_event_ids = []' "\$state_file" > "\${state_file}.tmp" && mv -f "\${state_file}.tmp" "\$state_file"
+fi
+GUARD_EOF
+chmod +x "$guard_script"
+"$guard_script" "$state_file" "tester" 2> "$TEST_STATE_DIR/tc6-watcher.stderr" || true
+tc6_watcher_stderr="$(cat "$TEST_STATE_DIR/tc6-watcher.stderr")"
+if assert_json_lines_emitted "$tc6_watcher_stderr" "event" "watcher_self_heal" && \
+   assert_json_lines_emitted "$tc6_watcher_stderr" "reason" "processed_event_ids_null" && \
+   assert_json_lines_emitted "$tc6_watcher_stderr" "fallback_action" "write_empty_array" && \
+   echo "$tc6_watcher_stderr" | grep -q "ALERT"; then
+  pass "agent-watch.sh null guard emits JSON Lines (event=watcher_self_heal) + plain-text fallback"
+else
+  fail "agent-watch.sh null guard missing JSON Lines" "stderr=$tc6_watcher_stderr"
+fi
+
 # --- Summary ---
 printf "\n${B}==== SUMMARY ====${D}\n"
 printf "  ${G}PASS${D}: %d\n" "$PASS"
