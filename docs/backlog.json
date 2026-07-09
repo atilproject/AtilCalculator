@@ -925,6 +925,85 @@
       "story_url": "https://github.com/atilcan65/AtilCalculator/issues/876",
       "sprint_story_doc": null,
       "notes": "Owner verdict (cycle ~#5078, 2026-07-07T16:54Z+0300): Accept as known-broken infra, defer fix to Sprint 23/24 wave. NOT blocking v1.0.0 GA cut (owner accepted). Recommended fix (a): add dbus-broker/dbus-user-session to runner setup script (preserves ADR-0010 lifecycle). Deploy script governance stays orchestrator lane; runner setup script edit = dev lane."
+    },
+    {
+      "id": "STORY-S24-001",
+      "title": "PM-lane answerable Sprint 22 advisory Q triage (Q1/Q2/Q4-Q12 lane mapping for owner)",
+      "issue": null,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "product-manager",
+      "cc": [
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "Sprint 22 close.md (docs/sprints/sprint-22/close.md) for Q reference",
+        "Issue #711 (Sprint 22 PIVOT close-out)"
+      ],
+      "blocks": [
+        "Owner Sprint 24 verdict consolidation"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 24",
+      "sprint_story_doc": "docs/backlog/STORY-S24-001.md",
+      "vision_metrics": [],
+      "notes": "Phase 3 sister-handoff deliverable per #916 + orchestrator dual-channel wake 2026-07-09T09:25Z. PM-authored 2026-07-09T09:31Z. Full INVEST body in docs/backlog/STORY-S24-001.md. Joint sizing TBD (arch+dev+tester) per PM doctrine.",
+      "v1_0_0_scope": "OUT"
+    },
+    {
+      "id": "STORY-S24-002",
+      "title": "9-decom verdict re-survey (#634/#640/#641/#643/#644/#646/#647/#650/#654) - PM backlog territory",
+      "issue": null,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "product-manager",
+      "cc": [
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "Sprint 24 plan.md §Owner verdict dependencies",
+        "Issue #767 (PM lane source)",
+        "PM Issue #740 cmt 4866444696 (cycle ~#3180 full triage table)"
+      ],
+      "blocks": [
+        "Owner 9-decom verdict round"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 24",
+      "sprint_story_doc": "docs/backlog/STORY-S24-002.md",
+      "vision_metrics": [],
+      "notes": "Phase 3 sister-handoff deliverable per #916. PM-authored 2026-07-09T09:31Z. Full INVEST body in docs/backlog/STORY-S24-002.md. Verifies cycle-#3228 PM recs (CLOSE all) against current ground truth; flags any drift.",
+      "v1_0_0_scope": "OUT"
+    },
+    {
+      "id": "STORY-S24-003",
+      "title": "Post-cut RETRO entry - PM lens on v1.0.0 GA cut path-drift episode (PR #921)",
+      "issue": null,
+      "priority": "P3",
+      "status": "backlog",
+      "agent": "product-manager",
+      "cc": [
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.25,
+      "depends_on": [
+        "PR #921 status (open as of 2026-07-09T09:25Z)",
+        "Issue #867 (PM consultation source)"
+      ],
+      "blocks": [
+        "PM pre-cut checklist update (separate STORY candidate)"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 24",
+      "sprint_story_doc": "docs/backlog/STORY-S24-003.md",
+      "vision_metrics": [],
+      "notes": "Phase 3 sister-handoff deliverable. PM-authored 2026-07-09T09:31Z. Full INVEST body in docs/backlog/STORY-S24-003.md. Closes the loop on PM pre-cut checklist gap (vision claim vs shipped reality verification). Sister-pattern to TD-054 docs-tree drift + TD-067 (orchestrator-filed).",
+      "v1_0_0_scope": "OUT"
     }
   ],
   "last_id": 14,
