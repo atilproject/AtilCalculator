@@ -86,7 +86,7 @@ flowchart LR
 | `.github/workflows/label-check.yml` | @architect (proposes) + @human (merges) | workflow file (human-only territory) | Add `closed` event trigger + diagnostic comment when 4-cat invariant violated on close |
 | `scripts/agent-state.sh` | @developer (writes) + @tester (signoff) + @architect (9-Lens review) | scripts/ (developer lane) | `cmd_backfill` handles null `processed_event_ids`; `cmd_validate` distinguishes NULL (FAIL 5) from missing-field (FAIL 5) from empty-array (PASS) |
 | `scripts/agent-watch.sh` | @developer (writes) + @tester (signoff) + @architect (9-Lens review) | scripts/ (developer lane) | Replace `\| index(...)` with `--argjson id` form; self-heal on jq error: write `[]` and emit `silent_skip` event log line (per ADR-0048 §lens d) |
-| `scripts/tests/d068-td067-label-strip-and-state-file-combined.sh` | @tester | tests/ (tester lane, d-test ≥5 TCs per ADR-0049 + ADR-0044 RED-first) | New combined regression test exercising both fix paths |
+| `scripts/tests/d068-td067-combined.sh` | @tester | tests/ (tester lane, d-test ≥5 TCs per ADR-0049 + ADR-0044 RED-first) | New combined regression test exercising both fix paths (filename: ADR-0049 d-test convention — dNNN-id only, combined d068 + d067 into one test per `scripts/tests/INDEX.md` row registration) |
 
 ---
 
