@@ -30,6 +30,22 @@ Python project on Ubuntu 24.04 LTS. Includes:
 ### Security
 - (SHA-pinned actions per ADR-0027; secrets-canary workflow)
 
+## [1.0.1] - 2026-07-09
+
+### Template v1.0.1 patch — tmux send-keys hardening
+
+Patch release addressing the user-observed symptom of long wake prompts landing in the tmux pane buffer as raw text without being submitted to Claude Code. Root cause: `tmux send-keys` queues events; without a sleep gap between the text and `Enter`, they may arrive in the same handler tick and be treated as a single literal keystroke instead of a typed-then-submitted prompt.
+
+### Fixed
+- **TD-068b — tmux send-keys text+enter split with `sleep ${WAKE_KEYS_GAP_SEC:-0.5}` (PR #936, Closes #935, Refs #935).** All 5 call sites in `scripts/reprime-agent.sh` + `scripts/agent-wake.sh` + `scripts/agent-watch.sh` now use TWO separate `tmux send-keys` (or paste-buffer + send-keys) with a configurable sleep gap. `WAKE_KEYS_GAP_SEC` env override (default 0.5s) honored. The bundled `"/clear" Enter` and `"/compact" Enter` paths in reprime-agent.sh are now SPLIT into separate send-keys. Paste-buffer paths now sleep between paste-buffer write and Enter. Sister-pattern d-test (`scripts/tests/dXXX-tmux-send-keys-split.sh`, ≥5 TCs per ADR-0049) ships in PR #936. Owner-observed wake-prompt flakiness should now be eliminated across all 5 call sites.
+
+### Cross-refs
+- **PR #936** — TD-068b impl (merged 2026-07-09T14:10:03Z)
+- **Issue #935** — original user directive (now closed)
+- **Issue #941** — [Sprint 26] Kickoff, references v1.0.1 release
+- **ADR-0012 / ADR-0015** — label invariant + atomic hand-off (unchanged)
+- **Sister-pattern**: d-test framework (ADR-0049, ≥5 TCs baseline)
+
 ## [Unreleased]
 
 ### Fixed
