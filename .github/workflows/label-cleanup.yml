@@ -1,9 +1,25 @@
 name: Label Cleanup
 
-# Auto-removes transient labels (cc:*, agent:*, needs-*, agent-stall) when a PR
-# is merged or closed, and advances status labels to status:done on merge.
-# Metadata labels (type:*, priority:*, sprint:*, security, good-first-issue,
-# status:done) are preserved. See docs/decisions/ADR-0007.
+# Auto-removes ONLY `needs-*` + `agent-stall` labels when a PR is merged or
+# closed, and advances status labels to status:done on merge.
+#
+# TD-067 fix (Issue #922, will Closes via PR for feat/TD-067-workflow-fix):
+#   Previously this workflow also stripped `agent:*` + `cc:*` labels on
+#   pull_request: closed event. That behavior broke the 4-cat invariant
+#   (ADR-0012) on closed PRs and suppressed `pr_labeled` wake for audit
+#   queries (ADR-0009 §10.3).
+#
+#   Per the design contract `docs/designs/TD-067-TD-068-sister-fix-design.md`
+#   (TD-067 section, arch cycle-5596), we now PRESERVE `agent:*` + `cc:*`
+#   through squash-merge. Sister-pattern to PR feat(scripts)/TD-068-sister-impl
+#   (state-file-axis fix).
+#
+#   ADR-0007 (referenced historically) is SUPERSEDED in part by this fix —
+#   see `docs/designs/TD-067-TD-068-sister-fix-design.md §Components` + Issue
+#   #922 + RETRO-016 sister-pattern lineage for full doctrinal home.
+#
+# Metadata labels preserved (unchanged): type:*, priority:*, sprint:*,
+# security, good-first-issue, status:done.
 
 on:
   pull_request:
@@ -56,9 +72,17 @@ jobs:
           echo "$CURRENT" | jq -r '.[]' || true
           echo "::endgroup::"
 
-          # Patterns considered "transient" and removed on close/merge.
+          # TD-067 fix: Only `needs-*` + `agent-stall` labels are now considered
+          # "transient" and removed on close/merge. `agent:*` + `cc:*` labels
+          # are PRESERVED on closed PRs — required by:
+          #   - 4-cat invariant (ADR-0012)
+          #   - pr_labeled wake audit trail (ADR-0009 §10.3 + ADR-0038)
+          #   - 4-cat invariant on closed PRs (the closed-event sister to the
+          #     state-file invariant preserved by the scripts PR)
+          # NOTE: `status:` has separate handling below (STATUS_ADVANCE_REGEX
+          # advances status:in-* to status:done). Do NOT include status: here.
           # Anchored regex: matches exact label names.
-          TRANSIENT_REGEX='^(cc:|agent:|needs-)|^agent-stall$'
+          TRANSIENT_REGEX='^(needs-)|^agent-stall$'
 
           # Status labels that should advance to status:done on PR merge.
           STATUS_ADVANCE_REGEX='^status:(in-progress|in-review|ready|blocked|backlog)$'
