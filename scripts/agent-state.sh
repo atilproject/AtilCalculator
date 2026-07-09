@@ -150,6 +150,16 @@ cmd_init() {
     if ! jq -e 'has("last_is_alive_utc")' "$file" >/dev/null 2>&1; then
       jq_inplace "$file" '.last_is_alive_utc = null'
     fi
+    # v6 → v7 backfill (Issue #920 TD-068): idem-covers null + missing
+    # processed_event_ids. Pattern: if type is not "array", set to []. This
+    # handles BOTH "missing key" and "null value" in a single check (jq `type`
+    # raises on missing keys, returns "null" for null values). Without this
+    # backfill, `agent-watch.sh:1893` runs `index($id)` against null and
+    # errors with "Cannot index null with null", silently breaking the
+    # autonomy loop (Issue #920 RCA).
+    if ! jq -e '.processed_event_ids | type == "array"' "$file" >/dev/null 2>&1; then
+      jq_inplace "$file" '.processed_event_ids = []'
+    fi
     echo "State already exists: $file"
   fi
 }
@@ -333,11 +343,13 @@ cmd_stale() {
   exit 0
 }
 
-# Issue #237 (atomic-write state recovery, Sprint 4 P1):
-# Validate state file integrity. Detects three corruption modes:
+# Issue #237 (atomic-write state recovery, Sprint 4 P1) + Issue #920 (TD-068):
+# Validate state file integrity. Detects FIVE corruption modes:
 #   1. Missing file
 #   2. jq parse error (truncated/empty file from killed mid-write)
 #   3. Schema mismatch (missing required keys, processed_event_ids empty)
+#   4. (reserved — kept for backward-compat with callers)
+#   5. processed_event_ids is null (corrupted by external merge) — TD-068
 #
 # Exit codes:
 #   0 = state file is valid
@@ -345,9 +357,17 @@ cmd_stale() {
 #   2 = jq parse error
 #   3 = length-0 processed_event_ids
 #   4 = schema mismatch
+#   5 = processed_event_ids null (TD-068; was mis-diagnosed as FAIL 3 before fix)
+#
+# Optional: --auto-heal flag (Issue #920 TD-068 Fix 3). When passed and
+# FAIL 5 is detected, automatically apply `processed_event_ids = []`
+# in-place and emit AUTO-HEAL marker to stderr. Re-run validate to
+# confirm PASS.
 cmd_validate() {
   require_jq
   local role="$1"
+  local auto_heal="false"
+  if [ "${2:-}" = "--auto-heal" ]; then auto_heal="true"; fi
   local file
   file="$(state_path "$role")"
   if [ ! -f "$file" ]; then
@@ -357,6 +377,19 @@ cmd_validate() {
   if ! jq -e '.' "$file" >/dev/null 2>&1; then
     echo "VALIDATE FAIL (2: jq parse error): $file" >&2
     return 2
+  fi
+  # TD-068: distinguish null from length-0 (FAIL 5 vs FAIL 3).
+  # Null check MUST run before length check — `length // 0` on null returns 0,
+  # which would otherwise trigger the FAIL 3 false-positive.
+  if jq -e '.processed_event_ids | type == "null"' "$file" >/dev/null 2>&1; then
+    if [ "$auto_heal" = "true" ]; then
+      echo "AUTO-HEAL: processed_event_ids null → backfilling to []" >&2
+      jq_inplace "$file" '.processed_event_ids = []'
+      echo "Healed $file. Re-run validate to confirm." >&2
+    else
+      echo "VALIDATE FAIL (5: processed_event_ids null): $file" >&2
+    fi
+    return 5
   fi
   local len
   len="$(jq -r '.processed_event_ids | length // 0' "$file" 2>/dev/null || echo 0)"
