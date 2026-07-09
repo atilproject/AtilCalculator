@@ -1491,7 +1491,10 @@ ${pretty}
 Lütfen pickup et: review yap, label flip et, peer'i bilgilendir, sonra heartbeat yaz ve queue'ya dön."
 
   # Send prompt then Enter. Use literal mode (-l) so backticks/quotes survive.
+  # TD-068b (Issue #935): sleep 0.5 between text and Enter to prevent tmux
+  # from collapsing both into a single literal keystroke under load.
   tmux send-keys -t "$pane_id" -l "$prompt" 2>/dev/null || return 0
+  sleep 0.5
   tmux send-keys -t "$pane_id" Enter 2>/dev/null || true
 }
 
