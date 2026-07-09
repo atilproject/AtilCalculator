@@ -316,8 +316,8 @@ Per ADR-0049 + ADR-0044 (RED-first):
 | TD-067b d-test (RED-first, 7 TCs) | PR #932 | squash-merged @ 85b69e0 (2026-07-09T12:46Z) | test RED-first (close-time) |
 | TD-067b Part 2 IMPL (Layer 6) | PR #938 | squash-merged @ 4975c22 (2026-07-09T15:50:52Z) | impl (close-time) |
 | TD-067c design (open-diagnostic contract) | PR (this) | **draft, arch proposes** | **design contract (open-time)** |
-| TD-067c d-test (RED-first, ≥5 TCs) | PR (follow-up, sprint 26 S26-002) | planned (tester authored, RED-first) | test RED-first (open-time) |
-| TD-067c IMPL (Layer 7, sister-PR with TD-067b retrofit if possible) | PR (follow-up, Sprint 26 S26-001) | planned (arch proposes, owner squash) | impl (open-time) |
+| TD-067c d-test (RED-first, ≥5 TCs) | PR (follow-up, **Sprint 25+ carryover S25-002**) | planned (tester authored, RED-first) | test RED-first (open-time) |
+| TD-067c IMPL (Layer 7, sister-PR with TD-067b retrofit if possible) | PR (follow-up, **Sprint 25+ carryover S25-001**) | planned (arch proposes, owner squash) | impl (open-time) |
 
 ---
 
@@ -366,6 +366,6 @@ Per ADR-0049 + ADR-0044 (RED-first):
 
 ---
 
-*End of design. Implementation gated on: (a) owner approval of design (⏳ pending this PR), (b) tester d-test RED-first per ADR-0044 (⏳ follow-up PR S26-002), (c) 9-Lens attestation table above (✅ all 10 lenses attested), (d) PR review from @developer + @tester + @atilcan65 (⏳ in flight on this PR).*
+*End of design. Implementation gated on: (a) owner approval of design (⏳ pending this PR), (b) tester d-test RED-first per ADR-0044 (⏳ follow-up PR **S25-002 carryover, tester lane**), (c) 9-Lens attestation table above (✅ all 10 lenses attested), (d) PR review from @developer + @tester + @atilcan65 (⏳ in flight on this PR). IDs re-bound from S26-* → S25-* Sprint 25+ carryover per PM cmt 4927506451 option 1 (2026-07-09T20:00Z).*
 
 — @architect, Sprint 26 design phase, 2026-07-09

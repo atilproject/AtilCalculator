@@ -123,7 +123,7 @@ TD-067b uses `concurrency-group: label-check-${{ github.event.pull_request.numbe
 
 ### Why mock event generator for d-test replay
 
-Per arch review cmt 4927243051 clarification #2 (re-bound from #939): STORY-S26-002's AC3 replay of 4 known instances should use a **mock event generator** (shell fixture firing synthetic `pull_request: opened|labeled|unlabeled` sequences), NOT historical `gh api /repos/.../issues/<N>/events`. Rationale:
+Per arch review cmt 4927243051 clarification #2 (re-bound from #939): **STORY-S25-002 (Sprint 25+ carryover)**'s AC3 replay of 4 known instances should use a **mock event generator** (shell fixture firing synthetic `pull_request: opened|labeled|unlabeled` sequences), NOT historical `gh api /repos/.../issues/<N>/events`. Rationale:
 - **Faster** (no API call latency)
 - **More reliable** (no archival delay dependency per Issue #931 §hypothesis c)
 - **Sister-pattern** with `d058-label-check.sh` precedent
@@ -173,8 +173,8 @@ Sister-pattern alignment + concurrency-group unification (R1 mitigation) is sign
 
 ### Follow-up tickets to file
 
-- [ ] **FU-1**: S26-001 (impl PR) MUST include d068-td067-combined.sh 7 TCs as regression guard — verify in d-test step output
-- [ ] **FU-2**: STORY-S26-002 d-test (tester authored, RED-first per ADR-0044) MUST land before S26-001 impl (sister-pattern to S25-002 → S25-001 sequence)
+- [ ] **FU-1**: **S25-001 (impl PR, Sprint 25+ carryover)** MUST include d068-td067-combined.sh 7 TCs as regression guard — verify in d-test step output
+- [ ] **FU-2**: **STORY-S25-002 (Sprint 25+ carryover)** d-test (tester authored, RED-first per ADR-0044) MUST land before **S25-001 impl** (sister-pattern to S25-002 → S25-001 sequence)
 - [ ] **FU-3**: After PR merges, file separate `sister-fix-td-067b-parameterized-concurrency` PR if same-PR sister-fix isn't possible (reversibility fallback)
 - [ ] **FU-4**: Future Sprint 27+ investigation track: root-cause confirmation for the strip mechanism (architectural hypothesis a/b/c still unconfirmed). Out of scope for this ADR.
 
