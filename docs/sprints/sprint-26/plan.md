@@ -42,7 +42,8 @@ For **#931 (TD-067c)**, architect lane owns 4 deliverables (per arch verdict §L
 | Step | Status | Lane | Artifact | Notes |
 |---|---|---|---|---|
 | Wave 1 step 1: TD-067c design phase | ✅ **LANDED** | architect | PR #946 (draft, +572/-2, 4 files) | c8b29718c8 on `arch/td-067c-design-issue-931`. 9-Lens pre-publish attestation per ADR-0045 ✅. 4 LIVE INSTANCES evidence stack. Sister-pattern to TD-067b Layer 6 (PR #938). Awaiting owner squash gate per ADR-0031. |
-| Wave 1 step 2: S26-002 d-test RED-first | ⏳ **NEXT** | tester | `scripts/tests/d067c-open-time-label-strip.sh` (≥5 TCs, sister d058 fixture pattern) | Per ADR-0044 RED-first. TC1-TC7 enumerated in design doc §AC. Mock event generator sister d058 (NOT historical `gh api` replay per cmt 4927243051 #2). |
+| Wave 1 step 1.5: S26-001 d296 gap-closure PR | ⛔ **BLOCKED** | tester | PR #947 (draft, +813/-6, 7 files) | Cross-lane structural issue: 4 architect-lane files (ADR-0071 + design doc + INDEX.md + tech-debt.md) DUPLICATED from PR #946. Arch 🔴 BLOCK verdict; tester needs PR shape fix (rebase/stack/replace per arch Options 1-3). d-test code itself GREEN per arch 9-Lens. cmt 4927581490 orch ACK; cmt 4927510XXX arch BLOCK. |
+| Wave 1 step 2: S26-002 d-test RED-first | ⏳ **NEXT** | tester | `scripts/tests/d067c-open-time-label-strip.sh` (≥5 TCs, sister d058 fixture pattern) | Per ADR-0044 RED-first. TC1-TC7 enumerated in design doc §AC. Mock event generator sister d058 (NOT historical `gh api` replay per cmt 4927243051 #2). After #947 PR shape fix lands. |
 | Wave 1 step 3: S26-001 impl PR | ⏳ **WAITING** | developer | `.github/workflows/label-check.yml` edits (3 distinct guards: actor check, synchronize no-op diff gate, canonical step if: gate) | After d-test lands per ADR-0044 RED-first. Owner squash gate per ADR-0031 (`.github/workflows/` human-only territory). |
 | PM reconciliation on #945 | ⏳ **PENDING** | PM | STORY-S26-001 1.5sp/6 d-tests → 0.5sp/1 d-test d296 per tester #943 audit | cmt 4927477514 (orch review on PR #945) flagged the stale estimate. PM response pending. |
 | Owner squash gate | ⏸️ **PENDING** | human | PR #946 → main | Per ADR-0031. Designer-only territory (workflow YAML touches `.github/workflows/`). |
@@ -113,6 +114,7 @@ For **#943 (d296 gap-closure)**, tester lane owns:
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
 - **PR #945** — PM-curated STORY-S26-001/002 (orchestrator review: S26-001 🟡 reconciliation, S26-002 🟢 APPROVED)
 - **PR #946** — TD-067c design contract (arch, draft, owner squash gate)
+- **PR #947** — d296 gap-closure (tester, draft, BLOCKED — PR shape fix needed)
 - **cmt 4927243051** — arch 🟢 APPROVED verdict on Sprint 26 scope (Issue #941)
 - **cmt 4927382970** — tester self-claim + true audit results for #943
 - **PR #944** — current/plan.md refresh cycle ~#5094 (orchestrator, owner squash gate)
