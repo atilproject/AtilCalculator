@@ -1004,6 +1004,89 @@
       "vision_metrics": [],
       "notes": "Phase 3 sister-handoff deliverable. PM-authored 2026-07-09T09:31Z. Full INVEST body in docs/backlog/STORY-S24-003.md. Closes the loop on PM pre-cut checklist gap (vision claim vs shipped reality verification). Sister-pattern to TD-054 docs-tree drift + TD-067 (orchestrator-filed).",
       "v1_0_0_scope": "OUT"
+    },
+    {
+      "id": "STORY-S25-001",
+      "title": "TD-067c open-time label-strip diagnostic — workflow fix (Option A, PR-surface, P1)",
+      "issue": 931,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "tester",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 2,
+      "depends_on": [
+        "PR #928 design merge (TD-067b sister-pattern reference)",
+        "PR #926 merge ✅ (TD-067 close-time fix at fb18c25 — already on main)",
+        "Issue #934 (TD-067b Part 2 impl — arch lane, owner squash gate)",
+        "STORY-S25-002 (d-test RED-first per ADR-0044, must land before impl)"
+      ],
+      "blocks": [
+        "Any v1.0.x PR shipping label-check.yml workflow changes (must wait for STORY-S25-001 merge)"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 25+",
+      "sprint_story_doc": "docs/backlog/STORY-S25-001.md",
+      "vision_metrics": [],
+      "notes": "PM-curated from Issue #931 §TD-067c filing (arch hypothesis + Option A preferred). Sprint 25+ Wave 1 P1 follow-up per orchestrator dual-channel poke 2026-07-09T14:12:59Z. Sister-pattern: STORY-S25-002 (d-test, RED-first) + STORY-S25-003 (Issue-surface P3 bonus). owner merge gate per ADR-0031.",
+      "v1_0_0_scope": "OUT"
+    },
+    {
+      "id": "STORY-S25-002",
+      "title": "TD-067c open-time label-strip diagnostic — d-test (RED-first, P1)",
+      "issue": 931,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "developer",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 1.5,
+      "depends_on": [
+        "PR #928 design merge (TD-067b closed-event sister-test reference)",
+        "scripts/tests/d058-label-check.sh precedent on main",
+        "STORY-S25-001 (impl, downstream — must land GREEN first per ADR-0044)"
+      ],
+      "blocks": [
+        "STORY-S25-001 GREEN completion (impl cannot ship without d-test)",
+        "Any v1.0.x PR shipping label-check.yml workflow changes"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 25+",
+      "sprint_story_doc": "docs/backlog/STORY-S25-002.md",
+      "vision_metrics": [],
+      "notes": "PM-curated from Issue #931 §d-test scope. RED-first per ADR-0044. Sister-test pattern: d058 (TD-067b closed-event) + d048 (label-strip observability precedent). ≥5 TCs per ADR-0049. Ship as agent:tester PR per PM Dispatch Protocol §Dual-Listing Rule (d-test-coupled).",
+      "v1_0_0_scope": "OUT"
+    },
+    {
+      "id": "STORY-S25-003",
+      "title": "TD-067c sister-pattern — Issue-surface label-strip observability (P3 bonus)",
+      "issue": 931,
+      "priority": "P3",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "tester",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "STORY-S25-001 merge (PR-surface impl, workflow structure reference)",
+        "STORY-S25-002 merge (PR-surface d-test, sister-test pattern reference)"
+      ],
+      "blocks": [],
+      "story_url": null,
+      "sprint": "Sprint 25+",
+      "sprint_story_doc": "docs/backlog/STORY-S25-003.md",
+      "vision_metrics": [],
+      "notes": "PM-curated from Issue #931 §Sister-pattern observability bonus (out-of-scope but worth noting). Defer to Sprint 25 Wave 2 if Wave 1 overloaded (per orchestrator coordination note). Workflow event-trigger parameterization (PR vs Issue).",
+      "v1_0_0_scope": "OUT"
     }
   ],
   "last_id": 14,
