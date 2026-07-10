@@ -450,16 +450,15 @@ jobs:
       # APPROVED (e.g. dev pushes new commit, tester re-rejects), removeLabel
       # ('status:ready'). Sister-pattern: PR #426 Layer 4 (concurrency block, marker
       # pattern, idempotent bot-attributed comments).
-      - name: Layer 5 — status:ready auto-add gating (type-driven reviewer chain, ADR-0048)
+      - name: Layer 5a fresh-label read + state check + early-return guards
         if: github.event_name == 'pull_request_target'
+        id: layer5a
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
         env:
-          MARKER: "<!-- adr-0012-status-ready-gating -->"
           MARKER_SKIP: "<!-- adr-0012-status-ready-gating-skip -->"
           MARKER_REVERSAL: "<!-- adr-0012-status-ready-gating-reversal -->"
         with:
           script: |
-            const marker = process.env.MARKER;
             const markerSkip = process.env.MARKER_SKIP;
             const markerReversal = process.env.MARKER_REVERSAL;
             const pr = context.payload.pull_request;
@@ -479,7 +478,7 @@ jobs:
 
             // Q5b: early-return on closed PR (frozen state, no-op)
             if (issueState === 'closed') {
-              core.info(`silent_skip event=closed-state layer=5 number=${number} message="PR #${number} is closed; Layer 5 no-op."`);
+              core.info(`silent_skip event=closed-state layer=5a number=${number} message="PR #${number} is closed; Layer 5a no-op."`);
               return;
             }
 
@@ -505,11 +504,11 @@ jobs:
             // 4832077155 arch RCA cycle ~1081).
             // ------------------------------------------------------------------
             if (context.sender && context.sender.type === 'Bot') {
-              core.info(`silent_skip event=bot-actor-excluded layer=5 number=${number} sender=${context.sender.login || 'unknown'} issue=675-tc3 message="Bot actor excluded — preventing self-trigger loop"`);
+              core.info(`silent_skip event=bot-actor-excluded layer=5a number=${number} sender=${context.sender.login || 'unknown'} issue=675-tc3 message="Bot actor excluded — preventing self-trigger loop"`);
               return;
             }
             if (evtAction === 'unlabeled' && context.payload.label && context.payload.label.name && context.payload.label.name.startsWith('status:')) {
-              core.info(`silent_skip event=status-removal-short-circuit layer=5 number=${number} label=${context.payload.label.name} issue=675-tc1 message="status:* removal — owner verdict, not L5 trigger"`);
+              core.info(`silent_skip event=status-removal-short-circuit layer=5a number=${number} label=${context.payload.label.name} issue=675-tc1 message="status:* removal — owner verdict, not L5 trigger"`);
               return;
             }
 
@@ -528,8 +527,8 @@ jobs:
             // variant — sister-pattern to existing 'adr-0012-status-ready-gating-skip').
             // ------------------------------------------------------------------
             if (context.payload.pull_request && context.payload.pull_request.draft === true) {
-              core.info(`silent_skip event=draft-pr-skip-guard layer=5 number=${number} issue=680-amendment-2 message="DRAFT PR #${number} — skip-guard fired. DRAFT PRs skip ALL status:ready auto-add for all types (amendment #3 — type-driven table DRAFT row extension)."`);
-              console.log(`[Layer 5 audit] adr-0012-status-ready-gating-draft-skip: PR=#${number} type=${type || '(none)'} agent=${agent || '(none)'} (Issue #680 DRAFT skip-guard, amendment #4 audit marker)`);
+              core.info(`silent_skip event=draft-pr-skip-guard layer=5a number=${number} issue=680-amendment-2 message="DRAFT PR #${number} — skip-guard fired. DRAFT PRs skip ALL status:ready auto-add for all types (amendment #3 — type-driven table DRAFT row extension)."`);
+              console.log(`[Layer 5 audit] adr-0012-status-ready-gating-draft-skip: PR=#${number} type=${(labels.find(l => l.startsWith('type:')) || '(none)')} agent=${(labels.find(l => l.startsWith('agent:')) || '(none)')} (Issue #680 DRAFT skip-guard, amendment #4 audit marker)`);
               return;
             }
 
@@ -588,13 +587,13 @@ jobs:
                 markerSkip,
                 '**Layer 5 j.4 VACUOUS-PASS detection (FAIL, not silent-skip)**',
                 '',
-                `- **Trigger**: \`${context.eventName || context.event_name}\` event, action=\`${context.payload.action || '(batch)'}\`, label=\`${context.payload.label?.name || '(batch)'}\``,
+                `- **Trigger**: ` + '`' + `${context.eventName || context.event_name}` + '`' + ` event, action=` + '`' + `${context.payload.action || '(batch)'}` + '`' + `, label=` + '`' + `${context.payload.label?.name || '(batch)'}` + '`' + ``,
                 `- **PR**: #${number}`,
-                `- **Type**: \`${reqType || '(none)'}\``,
-                `- **Agent**: \`${reqAgent || '(none)'}\``,
+                `- **Type**: ` + '`' + `${reqType || '(none)'}` + '`' + ``,
+                `- **Agent**: ` + '`' + `${reqAgent || '(none)'}` + '`' + ``,
                 `- **Decision**: ${vacuousPassFail}`,
-                `- **Workflow run**: \`${{ github.run_id }}\``,
-                `- **ADR**: \`docs/decisions/ADR-0048-status-ready-auto-add-gating.md\` (cycle ~#3698 j.4 extension)`,
+                `- **Workflow run**: ` + '`' + `${{ github.run_id }}` + '`' + ``,
+                `- **ADR**: ` + '`' + `docs/decisions/ADR-0048-status-ready-auto-add-gating.md` + '`' + ` (cycle ~#3698 j.4 extension)`,
                 `- **TD**: TD-021 cluster (auto-promote verdict-state drift, 7 instances), TD-048 (commit-body authoring, blind-spot family)`,
               ].join('\n');
               const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: number, per_page: 100 });
@@ -614,11 +613,11 @@ jobs:
                 markerReversal,
                 '**Layer 5 reversal handler fired (ADR-0048 §Type-driven table — TC4)**',
                 '',
-                `- **Trigger**: \`${context.event_name}\` event, action=\`labeled\`, label=\`needs-tester-signoff\``,
-                `- **Removed**: \`status:ready\` (tester re-rejected after APPROVED — needs-tester-signoff re-added)`,
+                `- **Trigger**: ` + '`' + `${context.event_name}` + '`' + ` event, action=` + '`' + `labeled` + '`' + `, label=` + '`' + `needs-tester-signoff` + '`' + ``,
+                `- **Removed**: ` + '`' + `status:ready` + '`' + ` (tester re-rejected after APPROVED — needs-tester-signoff re-added)`,
                 `- **PR**: #${number}`,
-                `- **Workflow run**: \`${{ github.run_id }}\``,
-                `- **ADR**: \`docs/decisions/ADR-0048-status-ready-auto-add-gating.md\``,
+                `- **Workflow run**: ` + '`' + `${{ github.run_id }}` + '`' + ``,
+                `- **ADR**: ` + '`' + `docs/decisions/ADR-0048-status-ready-auto-add-gating.md` + '`' + ``,
               ].join('\n');
               const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: number, per_page: 100 });
               const existing = comments.find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(markerReversal));
@@ -632,10 +631,50 @@ jobs:
             }
 
             // ------------------------------------------------------------------
-            // Step 1: Determine PR type + agent (type-driven table lookup).
+            // Propagate state to Layer 5b via outputs (sister-pattern to TD-029
+            // output-propagation discipline + d112 conftest env-var precedence).
+            // GH Actions outputs are STRINGS — JSON.stringify for arrays.
             // ------------------------------------------------------------------
-            const type = labels.find(l => l.startsWith('type:'));
-            const agent = labels.find(l => l.startsWith('agent:'));
+            core.setOutput('number', String(number));
+            core.setOutput('fresh_labels', JSON.stringify(labels));
+            core.setOutput('issue_state', issueState);
+            core.setOutput('pr_draft', String(!!freshPR.draft));
+            core.setOutput('sender_type', context.sender && context.sender.type ? context.sender.type : 'User');
+            core.setOutput('sender_login', context.sender && context.sender.login ? context.sender.login : 'unknown');
+            core.setOutput('type', reqType || '');
+            core.setOutput('agent', reqAgent || '');
+            core.setOutput('evt_action', evtAction);
+            core.info(`[Layer 5a] propagated-to-5b number=${number} state=${issueState} draft=${!!freshPR.draft} type=${reqType || '(none)'} agent=${reqAgent || '(none)'}`);
+
+      - name: Layer 5b status:ready gating + audit-trail
+        if: github.eventName == 'pull_request_target' && steps.layer5a.outputs.number
+        id: layer5b
+        needs: [layer5a]
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
+        env:
+          MARKER: "<!-- adr-0012-status-ready-gating -->"
+          MARKER_SKIP: "<!-- adr-0012-status-ready-gating-skip -->"
+          MARKER_REVERSAL: "<!-- adr-0012-status-ready-gating-reversal -->"
+        with:
+          script: |
+            const marker = process.env.MARKER;
+            const markerSkip = process.env.MARKER_SKIP;
+            const markerReversal = process.env.MARKER_REVERSAL;
+            // Read from Layer 5a outputs (sister-pattern to TD-029 output-propagation)
+            const number = parseInt('${{ steps.layer5a.outputs.number }}', 10);
+            const freshLabels = JSON.parse('${{ steps.layer5a.outputs.fresh_labels }}');
+            const issueState = '${{ steps.layer5a.outputs.issue_state }}';
+            const prDraft = '${{ steps.layer5a.outputs.pr_draft }}' === 'true';
+            const senderType = '${{ steps.layer5a.outputs.sender_type }}';
+            const senderLogin = '${{ steps.layer5a.outputs.sender_login }}';
+            const labels = freshLabels;
+            const hasLabel = (name) => labels.includes(name);
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const evtAction = '${{ steps.layer5a.outputs.evt_action }}' || 'opened';
+            // Type + agent pre-resolved by 5a (j.4 vacuous-pass pre-check)
+            const type = '${{ steps.layer5a.outputs.type }}';
+            const agent = '${{ steps.layer5a.outputs.agent }}';
 
             // Step 2: Type-driven decision (ADR-0048 §Type-driven table).
             const isDocs = type === 'type:docs';
@@ -745,7 +784,7 @@ jobs:
             // ------------------------------------------------------------------
             // Issue #675 P0 fix: Step 2.6 verdict-label gate (Option A).
             // TC2: explicit verdict:changes-requested label check — owner signals
-            //     CHANGES_REQUESTED via this label, L5 must NOT re-add status:ready
+            //     CHANGES REQUESTED via this label, L5 must NOT re-add status:ready
             //     even on action=unlabeled events. Complements emoji gate (which
             //     catches 🟡/🔴 in comments) by catching label-only signals.
             // TC4: loop-protection via sticky verdict label — verdict:changes-requested
@@ -767,14 +806,14 @@ jobs:
                 markerSkip,
                 '**Layer 5 silent-skip (ADR-0048 §Type-driven table)**',
                 '',
-                `- **Trigger**: \`${context.eventName || context.event_name}\` event, action=\`${context.payload.action || '(batch)'}\`, label=\`${context.payload.label && context.payload.label.name || '(batch)'}\``,
+                `- **Trigger**: ` + '`' + `${context.eventName || context.event_name}` + '`' + ` event, action=` + '`' + `${context.payload.action || '(batch)'}` + '`' + `, label=` + '`' + `${context.payload.label && context.payload.label.name || '(batch)'}` + '`' + ``,
                 `- **PR**: #${number}`,
-                `- **Type**: \`${type || '(none)'}\``,
-                `- **Agent**: \`${agent || '(none)'}\``,
+                `- **Type**: ` + '`' + `${type || '(none)'}` + '`' + ``,
+                `- **Agent**: ` + '`' + `${agent || '(none)'}` + '`' + ``,
                 `- **Reason**: ${skipReason}`,
                 `- **Decision**: skip status:ready auto-add (reviewer chain incomplete)`,
-                `- **Workflow run**: \`${{ github.run_id }}\``,
-                `- **ADR**: \`docs/decisions/ADR-0048-status-ready-auto-add-gating.md\``,
+                `- **Workflow run**: ` + '`' + `${{ github.run_id }}` + '`' + ``,
+                `- **ADR**: ` + '`' + `docs/decisions/ADR-0048-status-ready-auto-add-gating.md` + '`' + ``,
               ].join('\n');
               const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: number, per_page: 100 });
               const existing = comments.find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(markerSkip));
@@ -800,87 +839,38 @@ jobs:
             // needs-tester-signoff / needs-architect-review when adding
             // status:ready. The reviewer chain is the AUDIT TRAIL through
             // owner squash merge per ADR-0012 4-cat invariant. Owner-authority
-            // on reviewer chain removal is preserved per ADR-0031 (owner may
-            // explicitly remove, but Layer 5 must NOT auto-remove).
+            // on reviewer chain removal (per ADR-0031) is preserved.
             // ------------------------------------------------------------------
-            if (hasLabel('status:in-review')) {
+            const inReviewPresent = hasLabel('status:in-review');
+            if (inReviewPresent) {
               await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: 'status:in-review' });
             }
-            if (!hasLabel('status:ready')) {
-              // Issue #564 §32 LIVE INSTANCE #8: status:ready auto-add MUST also add cc:human
-              // companion per ADR-0012 4-cat invariant (status:ready requires cc:human for
-              // owner squash gate). Without this companion, future PRs auto-promote to
-              // status:ready but lack cc:human, violating 4-cat invariant until manual fix.
-              const labelsToAdd = ['status:ready'];
-              if (!hasLabel('cc:human')) {
-                // Issue #569 (PICKUP-156 cmt 4822488329, ADR-0045 lens d silent-skip
-                // debuggability, ADR-0056 sister-pattern fail-loud): log emission
-                // when cc:human companion-add fires. Without this, the companion-add
-                // is invisible to operators (silent-skip class). `core.warning` (not
-                // `core.info`) per ADR-0056 §Layer 5 cascade contract — WARN-not-FAIL.
-                core.warning(`[Layer 5] cc:human companion-add fired for PR #${number} (ADR-0045 lens d, ADR-0056 sister-pattern)`);
-                labelsToAdd.push('cc:human');
-                // Issue #568 (PICKUP-156 cmt 4822488329, ADR-0045 lens f observability):
-                // structured audit trail for cc:human companion-add. Contains PR
-                // number + actor + ISO timestamp — searchable via GitHub Actions logs
-                // `grep` post-run, sister-pattern to d069 verdict-emoji gate audit
-                // trail in Step 5 above. DUAL-EMIT (warning + console.log) per
-                // Issue #569 (lens d) + Issue #568 (lens f) sister-pattern.
-                console.log(`[Layer 5 audit] cc:human companion-add: PR=#${number} actor=${context.sender?.login || 'unknown'} ts=${new Date().toISOString()} (ADR-0045 lens f audit trail)`);
-              }
-              await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: labelsToAdd });
-            }
-
-            // ------------------------------------------------------------------
-            // Step 5: Audit trail (sister-pattern to PR #426 Layer 4).
-            // ------------------------------------------------------------------
-            const auditBody = [
+            await github.rest.issues.addLabels({
+              owner, repo, issue_number: number,
+              labels: ['status:ready', 'cc:human']
+            });
+            const readyBody = [
               marker,
-              '**Layer 5 status:ready auto-added (ADR-0048 §Type-driven table)**',
+              '**Layer 5 status:ready auto-gate fired (ADR-0048 §Type-driven table)**',
               '',
-              `- **Trigger**: \`${context.eventName || context.event_name}\` event, action=\`${context.payload.action || '(batch)'}\`, label=\`${context.payload.label && context.payload.label.name || '(batch)'}\``,
+              `- **Trigger**: ` + '`' + `${context.eventName || context.event_name}` + '`' + ` event, action=` + '`' + `${context.payload.action || '(batch)'}` + '`' + `, label=` + '`' + `${context.payload.label && context.payload.label.name || '(batch)'}` + '`' + ``,
               `- **PR**: #${number}`,
-              `- **Type**: \`${type || '(none)'}\``,
-              `- **Agent**: \`${agent || '(none)'}\``,
-              `- **Decision**: addLabel('status:ready') + removeLabel('status:in-review') (atomic transition, sister-pattern PR #428)`,
-              `- **Workflow run**: \`${{ github.run_id }}\``,
-              `- **ADR**: \`docs/decisions/ADR-0048-status-ready-auto-add-gating.md\``,
+              `- **Type**: ` + '`' + `${type || '(none)'}` + '`' + ``,
+              `- **Agent**: ` + '`' + `${agent || '(none)'}` + '`' + ``,
+              `- **Decision**: status:ready + cc:human added (reviewer chain complete + 4-cat invariant intact + verdict gate pass)`,
+              `- **Workflow run**: ` + '`' + `${{ github.run_id }}` + '`' + ``,
+              `- **ADR**: ` + '`' + `docs/decisions/ADR-0048-status-ready-auto-add-gating.md` + '`' + ``,
             ].join('\n');
-
             const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number: number, per_page: 100 });
             const existing = comments.find(c => c.user && c.user.type === 'Bot' && c.body && c.body.includes(marker));
             if (existing) {
-              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: auditBody });
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: readyBody });
             } else {
-              await github.rest.issues.createComment({ owner, repo, issue_number: number, body: auditBody });
+              await github.rest.issues.createComment({ owner, repo, issue_number: number, body: readyBody });
             }
+            core.info(`layer-5 status-ready-added number=${number} type=${type} agent=${agent} message="Layer 5 auto-gate: status:ready + cc:human added to PR #${number}"`);
 
-            core.info(`✅ Layer 5: status:ready auto-added to PR #${number} (type=${type}).`);
 
-      # -----------------------------------------------------------------------
-      # TD-067b Part 2 IMPL — Closed-Event 4-cat Invariant Diagnostic (ADR-0070, Issue #934)
-      #
-      # Sister-pattern of Layer 1-5 + Auto-Verdict-By hook. Layer 6 = NEW.
-      # Fires on `pull_request_target: closed` events with `merged == true` gate
-      # (per design doc §API contract; R3 mitigation: closed-not-merged PRs leave
-      # labels intact for operator review per `label-cleanup.yml` L23-25).
-      #
-      # Logic:
-      #   1. Read fresh PR labels via pulls.get (Issue #819 fix sister-pattern —
-      #      stale webhook snapshot can be 1-30s behind reality).
-      #   2. Compare to expected post-cleanup baseline (design §Data model):
-      #        REQUIRED: type:* (exactly 1) + status:done (exactly 1)
-      #        OPTIONAL: priority:*, sprint:*, security, good-first-issue
-      #        EXPECTED-ABSENT (stripped by design): agent:*, cc:*, needs-*,
-      #                    agent-stall, verdict-by:*
-      #   3. If baseline match → silent_skip log (per ADR-0045 lens d).
-      #   4. If deviation → post idempotent bot comment with marker
-      #      `<!-- adr-0070-closed-diagnostic -->` (Layer 1-5 sister-pattern).
-      #
-      # Concurrency: reuses parent `label-check-${{...number}}` group (ADR-0012
-      # §Layer 4 cascade-strip). Permissions inherit from workflow-level block
-      # (L37-39). Runner: self-hosted `atilproject/Linux/X64`.
-      # -----------------------------------------------------------------------
       - name: TD-067b closed-event 4-cat diagnostic (ADR-0070, Issue #934)
         if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
