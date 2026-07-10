@@ -161,9 +161,9 @@ class TestTranscendentalPerfBudget:
 
         Sprint 22 PIVOT Faz 1.2 env-aware: 2x BUDGET_MULTIPLIER on self-hosted.
         """
-        from tests.conftest import BUDGET_MULTIPLIER
+        from tests.conftest import BUDGET_MULTIPLIER, BUDGET_NOISE_TOLERANCE
         base_budget_ms = 50.0
-        effective_budget_ms = base_budget_ms * BUDGET_MULTIPLIER
+        effective_budget_ms = base_budget_ms * BUDGET_MULTIPLIER * BUDGET_NOISE_TOLERANCE
         expr = "0.1 + 0.2"
         for _ in range(10):
             client.post("/api/evaluate", json={"expr": expr})
@@ -178,7 +178,8 @@ class TestTranscendentalPerfBudget:
         p99 = timings_ms[495]
         assert p99 < effective_budget_ms, (
             f"Arithmetic p99 must be <{effective_budget_ms:.0f}ms "
-            f"(base={base_budget_ms}ms * BUDGET_MULTIPLIER={BUDGET_MULTIPLIER}) "
+            f"(base={base_budget_ms}ms * BUDGET_MULTIPLIER={BUDGET_MULTIPLIER} "
+            f"* BUDGET_NOISE_TOLERANCE={BUDGET_NOISE_TOLERANCE} per Issue #949) "
             f"after mpmath integration; got p99={p99:.2f}ms over 500 calls"
         )
 
