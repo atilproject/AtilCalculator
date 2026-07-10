@@ -1087,9 +1087,72 @@
       "vision_metrics": [],
       "notes": "PM-curated from Issue #931 §Sister-pattern observability bonus (out-of-scope but worth noting). Defer to Sprint 25 Wave 2 if Wave 1 overloaded (per orchestrator coordination note). Workflow event-trigger parameterization (PR vs Issue).",
       "v1_0_0_scope": "OUT"
+    },
+    {
+      "id": "STORY-S26-001",
+      "title": "d-test ≥5 TC baseline gap-closure — d296 (3 → ≥5 TCs)",
+      "issue": null,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "tester",
+        "architect",
+        "developer",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "Issue #877 §tester lane follow-up row (canonical source, retro estimate of 6)",
+        "Issue #883 v5 audit (parent, closed 2026-07-08T05:24:56Z)",
+        "Issue #890 sister-pattern cluster (dev-lane 9 d-tests expanded, closed 5 of 6)",
+        "Issue #943 tester audit 2026-07-09T16:30Z (authoritative ground truth: 1 d-test = d296)",
+        "Sprint 25+ Wave 1 deferral via Issue #939 (carryover NOT_PLACED → Sprint 26)"
+      ],
+      "blocks": [
+        "ADR-0049 ≥5 baseline audit signal cleanliness (Issue #877 follow-up audit cycle)"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 26",
+      "sprint_story_doc": "docs/backlog/STORY-S26-001.md",
+      "vision_metrics": [],
+      "notes": "PM-curated from Issue #941 (Sprint 26 Kickoff) §Scope row 3 — RECONCILED 2026-07-09T18:30Z per Issue #943 tester authoritative audit (117 d-test files, 116 PASS / 1 FAIL = d296). Original 6-d-test estimate from Issue #877 retro is OUTDATED post-cluster #890 (5 of 6 closed via PRs #885/#892/#894/#895/#896/#897/#898/#899/#913/#914). Final scope: 1 d-test (d296-peer-poke-helper.sh, 3 TCs → ≥5 TCs). SP re-estimate: 1.5sp → 0.5sp. Sprint 26 capacity: 1.0sp reclaimed for re-fill or Sprint 27 carry. Sister-pattern: Issue #890 cluster expansion precedent. Tester lane primary ownership per Issue #113. Reconciliation history documented in STORY-S26-001.md §Reconciliation history.",
+      "v1_0_0_scope": "OUT",
+      "reconciled_at": "2026-07-09T18:30:00Z",
+      "reconciled_by": "product-manager",
+      "reconciled_via": "Issue #943 tester audit cycle ~#5095"
+    },
+    {
+      "id": "STORY-S26-002",
+      "title": "Canary mirror missing `.github/ISSUE_TEMPLATE/config.yml` (Issue #853)",
+      "issue": null,
+      "priority": "P3",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "tester",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "Issue #853 (canonical source, AC4 surface 4 gap)",
+        "Issue #941 §Scope row 2 (Sprint 26 placement)",
+        "v1.0.1 release published 2026-07-09T16:26:58Z (canary push prerequisite)",
+        "sister-template at atilproject/dev-studio-template (parity reference)"
+      ],
+      "blocks": [
+        "Canary mirror push post-v1.0.1 release (orchestrator lane, post-PR-merge)"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 26",
+      "sprint_story_doc": "docs/backlog/STORY-S26-002.md",
+      "vision_metrics": [],
+      "notes": "PM-curated from Issue #941 §Scope row 2 (P3 carryover from v1.0.0 GA audit, Issue #853 AC4 surface 4). d-test d853-canary-config-yml.sh (≥3 TCs per ADR-0049) atomic with config.yml per Cadence Rule 1. Canary mirror push is owner/orchestrator territory per ADR-0010 (sister-pattern: d095 post-org-migration clone URL regression guard). Developer lane primary ownership per Issue #113.",
+      "v1_0_0_scope": "OUT"
     }
   ],
-  "last_id": 14,
+  "last_id": 16,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
@@ -1112,11 +1175,13 @@
   "sprint_3_groomed_at": "2026-06-19T18:45:00Z",
   "sprint_3_pm_scoped_at": "2026-06-19T18:45:00Z",
   "created_at": "2026-06-17T13:30:00Z",
-  "notes": "Sprint 1: 8 stories filed (STORY-001/002/003/003a/003b/004/005/006), all DONE. Sprint 2: 6 PM-authored feature stories groomed (STORY-007/008/009/010/011/012), 23 SP proposed, ALL 6 SHIPPED via PR #88/#111/#112/#117/#118/#122 by 2026-06-19T18:33:04Z. MVP-1 features complete (M1+M2+M3+M4+M5 all shipped). Sprint 3: PM-groomed 2026-06-19T18:45:00Z with 4 deploy stories (DEPLOY-001/002/003/004 = 9 SP) + 1 retro doc (RETRO-003 = 1 SP) + 1 template port (Issue #48 = 3 SP) = 13 SP proposed. Sprint 3 is operational hardening + retro ceremony, NOT feature work — closes the prod-liveness gap (Issue #127 / ADR-0027). Architect-owned chore work tracked separately in issues (#46 closed, #65 done, #45 in flight, #48 unblocked by RETRO-003). Sprint 2 retro pending (RETRO-003 in Sprint 3 backlog).",
+  "notes": "Sprint 1: 8 stories filed (STORY-001/002/003/003a/003b/004/005/006), all DONE. Sprint 2: 6 PM-authored feature stories groomed (STORY-007/008/009/010/011/012), 23 SP proposed, ALL 6 SHIPPED via PR #88/#111/#112/#117/#118/#122 by 2026-06-19T18:33:04Z. MVP-1 features complete (M1+M2+M3+M4+M5 all shipped). Sprint 3: PM-groomed 2026-06-19T18:45:00Z with 4 deploy stories (DEPLOY-001/002/003/004 = 9 SP) + 1 retro doc (RETRO-003 = 1 SP) + 1 template port (Issue #48 = 3 SP) = 13 SP proposed. Sprint 3 is operational hardening + retro ceremony, NOT feature work — closes the prod-liveness gap (Issue #127 / ADR-0027). Architect-owned chore work tracked separately in issues (#46 closed, #65 done, #45 in flight, #48 unblocked by RETRO-003). Sprint 2 retro pending (RETRO-003 in Sprint 3 backlog). Sprint 26 (in-flight, Issue #941 kickoff): 2 PM-curated STORIES (S26-001 d-test ≥5 baseline gap-closure 1.5sp P2 + S26-002 canary config.yml 0.5sp P3) plus 3 S25+ Wave 1 carryovers (S25-001/002/003 dormant, awaiting Sprint 26 sizing ceremony). Tester lane authoritative source for d-test scope (Issue #877 §tester lane follow-up row).",
   "version": "1.0.0",
   "v1_0_0_audited_at": "2026-07-07T17:59:30Z",
   "v1_0_0_auditor": "product-manager",
   "v1_0_0_source_issue": 877,
   "v1_0_0_sprint": 24,
-  "v1_0_0_notes": "v1.0.0 GA scope boundary audit per Issue #877 §@product-manager lane. IN = ships with v1.0.0 GA; DEFERRED-to-v1.1 = carries forward (PM-recommended closures await owner verdict per Issue #767). 9-decom closure candidates marked DEFERRED-to-v1.1-PM-recommends-closure per Issue #767 triage. STORY-013 deduped (was 2 entries). #876 Sprint 24 deploy-infra added."
+  "v1_0_0_notes": "v1.0.0 GA scope boundary audit per Issue #877 §@product-manager lane. IN = ships with v1.0.0 GA; DEFERRED-to-v1.1 = carries forward (PM-recommended closures await owner verdict per Issue #767). 9-decom closure candidates marked DEFERRED-to-v1.1-PM-recommends-closure per Issue #767 triage. STORY-013 deduped (was 2 entries). #876 Sprint 24 deploy-infra added.",
+  "sprint_26_groomed_at": "2026-07-09T16:35:58Z",
+  "sprint_26_source": "#941"
 }
