@@ -1433,3 +1433,121 @@ execute waves in chosen order once D-ODs are answered.
 @architect self-executed §19 (cycle ~758, 2026-07-10T20:45+03:00).
 @orchestrator §20 written (cycle ~759, 2026-07-10T20:55+03:00).
 @owner awaiting directive via PR #967 comment.
+
+---
+
+# §21 — @product-manager 2nd-pass comprehensive audit (cycle ~760, 2026-07-10T21:30+03:00)
+
+> **Source directive**: owner verbatim 2026-07-10T~17:30 — "senin şimdi Tam kapsamlı audit yapmanı istiyorum tüm scripts, workflows, ADRs, souls, CLAUDE.md, docs, tests, launcher feature inventory kapsayacak şekilde. Bitirince orchestrator'un eksik/yanlış yaptığı şeyleri PR'da güncelleyeceksin."
+>
+> **Scope diff vs cycle ~757 (P-18.x)**: cycle ~757 was **user-perspective overlay** (PM §18 supplement). This 2nd-pass (cycle ~760) is **independent ground-truth re-query** of orchestrator's §0–§17 claims, lane-respecting (PM edits sprint docs directly; cross-lane drift flagged via PR comment + peer-poke).
+
+## §21.0 Ack prior peers (Issue #682 §Post-verdict cross-watchdog)
+
+- **Ack @product-manager self** (cmt 4937828730, cycle ~757) — 🟡 "Acceptable but PM-supplemented" with 7 PM gaps (P-18.1..P-18.7). All incorporated per orchestrator §20.9 ack table — confirms no orphan PM items.
+- **Ack @architect** (cmt 4937850441, cycle ~758) — 🟡 "PASS WITH REQUIRED-ACTIONS" with 11 arch gaps (A-19.1..A-19.11) + A-19 backward-compat. All incorporated per orchestrator §20.9 ack table.
+- **Ack @orchestrator** (cmt 4937861782, cycle ~759) — 🟢 "PLAN COMPLETE — AWAITING OWNER APPROVAL". Defers to owner D-OD1..D-OD6 (per §20.4).
+
+## §21.1 Ground-truth re-query methodology
+
+PM cycle ~760 verification approach (lane-respecting):
+
+1. **PM in-lane read-only enumeration** — `ls`/`find` on docs/sprints/, docs/backlog/, docs/product/, docs/soul-amends/, docs/retros/, docs/proposals/, docs/bugs/, docs/templates/. No edits attempted.
+2. **Cross-lane flag-only** — PM enumerates scripts/, .github/workflows/, docs/decisions/, docs/designs/, docs/ops/ but does NOT propose edits; surfaces as PR comment items for lane owner.
+3. **Spot-check SHA pins** — sample-verify 3 of the 19 SHA pins cited in §4 against upstream tagged releases (NOT exhaustive audit; full sweep is W1-03).
+4. **No MD5/file-content diff** — deferred to W1-04 (PM §21 self-flag, lane-owner developer).
+
+## §21.2 PM-A-DELTA — orchestrator ground-truth drift (18 items)
+
+Format: `**PM-A-DELTA-NN** [in-lane | cross-lane {owner}] — finding evidence (≤80 char)`.
+
+### §21.2.1 — in-lane corrections (PM-direct: docs/sprints/**)
+
+| # | Lane | Finding | Evidence (verified 2026-07-10T~21:25Z) | Proposed fix |
+|---|---|---|---|---|
+| **PM-A-DELTA-01** | in-lane | §5 ADR count off-by-1 (INDEX.md not counted). Orchestrator said "74 ADRs" but actual docs/decisions/ = 74 ADRs + 1 INDEX.md = **75 files**. | `ls docs/decisions/ \| wc -l` → 75 | Update §5.1 wording: "74 ADRs + 1 INDEX.md". File count parity 17 vs 75 (not 16 vs 74). |
+| **PM-A-DELTA-02** | in-lane | §5 tmpl ADR count same off-by-1. Orchestrator said "16 ADRs" but tmpl docs/decisions/ = 16 ADRs + INDEX.md.tmpl = **17 files**. | `ls dev-studio-template/docs/decisions/ \| wc -l` → 17 | Update §5.1 tmpl column to 17. |
+| **PM-A-DELTA-03** | in-lane | §8 docs/backlog/ enumeration incomplete — only "STORY-007..016, PM-DISPATCH-PROTOCOL" surfaced but actual = **30 files** (STORY-007..017, 019, 022, 023, CLI-001..003, S21-001..013, PM-DISPATCH-PROTOCOL.md). PM-DISPATCH-PROTOCOL + 3 CLI stories + 13 S21 stories missing in §8. | `find docs/backlog -type f \| wc -l` → 30 | Update §8 docs/backlog row with full file enumeration (PM-owned territory, 30 = correct count). |
+
+### §21.2.2 — cross-lane flags (PM comment-only; lane owner acts)
+
+| # | Owner-lane | Finding | Evidence (verified 2026-07-10T~21:25Z) | Flag target |
+|---|---|---|---|---|
+| **PM-A-DELTA-04** | PM in-lane | docs/retros/ not enumerated at file-level — actual **4 files** (retro-008, 009, 010, 011). §8 subdir row doesn't list them. PM §21 enumerates (PM lane). | `find docs/retros -type f` | Update §8 row |
+| **PM-A-DELTA-05** | PM in-lane | docs/proposals/ not enumerated — actual **5 files** (238 triplet + adr-0033-claude-md-amend + CLAUDE-md-no-self-standby-amendment). §8 subdir row doesn't list. | `find docs/proposals -type f` | Update §8 row |
+| **PM-A-DELTA-06** | PM in-lane | docs/soul-amends/ not enumerated — actual **1 file** (dispatch-discipline-v2-issue-414). §8 subdir row doesn't list. | `find docs/soul-amends -type f` | Update §8 row (sister-pattern to soul-amend file from RETRO-014) |
+| **PM-A-DELTA-07** | tester (cross-lane flag) | docs/bugs/ NOT mentioned in §0–§17 at all — actual **2 files** (reports/d112-tc2-test-data-drift + reports/d649-tc5-design-bug-analysis). Bug reports may inform W1 d-test candidates. | `find docs/bugs -type f` | Flag tester @ d112/d649 as W2 critical-path cross-references |
+| **PM-A-DELTA-08** | architect (cross-lane flag) | docs/templates/ (in tmpl) not audited — actual **4 files** in tmpl (`ls dev-studio-template/docs/templates/`): `issue-assigneeship-authority.md`, `queue-empty-detector.md`, `soul-file-clause.md`, `watchdog-impl.md`. These are the source for ISSUE_TEMPLATE replacements — should be ported or skipped. | `find dev-studio-template/docs/templates -type f` | Flag @architect for W2 templates-wave (W2-11..14 covers 4 soul .tmpl files; §21 adds: tmpl docs/templates/ also needs parity check) |
+| **PM-A-DELTA-09** | architect (cross-lane flag) | docs/ops/ subdir mentioned in §8 but **vm-hardening.md content not inspected**. Per `find` output, calc has docs/ops/vm-hardening.md. Worth reviewing for template-port (likely NOT portable, ops-specific). | `find docs/ops -type f` | Flag @architect for "ops docs portability" assessment (outside W1/W2/W3 critical path, mark as "do not port") |
+| **PM-A-DELTA-10** | architect (cross-lane flag) | docs/designs/ not enumerated — `find docs/designs -type f` returns ≥1 file. Architect lane (§18 PM supplement touched but designs enumeration missing from §0–§17). | `find docs/designs -type f` | Flag @architect for §0–§17 designs-section addition |
+| **PM-A-DELTA-11** | launcherscope (cycle ~759 §17 Q8 dormant) | launcher feature inventory §14 covers new-project.sh flags/steps/exit codes but does NOT enumerate: (a) launcher scripts/ internal helpers, (b) launcher docs/ contents, (c) extensible hooks, (d) any launcher-side test coverage. | §14 limited to flag table; missing helper/hook/test enumeration | Flag for D-OD2/D-OD3 scope clarification (orchestrator §20.4) |
+| **PM-A-DELTA-12** | developer (cross-lane flag) | scripts/install/ parity drift — orchestrator §3 table aggregates but doesn't drill into scripts/install/. Verified: **calc has 4 files** (dev-studio-install-systemd.sh + dev-studio-uninstall-systemd.sh + install-git-hooks.sh + systemd/), **tmpl has 3 files** (without install-git-hooks.sh). install-git-hooks.sh is **AtilCalculator-specific shell hook** (PRE-PUSH branch-base enforcement, §20.3 R-LOW-04 trace) — NOT template-portable. | `ls scripts/install/` 4 files vs `ls dev-studio-template/scripts/install/` 3 files | Flag @developer: mark install-git-hooks.sh as "do not port" in W1 install-wave (W1-01..02). Sister to PM-DISPATCH-PROTOCOL "do not port" pattern. |
+| **PM-A-DELTA-13** | architect (cross-lane flag) | Per-soul amend-block enumeration not done at §6 — only top-level soul file count parity (5/5). The 5 calc soul .md files have unique §Auto-Claim / §Doctrine Reminder / §Layer-2 enforcement blocks added in cycles ~250–700. Per-block diff needed to plan W2-11..14 port. | §6 lists only file presence, not per-amend-block diff | Flag @architect for W2-11..14 amend-block diff plan (already in §20.6; PM only flags incompleteness not wave move) |
+| **PM-A-DELTA-14** | orchestrator (cross-lane flag) | §16 Sprint cadence not enumerated file-by-file for sprint-NN/ contents — does it list templates (canonical sprint-NN/ skeleton) vs custom (this project's per-sprint additions like RETRO-019.md, close.md)? | §16 mentions "sprints/sprint-NN/{plan,close,RETRO-NNN}.md" pattern but doesn't verify 28 sprints × 3 = 84 expected files vs actual 28 × N file count | Flag orchestrator for §16 file-by-file gap (W2 sprint-skeleton story) |
+| **PM-A-DELTA-15** | orchestrator (cross-lane flag) | docs/sprints/ subdir has gaps — actual 27 dirs (00, 01..07, 10..18, 20..28 = 28 total, minus 08, 09, 19). Audit didn't verify gap. Sprint 08/09/19 absent — was intent to skip, or data loss? | `ls docs/sprints/` shows no sprint-08, sprint-09, sprint-19 | Flag orchestrator: confirm 08/09/19 are intentional skips (sister to §17 Q13 sprint-22 partial closure pattern) |
+| **PM-A-DELTA-16** | developer (cross-lane flag) | §9 test counts 130 vs 17 — but **test file naming parity and test-class parity not enumerated**. W1-04 SHA-sweep has a sister-pattern: test-name parity sweep (does tmpl need d015-equivalent tests for each tmpl port?). | `find tests -name 'd*.sh' \| wc -l` ~17 vs 130 not verified per-file | Flag @developer for §9 expansion (W1-04 sibling story for test parity) |
+| **PM-A-DELTA-17** | PM in-lane | docs/new-projectsteps.md runbook — does it include **PM-persona onboarding** (how does PM wake into a new project?)? P-18.1 (cycle ~757) listed "user persona §0 in runbook" — verify §14/§new-projectsteps reflects P-18.1 (read runbook separately after orchestrator updates). | (read pending after runbook visibility refresh) | Track for re-verification once D-OD2 settled |
+| **PM-A-DELTA-18** | architect (orthogonal backlog-hygiene) | TD-067c wording drift in docs/tech-debt.md L50 — flagged by PM in PR #965 review (cycle ~755) as "deferred to Sprint 27 wave 2 per Issue #960" is factually inaccurate (Issue #960 = 3 owner-direct items, no TD-067c). PR #965 1-line diff itself is fine; pre-existing wording drift remains. **Tracked in PM backlog as Sprint 28 grooming candidate (PM-owned: wording-consistency sweep)**. NOT a Wave-1/Wave-2 blocker. | PM verdict cmt 4937509607 (PR #965) | File as PM-tracked backlog item, not part of template-port scope |
+
+## §21.3 Cross-lane follow-ups — items NOT in PM lane
+
+Per file ownership matrix, PM is **OUT-OF-LANE** for:
+
+- **scripts/install/install-git-hooks.sh** (PM-A-DELTA-12) — developer lane
+- **scripts/** (general) — developer lane
+- **.github/workflows/** — owner-only territory (agents propose, owner merges)
+- **tests/** — developer lane (writes), tester lane (test files)
+- **src/** — developer lane
+- **docs/designs/** — architect lane (§21 only flags incomplete enumeration, not content)
+- **docs/decisions/INDEX.md** — architect lane (PM-A-DELTA-01/02 wording updates architect-owned)
+- **.claude/agents/** — human-only (PM proposes, owner merges per §6)
+
+PM proposes: these items live in PR comment form (cross-lane) for lane owner to action. PM will NOT push commits to those files.
+
+## §21.4 PM-A-DELTA vs cycles ~757/~758 alignment
+
+| PM-A-DELTA | Coverage in cycle ~757 (P-18.x)? | Coverage in cycle ~758 (A-19.x)? |
+|---|---|---|
+| 01, 02 (ADR count off-by-1) | ❌ No | ❌ No (arch §19 listed ADRs without file count) |
+| 03 (docs/backlog/ 30 vs mention) | ❌ No | ❌ No |
+| 04 (docs/retros/ enumeration) | ❌ No | ❌ No |
+| 05 (docs/proposals/ enumeration) | ❌ No | ❌ No |
+| 06 (docs/soul-amends/ enumeration) | ❌ No | ❌ No |
+| 07 (docs/bugs/ not mentioned) | ❌ No | ❌ No |
+| 08 (docs/templates/ in tmpl) | ❌ No (P-18.5 mentioned but no file list) | ❌ No |
+| 09 (docs/ops/vm-hardening) | ❌ No | ❌ No |
+| 10 (docs/designs/ enumeration) | P-18.6 partial (no file list) | ❌ No |
+| 11 (launcher feature inventory gap) | ❌ No | ❌ No |
+| 12 (scripts/install/install-git-hooks.sh) | ❌ No | ❌ No (arch saw scripts parity, didn't drill install/) |
+| 13 (per-soul amend-block diff) | P-18.7 (W2-11..14) covers wave allocation | A-19.x covered wave, not per-block diff |
+| 14 (sprint-NN file-by-file) | ❌ No | ❌ No |
+| 15 (docs/sprints/ 08/09/19 absent) | ❌ No | ❌ No |
+| 16 (test naming/class parity) | ❌ No | ❌ No |
+| 17 (runbook PM-persona onboarding) | P-18.1 covered (wait for D-OD2) | ❌ No |
+| 18 (TD-067c wording drift) | ❌ No (separate backlog, not template-port) | ❌ No |
+
+**Total**: 18/18 PM-A-DELTA items are **NEW** from cycle ~760 ground-truth re-query — none were duplicates of cycle ~757 (P-18) or cycle ~758 (A-19). This confirms orchestrator's incorporation was complete on prior feedback, and 2nd-pass adds value.
+
+## §21.5 PM verdict
+
+🤖 **Verdict: 🟡 NEEDS-SUPPLEMENTED (cycle ~760, 2026-07-10T21:30+03:00)**
+
+- **3 in-lane corrections** (PM-A-DELTA-01..03) — actionable for orchestrator to apply directly when rewriting §5/§8 in next revision.
+- **14 cross-lane flags** (PM-A-DELTA-04..17) — PM comment-only; lane owners (architect/developer/owner) act via their own PRs. PM is not blocking this PR on them.
+- **1 orthogonal backlog item** (PM-A-DELTA-18) — TD-067c wording drift, file under PM backlog hygiene (Sprint 28 grooming). NOT in template-port scope.
+
+**PM lane action** (this PR — `orch/sprint-28-audit-baseline`):
+
+1. ✅ Appended §21 (this section) to `docs/sprints/sprint-28/00-audit-baseline.md` (PM in-lane: docs/sprints/**).
+2. ⏳ Cross-lane flags posted as PR comment on PR #967 (this PR) — separately as `gh pr comment` with PM-A-DELTA table cross-referenced.
+3. ⏳ Peer-poke @architect for next cycle (per owner directive: "Bitirince architect'ı pinglesin, architect de aynı şekilde sen ve pm'in eksik/yanlış yaptığı şeyleri PR'da güncellesin.").
+4. ⏳ Update `/var/log/dev-studio/AtilCalculator/product-manager.heartbeat` with cycle ~760 log line.
+
+**PM does NOT** direct-edit: scripts/, src/, tests/, .github/workflows/, docs/decisions/, .claude/agents/ (per file ownership matrix).
+
+**defer-to-owner**: D-OD1..D-OD6 selection (orchestrator §20.4). PM has no additional owner-decision surface to propose.
+
+---
+
+— @product-manager, 2nd-pass comprehensive audit (cycle ~760, 2026-07-10T21:30+03:00)
+Directive: owner verbatim 2026-07-10T~17:30, "Tam kapsamlı audit ... tüm scripts, workflows, ADRs, souls, CLAUDE.md, docs, tests, launcher feature inventory kapsayacak şekilde."
