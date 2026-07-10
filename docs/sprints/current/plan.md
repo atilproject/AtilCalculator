@@ -4,7 +4,7 @@
 >
 > 📄 **Sprint 28 kickoff issue:** [Issue #974](https://github.com/atilcan65/AtilCalculator/issues/974) — full 3-wave plan inline, in-progress
 > 📄 **Sprint 28 audit-baseline (MERGED):** [PR #967](https://github.com/atilcan65/AtilCalculator/pull/967) — squash-merged @ 18:57:07Z, commit `a02110c6`
-> 📄 **Sprint 28 plan source:** [`docs/sprints/sprint-28/plan.md`](../sprint-28/plan.md) + [`docs/sprints/sprint-28/00-audit-baseline.md`](../sprint-28/00-audit-baseline.md) (both on main)
+> 📄 **Sprint 28 plan source:** [`docs/sprints/sprint-28/00-audit-baseline.md`](../sprint-28/00-audit-baseline.md) (the plan.md file does not exist; source-of-truth is the audit-baseline.md)
 > 📄 **Sprint 27 closeout:** [`docs/sprints/sprint-27/close.md`](../sprint-27/close.md) — 3/3 work items shipped
 > 📄 **Sprint 27 retro (RETRO-019):** [`docs/sprints/sprint-27/RETRO-019.md`](../sprint-27/RETRO-019.md) — W1 (premature closure) + W7 (events API scan) doctrine candidates
 >
