@@ -78,7 +78,11 @@ scripts/.tmux-bootstrap/
 # Run init after every fresh clone. Manual edits to these files are lost
 # on re-render — edit the corresponding .tmpl instead.
 CODEOWNERS
-.github/ISSUE_TEMPLATE/config.yml
+# NOTE (d853): .github/ISSUE_TEMPLATE/config.yml is intentionally NOT
+# gitignored — it must be tracked so the canary mirror (`git clone main`)
+# carries GitHub's issue chooser config. Was previously classified as a
+# Faz 3 rendered output; upstream .gitignore.tmpl in
+# atilproject/dev-studio-template should mirror this exception (deferred).
 .claude/commands/standup.md
 .claude/commands/sprint-start.md
 .claude/agents/*.md
