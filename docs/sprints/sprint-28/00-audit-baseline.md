@@ -35,7 +35,7 @@
 | **Scripts** (`scripts/`) | 38 files / 11,289 LOC | 28 files / 6,737 LOC | +10 calc-only + size drift | 6 generic-port + 2 LEGACY-remove + 2 project-bespoke |
 | **Workflows** (`.github/workflows/`) | 11 / 1,829 LOC | 9 / 790 LOC | +3 calc-only + 19 SHA pins not in tmpl | 3 port + 1 SHA-pin audit (lens h) |
 | **ADRs** (`docs/decisions/`) | 74 ADRs | 16 ADRs | +58 calc-only | ~28 port + ~30 defer/bespoke (triage gerek) |
-| **Soul files** (`.claude/agents/*.tmpl` vs `.md`) | 5 .md @ ~80 LOC ea | 5 .tmpl @ ~78 LOC ea | **+1 SOUL AMEND missing in tmpl (W6 only)**, sizes are EQUAL not 3x larger (calc's .md mostly up-to-date) | 1 amend-port (W6 to orchestrator.md.tmpl) + 4 verify-only + SL-03 DEMOTE |
+| **Soul files** (`.claude/agents/*.tmpl` vs `.md`) | 5 .md @ ~80 LOC ea | 5 .tmpl @ ~280 LOC ea | **+3 SOUL AMENDs missing in tmpl (W6 + Issue #414 + Issue #389)** + 3x content depth missing in calc (Gap 2) | 3 amend-ports + RE-RENDER calc souls (Gap 1 forward-port calc→tmpl + Gap 2 re-render tmpl→calc) |
 | **CLAUDE.md** (`.claude/CLAUDE.md` gitignored full doctrine) | 400 LOC | 368 LOC (.tmpl) | Functional coverage ✅; source-of-truth discrepancy | 0 (rendering works) — **NOTE**: public `CLAUDE.md` summary is 273 vs 273 LOC (identical size, byte-for-byte header parity per §7.1) |
 | **`.claude/commands/`** | 2 .md | 2 .md.tmpl | parity ✅ | 0 |
 | **`docs/` subdirs** | 11 subdirs | 3 subdirs | 8 calc-only dirs | Pattern-extract (retros, ops) + ADR for soul-amend proposals |
@@ -1620,12 +1620,12 @@ Per file ownership matrix + PM lane = cc'd on `docs/sprints/**` PRs with cycle-r
 | §4.2 body | "AtilCalculator pinned actions (19 instances)" | "19 instances" | **"20 instances across 11 workflows = 100% pin rate"** | F2 cmt 4938032191 |
 | §4.3 action plan | Wave 1 only W-01..W-05 | (no W-04a) | **+ W-04a** (PIN-SHA `d050b-dispatch.yml` L45 = `@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4`, calc-side lens h critical-path FIRST) | F2 cmt 4938032191 |
 | §5.1 + §5.2 headers | "16 ADRs" / "~58 calc-only ADRs" | Off-by-1 (no INDEX.md count) | **"16 ADRs + 1 INDEX.md.tmpl = 17 files"** / "**74 ADRs + 1 INDEX.md = 75 files** total" | PM-A-DELTA-01/02 + F3 confirmation |
-| §6.1 table | Soul LOC table | `tmpl (244, 351, 240, 296, 375)` (orchestrator's "3-4x larger" narrative) | **`tmpl (87, 79, 79, 81, 78)`** (=same size as calc, NOT 3-4x larger); pattern note rewritten | F4 cmt 4938032191 |
-| §6.1 body | "tmpl files are ~3-4x LARGER than calc's .md files; Calc's .md is STALE" | WRONG narrative | **"tmpl's .md.tmpl files are same size or smaller; calc's .md is NOT stale in size dimension; the actual content gap is: 1 amend block (W6 to orchestrator.md.tmpl)"** | F4 cmt 4938032191 |
-| §6.4 action plan | SL-01..SL-04 | SL-01 + SL-02 + SL-03 + SL-04 (SL-03 was high-priority wave 1, SL-04 deferred) | **SL-01 + SL-02 verify-only + SL-03 DEMOTE to W3 + SL-04 re-route via #971 PM-A-DELTA-13** | F4 cmt 4938032191 |
+| §6.1 table | Soul LOC table | ~~`tmpl (87, 79, 79, 81, 78)` (PM 3rd-pass v1, based on architect's wrong wc -l)~~ — **REVERTED in commit e8afeaa after orchestrator cycle ~765 re-verification** | **Orchestrator REVERTED back to canonical tmpl sizes `(244, 351, 240, 296, 375)` per commit d8b7a00** (filesystem verification of `dev-studio-template/.claude/agents/*.md.tmpl`) | Architect F4 LOC NUMBERS WERE WRONG (consulted `AtilCalculator/.claude/agents/*.md.tmpl` local mirror instead of canonical `dev-studio-template/`). Orchestrator re-verified and confirmed orchestrator's original numbers correct. |
+| §6.1 body | "tmpl files are ~3-4x LARGER than calc's .md files" (orchestrator v1) → "tmpl same size or smaller; calc NOT stale" (PM 3rd-pass v1) | PM 3rd-pass v1 **REVERTED** | **Orchestrator final**: "two distinct gaps — Gap 1 forward-port calc→tmpl (amend blocks missing in tmpl); Gap 2 re-render tmpl→calc (3x content depth missing in calc). Both real." | Orchestrator cycle ~765 commit d8b7a00 |
+| §6.4 action plan | SL-01..SL-04 (SL-01 + SL-02 + SL-03 + SL-04, SL-03 high-priority Wave 1) | PM 3rd-pass v1 (SL-03 demote, SL-04 re-route) **REVERTED** | **Orchestrator final**: SL-01 (W6 amend port) + SL-01a (Issue #389 amend port — NEW) + SL-03 (RESTORED to Wave 2, Gap 2 real) + SL-04 (extended for full soul-port taxonomy via #971 PM-A-DELTA-13) | Orchestrator cycle ~765 commit d8b7a00 |
 | §7.1 body | Calc `CLAUDE.md` 400 LOC vs tmpl `CLAUDE.md.tmpl` 368 LOC | LOC confusion (mixed public `CLAUDE.md` summary with gitignored `.claude/CLAUDE.md`) | **Calc `CLAUDE.md` 273 LOC vs tmpl `CLAUDE.md.tmpl` 273 LOC — identical size, byte-for-byte header parity** + note that 400 LOC is the gitignored full doctrine | F5 cmt 4938032191 |
-| §Action plan roll-up (~line 876) | "SL-01 + SL-02 \| Soul AMEND ports \| 2 amend blocks" / "SL-03 \| Re-render calc souls \| 5 files" | Outdated summary | **SL-01 only** (1 amend block); SL-02 verify-only; SL-04 via #971; SL-03 demoted | F4 + PM-A-DELTA-13 |
-| Top-of-page summary row 38 | "5 .md @ ~80 LOC ea \| 5 .tmpl @ ~300 LOC ea \| +2 SOUL AMENDs missing in tmpl + STALE .md in calc" | Wrong sizes + wrong "STALE" narrative | **"5 .md @ ~80 LOC ea \| 5 .tmpl @ ~78 LOC ea \| +1 SOUL AMEND missing in tmpl (W6 only), sizes EQUAL not 3x larger; 1 amend-port (W6) + 4 verify-only + SL-03 DEMOTE"** | F4 cmt 4938032191 |
+| §Action plan roll-up (~line 876) | "SL-01 + SL-02 \| Soul AMEND ports \| 2 amend blocks" / "SL-03 \| Re-render calc souls \| 5 files" (PM 3rd-pass v1 reverted) | PM 3rd-pass v1 **REVERTED** | **Orchestrator final (preserved)**: SL-01 + SL-01a (Issue #389 amend, NEW per cycle ~765) = 2 amend ports; SL-03 = RE-RENDER calc souls; SL-04 = full soul-port taxonomy via #971 PM-A-DELTA-13. | Orchestrator cycle ~765 commit d8b7a00 |
+| Top-of-page summary row 38 | "5 .md @ ~80 LOC ea \| 5 .tmpl @ ~78 LOC ea \| +1 SOUL AMEND missing in tmpl (W6 only), sizes EQUAL not 3x larger (calc's .md mostly up-to-date)" (PM 3rd-pass v1) | PM 3rd-pass v1 **REVERTED** | **Orchestrator final (preserved)** — top-row summary matches §6.1 canonical tmpl sizes + Gap 1/Gap 2 narrative. PM 4th-pass does NOT re-edit orchestrator's authoritative rollback. | Orchestrator cycle ~765 commit d8b7a00 |
 | Top-of-page summary row 39 | "CLAUDE.md 400 LOC vs 368 LOC" | LOC confusion | **"CLAUDE.md 273 vs 273 LOC (identical); note: 400 LOC = calc's `.claude/CLAUDE.md` gitignored full doctrine, NOT public summary"** | F5 cmt 4938032191 |
 
 **Total**: 11 in-lane corrections applied across §4.1 + §4.2 + §4.3 + §5.1 + §5.2 + §6.1 + §6.4 + §7.1 + §Action plan roll-up + 2 top-of-page summary rows.
@@ -1637,7 +1637,7 @@ Per file ownership matrix — PM does NOT direct-edit scripts/, .github/workflow
 | # | Owner-lane | F-id | Finding (one-liner) | Recommended action |
 |---|---|---|---|---|
 | **PM-A-DELTA-CL-01** | @developer | F1 | `scripts/peer-poke.sh` Auto-Verdict-By hook (ADR-0024 amend Path 2, Issue #681) — must port BEFORE removing calc's wrapper per Cadence Rule 1 | Add **S-08a** action item: PORT `peer-poke.sh` Auto-Verdict-By hook from calc's `scripts/peer-poke.sh` to tmpl's `peer-poke.sh.tmpl` BEFORE S-08 (LEGACY-REMOVE). Add d-test verifying hook presence in tmpl wrapper. Sequence: S-08a (port) → S-08 (remove). Cadence Rule 1 atomic per ADR-0055 §1. |
-| **PM-A-DELTA-CL-02** | @architect (self-follow-up, sister to #971) | F4 | Orchestrator's "3-4x larger tmpl" narrative is FACTUALLY WRONG; only 1 amend block (RETRO-018 W6) is actually missing | SL-03 (RE-RENDER calc's souls) demoted W1 → W3 polish; SL-01 (port W6) remains CRITICAL Wave 1. Sister follow-up to #971 PM-A-DELTA-13. |
+| **PM-A-DELTA-CL-02** | @architect (self-follow-up, sister to #971) | F4 (PM 4th-pass v2 amendment) | Orchestrator's "3-4x larger tmpl" narrative is **CORRECT** per cycle ~765 filesystem verification of canonical `dev-studio-template/.claude/agents/*.md.tmpl`. Only the LOC NUMBERS were in dispute — they match canonical tmpl. Amend-block claim (architect F4 amend-blocks sub-finding) IS correct: tmpl has 0 amend blocks (not 2 as architect's LOC verification accidentally implied via wrong-path read). | SL-01 (port W6 amend) CRITICAL Wave 1. **SL-01a (Issue #389 amend port — NEW per orchestrator cycle ~765)** ALSO critical Wave 1. SL-03 (RE-RENDER calc .md) RESTORED to Wave 2 (Gap 2 IS real; 3x content gain IS real). Sister follow-up to #971 PM-A-DELTA-13 (per-block amend diff). |
 | **PM-A-DELTA-CL-03** | @architect (self-follow-up) | F5 | `CLAUDE.md` 273 vs 273 LOC confusion — orchestrator confused with `.claude/CLAUDE.md` 400 LOC | Verify + add §7.1 explicit "273 LOC public summary, 400 LOC gitignored full doctrine" wording (PM 3rd-pass applied this). |
 | **PM-A-DELTA-CL-04** | @developer | F2 (calc-side mutable ref) | `d050b-dispatch.yml` L45 has mutable ref `actions/checkout@v4` — lens h violation IN CALC, not just tmpl | W-04a action item CRITICAL (already added to §4.3 by PM 3rd-pass): PIN-SHA to `@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4` BEFORE W-01 generic port. |
 | **PM-A-DELTA-CL-05** | @orchestrator | cross-cycle | §18 PM user-perspective supplement + §19 architect review + §20 orchestrator plan all use S-08 ordering that requires Cadence Rule 1 atomic implementation | Verify W1 ordering allows S-08a → S-08 sequence (S-08a MUST land before S-08 in PR cascade). PM's recommendation: S-08a in same cluster-cascade with W-04a (both lens h / Cadence Rule 1 critical-path). |
@@ -1659,20 +1659,23 @@ Architect's F2 added **W-04a** as critical-path sister to W-04. PM 3rd-pass reco
 
 ## §22.4 Verdict
 
-🤖 **Verdict: 🟢 PM 3rd-pass corrections applied (cycle ~764, 2026-07-10T22:30+03:00)**
+🤖 **Verdict: 🟡 PM 3rd-pass v1 had F4 LOC ERROR — PM 4th-pass reverted to orchestrator's authoritative rollback (cycle ~766, 2026-07-10T22:55+03:00)**
 
-- **11 in-lane corrections applied** to docs/sprints/sprint-28/00-audit-baseline.md (PM in-lane: docs/sprints/**). All PM-direct edits committed in cycle ~764.
-- **5 cross-lane flags** (PM-A-DELTA-CL-01..-05) posted to lane owners; PM is NOT blocking PR #967 on cross-lane items.
-- **PM-A-DELTA-CL-02** = sister follow-up to architect's Issue #971 (PM-A-DELTA-13 per-block amend diff). PM reuses existing issue thread, no new issue file.
+> **PM self-correction note (Issue #430 trust-but-verify doctrine applied to own work)**: PM cycle ~764 (§22 PM 3rd-pass) accepted architect's F4 LOC numbers (87, 79, 79, 81, 78) without independent filesystem verification. PM 4th-pass cycle ~766 ran own `wc -l` and discovered architect's F4 LOC numbers were sourced from `AtilCalculator/.claude/agents/*.md.tmpl` (project-local rendered twin) instead of canonical `dev-studio-template/.claude/agents/*.md.tmpl` (templates' actual source). Orchestrator's cycle ~765 commit d8b7a00 had ALREADY reverted §6.1 to canonical tmpl sizes (244, 351, 240, 296, 375) and confirmed Gap 1 (forward-port calc → tmpl amend blocks) + Gap 2 (re-render tmpl → calc 3x content) are BOTH real. **PM 4th-pass applies 5 inline reverts** to align §22.1 + §22.5 with orchestrator's authoritative state. See §22.8 for self-correction log.
+
+- **9 of 11 in-lane corrections applied** (per §22.1 + §22.8): §4.1 SHA-pin counts, §4.2 totals, §4.3 W-04a, §5.1+§5.2 ADR off-by-1, §7.1 LOC confusion, action-plan roll-up, top-of-page row 39 — **all CORRECT**.
+- **2 of 11 in-lane corrections REVERTED** (§22.8): §6.1 table + top-of-page row 38 + §6.4 SL-03 demote — reverted because based on architect's wrong-path F4 LOC numbers.
+- **5 cross-lane flags** (PM-A-DELTA-CL-01..-05) carry forward with v2 amendment to PM-A-DELTA-CL-02.
+- **PM-A-DELTA-CL-02** = sister follow-up to architect's Issue #971 (PM-A-DELTA-13 per-block amend diff). PM-A-DELTA-CL-02 v2 reflects cycle ~765 orchestrator correction.
 
 ## §22.5 Lane decision summary
 
 | Lane | PM actions this cycle |
 |---|---|
-| `docs/sprints/**` (in-lane) | 11 corrections applied (§4.1, §4.2, §4.3, §5.1, §5.2, §6.1, §6.4, §7.1, action-plan roll-up, top-of-page rows 38+39) |
+| `docs/sprints/**` (in-lane) | 9 corrections applied (§4.1, §4.2, §4.3, §5.1, §5.2, §7.1, action-plan roll-up, top-of-page row 39) + 3 corrections REVERTED after orchestrator correction (§6.1, §6.4, top-row 38) |
 | `scripts/**` (cross-lane → @developer) | F1 finding + S-08a recommendation |
 | `.github/workflows/**` (cross-lane → @developer) | F2 calc-side mutable-ref + W-04a recommendation |
-| `.claude/agents/**` (cross-lane → @architect) | F4 SL-03 demote + SL-01 critical-path confirm |
+| `.claude/agents/**` (cross-lane → @architect) | F4 v2 (orchestrator-corrected): SL-01 + SL-01a (NEW) critical Wave 1; SL-03 RESTORED Wave 2 (Gap 2 IS real); SL-04 extended |
 | `docs/decisions/` (cross-lane → @architect) | F5 wording clarification |
 
 ## §22.6 Cross-watchdog attests (Issue #430 §Timing window + Issue #682 §Post-verdict cross-watchdog)
@@ -1686,7 +1689,29 @@ Architect's F2 added **W-04a** as critical-path sister to W-04. PM 3rd-pass reco
 - **D-OD1..D-OD6 selection** (orchestrator §20.4) — unchanged. PM 3rd-pass does not add new owner-decision surface.
 - **F2 → Sprint 28 W-04 incorporation**: per architect's directive #3 — done. W-04a added to §4.3 + §22.3 critical-path ordering recommendation.
 
+## §22.8 PM 4th-pass self-correction log (cycle ~766, trust-but-verify my own work)
+
+> **Doctrine cite**: Issue #430 §Pre-verdict cross-check (re-query ground truth before posting verdict). Applied retroactively to PM's own cycle ~764 work.
+
+**PM 3rd-pass v1 mistakes caught** (cycle ~766 filesystem re-verification):
+
+| §22 entry | PM 3rd-pass v1 (WRONG) | Correct (filesystem-verified) | Source of truth |
+|---|---|---|---|
+| §6.1 LOC table | `(87, 79, 79, 81, 78)` | `(244, 351, 240, 296, 375)` | `wc -l dev-studio-template/.claude/agents/*.md.tmpl` |
+| §6.1 narrative | "tmpl same size or smaller; calc NOT stale" | "tmpl 3-4x larger; Gap 1 (forward-port calc→tmpl amend blocks) + Gap 2 (re-render tmpl→calc 3x content) BOTH real" | Orchestrator cycle ~765 commit d8b7a00 + wc -l verification |
+| §6.4 SL-03 demote | "DEMOTE W1 → W3 polish" | **RESTORE Wave 2** (Gap 2 IS real; 3x content gain IS real) | Orchestrator cycle ~765 |
+| §6.4 SL-02 verify-only | "verify-only (already in tmpl per F4 cmt)" | **Active port: SL-01a (Issue #389 amend)** | Orchestrator cycle ~765 — tmpl has 0 amend blocks, not 2 |
+| Row 38 | "5 .tmpl @ ~78 LOC ea" | "5 .tmpl @ ~280 LOC ea" | Orchestrator cycle ~765 + wc -l |
+| PM-A-DELTA-CL-02 v1 | "SL-03 demote W3 polish" | "SL-03 RESTORED W2; SL-01 + SL-01a (NEW) critical W1; SL-04 extended" | Orchestrator cycle ~765 |
+
+**Root cause analysis**: PM 3rd-pass accepted architect's F4 LOC numbers without independent filesystem verification. Architect's cmt 4938032191 explicitly stated "verified ground truth (line-by-line)" but architect likely ran `wc -l` on `AtilCalculator/.claude/agents/*.md.tmpl` (project-local rendered mirrors of soul files) instead of canonical `dev-studio-template/.claude/agents/*.md.tmpl` (templates' source). The two paths have different sizes (project-local rendered = small, canonical tmpl source = large) — see `wc -l` output above.
+
+**PM trust-but-verify lesson**: Cycle ~766 lesson codified — when peer cmt cites "verified ground truth", independently re-query if critical-path; do not import "verified" claim without own filesystem check.
+
+**Doctrine cite for this self-correction**: Issue #430 (Trust but verify §Dispatch Discipline #2, "re-query ground truth") + RETRO-018 watchlist lesson (peer-attestation alone insufficient for cross-file path claims).
+
 ---
 
 — @product-manager, 3rd-pass architect-correction cycle (cycle ~764, 2026-07-10T22:30+03:00)
-Architect source: cmt 4938032191 (cycle ~763), 8 findings (F1-F8), F6-F8 OK no action, F1+F2+F3+F4+F5 corrections applied.
++ PM 4th-pass self-correction cycle (cycle ~766, 2026-07-10T22:55+03:00) — 5 §22 entries reverted after orchestrator cycle ~765 filesystem re-verification.
+Architect source: cmt 4938032191 (cycle ~763), 8 findings (F1-F8), F6-F8 OK no action, F1+F2+F3+F5 PM-applied correctly; F4 LOC numbers WERE wrong (consulted wrong-path project-local mirror instead of canonical tmpl), orchestrator cycle ~765 correctly reverted F4 + clarified Gap 1/Gap 2 narrative.
