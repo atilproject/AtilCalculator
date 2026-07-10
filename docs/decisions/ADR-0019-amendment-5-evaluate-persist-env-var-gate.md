@@ -1,12 +1,12 @@
 # ADR-0019 — Amendment 5: ATILCALC_EVALUATE_PERSIST env-var precedence contract (Issue #728 perf-regression closeout)
 
-- **Status:** Proposed (parallel to PR #742 cluster squash, Sprint 23 dev-lane closeout)
-- **Date:** 2026-07-01
-- **Deciders:** @architect (drafted 9-lens review cycle ~#1942), @owner (doubles PM — owner directive 2026-07-01 "olur beklerim ama kalıcı fix olsun"), @developer (impl PR #742), @tester (sign-off pending)
+- **Status:** Accepted (Sprint 23 closeout + Sprint 26 reactivation 2026-07-10, Issue #728 + Issue #954 closeout)
+- **Date:** 2026-07-01 (Accepted 2026-07-10 per Sprint 26 wave 1 owner-approval, peer-poked orchestrator cycle ~#5396)
+- **Deciders:** @architect (drafted 9-lens review cycle ~#1942, Sprint 26 reactivation cycle ~#5232 cmt 4932464073), @owner (doubles PM — owner directive 2026-07-01 "olur beklerim ama kalıcı fix olsun" + Sprint 26 wave 1 full owner-approval peer-poke 2026-07-10T09:32:39+03), @developer (impl PR #742 + Sprint 26 wave 1 impl gap closure AC2 — new follow-up #F), @tester (sign-off pending d-test d955 ≥5 TCs RED-first + Sprint 26 d-test #G), @orchestrator (Sprint 26 coordination + Issue #955 status flip)
 - **Supersedes:** (none — additive amendment)
 - **Amends:** [ADR-0019-api-contract.md](./ADR-0019-api-contract.md) §Endpoint behaviour (`POST /api/evaluate` auto-persistence contract)
-- **Closes:** Issue #728 (perf-regression follow-up, Sprint 23 dev-lane P0 unblocker)
-- **Origin PR:** [#742 feat(api): ATILCALC_EVALUATE_PERSIST env-var gate](https://github.com/atilproject/AtilCalculator/pull/742)
+- **Closes:** Issue #728 (Sprint 23 perf-regression follow-up, P0 unblocker) **+ Issue #954** (Sprint 26 cluster-cascade perf-regression follow-up, P1)
+- **Origin PR:** [#742 feat(api): ATILCALC_EVALUATE_PERSIST env-var gate](https://github.com/atilproject/AtilCalculator/pull/742) — Sprint 23 origin; **Sprint 26 impl PR pending (follow-up #F below, AC2 of Issue #955)**
 
 ---
 
@@ -38,6 +38,24 @@ class of perf-budget bleed that had been hidden on `ubuntu-latest`-public:
 This rejects a budget raise (option a) in favour of an actual perf fix
 (option b — the option at hand). The cluster squash should not land without
 the real fix, even if it costs cluster turnaround time.
+
+### Sprint 26 reactivation (2026-07-10, Issue #954 closeout)
+
+**Cluster-cascade trigger:** Sprint 26 wave 1 surfaced a **same-class perf-budget bleed** that the Sprint 23 amend-5 gate alone did not close:
+
+- PRs #946, #947, #948 all FAIL `test_arithmetic_p99_under_50ms_still_holds` in CI self-hosted runner under `pytest-cov` instrumentation.
+- p99 floor: **500–815 ms** at `BUDGET_MULTIPLIER=10.0` (vs 250 ms budget = 50 ms × 5.0 historical).
+- Local-dev (no pytest-cov) PASSES at same multiplier; cluster-cascade is **CI-environment-specific**.
+
+**Arch verdict cycle ~#5232 cmt 4932464073:** Option 2 — reuse ADR-0019 amend-5 as the architectural contract (env-var precedence family at the API boundary), extend with Sprint 26 wave 1 cohort:
+1. **AC1 (architect closeout blocker — THIS PR):** flip amend-5 status `Proposed → Accepted`; ensure amend-5 is the canonical "test infra + low-resource envs opt-out via `ATILCALC_EVALUATE_PERSIST=0`" reference for Sprint 26 wave 1 (and future similar bleed).
+2. **AC2 (impl gap closure, dev lane — follow-up #F):** verify Sprint 26 wave 1 PR cluster (#946, #947, #948) sets `ATILCALC_EVALUATE_PERSIST=0` in ci.yml env block, mirroring Sprint 23 PR #742 cluster-squash pattern.
+3. **AC6 (d-test gap closure, tester lane — follow-up #G):** produce Sprint 26 d-test (d955 name reserved, sister to d113) verifying pytest-cov-aware env-var gate propagation + sister-pattern ≥3 coverage per ADR-0049.
+4. **Cluster-cascade unblocker:** amend-5 acceptance + sprint 26 ci.yml wiring unblocks PRs #946, #947, #948 perf-FAIL cluster (Issue #954 P1 path, NOT P0 — no P0 / no production impact since pytest-cov is CI-only).
+
+**Owner directive extension (2026-07-10, Sprint 26 wave 1 full owner-approval per orchestrator peer-poke 2026-07-10T09:32:39+03):** The original Sprint 23 owner directive ("kalıcı fix olsun") **remains binding** for Sprint 26 — this is NOT a budget raise, it is the **canonical extension of amend-5** to a sister-environment class (pytest-cov instrumentation overhead on self-hosted VM). Sprint 26 wave 1 will adopt amend-5 verbatim plus the pytest-cov-aware multiplier extension (separate ADR pending, sister-pattern to amend-4 conftest env-var precedence).
+
+**Why this is "acceptance now, not Proposal-with-impl":** The §Decision (gate semantics) + §Rationale (option b chosen) + §Consequences (2.8× p99 cut locally verified in Sprint 23) are all unchanged across the Sprint 26 reactivation. The only Sprint 26 deltas are (a) cluster-cascade CI environment class identification + (b) sprint 26 wave 1 implementation plan (follow-up #F, #G). Both are within the existing amend-5 envelope — they do not require a NEW ADR amendment, only an **`Accepted` status flip + a §Sprint 26 reactivation documentation section**.
 
 ---
 
@@ -178,11 +196,13 @@ engine-side (d110), **runtime-side (d113)**.
 
 | ID | Description | Severity | Owner |
 |---|---|---|---|
-| **#A** | Add `log.info("evaluate persist opt-out, ATILCALC_EVALUATE_PERSIST=…", ...)` + metrics counter (`atilcalc_evaluate_persist_skipped_total`) for the DISABLED branch. **Closes lens d silent-skip risk per ADR-0045.** | M | @developer (Sprint 23 P2) |
-| **#B** | Add `d113` TC6: verify `os.environ.get('ATILCALC_EVALUATE_PERSIST', '1')` is used (not `os.environ[...]` direct read). | L | @developer (Sprint 23 P2) |
-| **#C** | Document `ATILCALC_EVALUATE_PERSIST` in `docs/OPERATIONS.md` (or `README.md` runtime section) — operator-visible flag + recommended values. | M | @developer (Sprint 23 P2) |
+| **#A** | Add `log.info("evaluate persist opt-out, ATILCALC_EVALUATE_PERSIST=…", ...)` + metrics counter (`atilcalc_evaluate_persist_skipped_total`) for the DISABLED branch. **Closes lens d silent-skip risk per ADR-0045.** | M | @developer (Sprint 23 P2 → Sprint 27+) |
+| **#B** | Add `d113` TC6: verify `os.environ.get('ATILCALC_EVALUATE_PERSIST', '1')` is used (not `os.environ[...]` direct read). | L | @developer (Sprint 23 P2 → Sprint 27+) |
+| **#C** | Document `ATILCALC_EVALUATE_PERSIST` in `docs/OPERATIONS.md` (or `README.md` runtime section) — operator-visible flag + recommended values. | M | @developer (Sprint 23 P2 → Sprint 27+) |
 | #D | Async-batched persist (option c from §Rationale) for Sprint 24+ if perf continues to bleed at 2-3× the budget even with persist opt-out. Requires a queue infra + idempotency-key migration (the latter already supported per existing schema). | L | TBD (Sprint 24+) |
 | #E | `ATILCALC_<ENDPOINT>_<STATE>_PERSIST` family — extend the precedence pattern to future state-mutating endpoints (if/when added). Follows from d113 framework. | L | TBD |
+| **#F** | **Sprint 26 wave 1 (NEW — Issue #954 AC2):** verify Sprint 26 wave 1 PR cluster (#946, #947, #948) sets `ATILCALC_EVALUATE_PERSIST=0` in `.github/workflows/*.yml` env block (per arch verdict cycle ~#5232 cmt 4932464073). Pattern sister to PR #742 Sprint 23 ci.yml wiring. Unblocks PR cluster from `test_arithmetic_p99_under_50ms_still_holds` failure. | **H** | **@developer (Sprint 26 wave 1, AC2 of Issue #955)** |
+| **#G** | **Sprint 26 wave 1 (NEW — Issue #954 AC6, pytest-cov-aware sister):** produce d-test d955 (≥5 TCs RED-first per ADR-0044/0049) verifying pytest-cov-aware env-var gate propagation: (i) `ATILCALC_EVALUATE_PERSIST=0` propagates from ci.yml env block to evaluate handler; (ii) pytest-cov instrumentation overhead is observable; (iii) opt-out gate skips `persistence.insert_record` deterministically; (iv) ≥3 sister-pattern with d109/d110/d112/d113; (v) fail-loud contract preserved (DISABLED state must be visible — counter `atilcalc_evaluate_persist_skipped_total` increment or `log.info`). **Architect co-sign required** since this addresses lens (f) observability gap (pytest-cov CI env-specific overhead invisible to perf budget doctrine, doctrinally tracked as TD-070 sister to TD-046-extension). | **H** | **@tester (Sprint 26 wave 1, AC6 of Issue #955, architect co-sign)** |
 
 ---
 
