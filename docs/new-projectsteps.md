@@ -169,6 +169,51 @@ which costs Actions minutes for private repos.** Either:
 See `docs/sprints/sprint-28/00-audit-baseline.md` Q3 for the gap state. For
 immediate workarounds, see Step 7 below.
 
+### Self-hosted runner registration — exact label syntax
+
+AtilCalculator's runner pattern (the one to mirror per audit Q3 / R-01):
+
+```yaml
+# .github/workflows/ci.yml
+runs-on: [self-hosted, Linux, X64, atilproject]
+```
+
+The 4-tuple is **required** for the runner to pick up the job. Each label is
+matched independently by the runner's `--labels` flag at registration time:
+
+```bash
+# On the runner host (one-time setup):
+cd /home/<runner-user>/actions-runner
+./config.sh --url https://github.com/atilproject/<repo> \
+            --token <RUNNER_TOKEN> \
+            --labels self-hosted,Linux,X64,atilproject \
+            --name <runner-name> \
+            --work _work
+```
+
+Verify runner registration:
+
+```bash
+# Org-level (all repos):
+gh api /orgs/atilproject/actions/runners --jq '.runners[] | {name, os, status}'
+
+# Repo-level (this repo only):
+gh api /repos/<owner>/<repo>/actions/runners --jq '.runners[] | {name, os, status}'
+```
+
+**Common pitfalls:**
+- Runner label mismatch = job queues forever (no error, just stuck). Verify
+  labels match exactly (case-sensitive).
+- Missing `atilproject` label = runner won't pick up `atilproject`-targeted jobs.
+- Single-runner-per-host: don't run multiple `--labels` configs on same machine
+  without unique `--name`.
+
+For an owner-decision: whether to ship template's `runs-on:` as `[self-hosted,
+Linux, X64, atilproject]` (org-pinned) vs `[self-hosted, Linux]` (generic
+self-hosted, requires every project to register its own). **AtilCalculator uses
+the org-pinned 4-tuple.** See audit §15.1 for the full comparison and Sprint 28
+R-02 ADR for the recommended default.
+
 ---
 
 ## Step 5 — Render template via dev-studio-init.sh
