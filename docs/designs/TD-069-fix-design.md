@@ -184,7 +184,16 @@ sequenceDiagram
 - [ ] **Q1**: Owner approval on OPTION 1 vs OPTION 2 — recommend OPTION 1 per TD-069 row. (Owner decision; not architect-callable.)
 - [ ] **Q2**: Should 5a/5b be merged into single step with `outputs` chaining, or truly separate steps? Recommend separate steps (cleaner audit trail, more reversible per ADR-0007). (Owner decision.)
 - [ ] **Q3**: Should TD-067c (Layer 7 open-time axis extension per ADR-0071) be bundled with TD-069 fix in same PR? Recommend **NO** per Cadence Rule 1 (ADR-0055 §1) — atomic fix scope, defer TD-067c to Sprint 27 wave 2.
-- [ ] **Q4**: D-test file location — `scripts/tests/d069-layer5-audit-trail.sh` per ADR-0049 ≥5 TCs. TC1: 5a/5b propagation. TC2-TC5: each of 4 audit markers. TC6: concurrency group. TC7: SHA pin preserved.
+- [ ] **Q4**: D-test file location — `scripts/tests/d069-layer5-audit-trail.sh` per ADR-0049 ≥5 TCs baseline + 2 dev-side hardening TCs (TC8 + TC9 from PR #961 dev review cmt 4934552870) = ≥7 TCs total:
+  - **TC1**: 5a/5b propagation contract — `steps.layer5a.outputs.*` propagation.
+  - **TC2**: audit marker `<!-- adr-0012-status-ready-gating -->` emission.
+  - **TC3**: audit marker `<!-- adr-0012-status-ready-gating-skip -->` emission.
+  - **TC4**: audit marker `<!-- adr-0012-status-ready-gating-reversal -->` emission.
+  - **TC5**: audit marker `<!-- adr-0012-status-ready-gating-draft-skip -->` emission.
+  - **TC6**: concurrency group preservation (L44-47).
+  - **TC7**: SHA pin preserved (`@f28e40c7f34bde8b3046d885e986cb6290c5673b` not regressed to `@v7` tag).
+  - **TC8** (dev hardening, cmt 4934552870): 5a→5b output propagation correctness — verify `steps.layer5a.outputs.fresh_labels` accurately reflects GitHub API `pulls.get` read (vs stale `context.payload.pull_request.labels` webhook snapshot); sister-pattern TD-029 escape discipline.
+  - **TC9** (dev hardening, cmt 4934552870): Template-literal escape audit — adversarial label payloads with GH Actions interpolation chars (`{{`, `}}`, nested quotes); verify `JSON.parse('${{ steps.layer5a.outputs.fresh_labels }}')` + `parseInt('${{ steps.layer5a.outputs.number }}', 10)` in 5b parse correctly. Sister-pattern TD-029.
 
 ## Estimated complexity
 
