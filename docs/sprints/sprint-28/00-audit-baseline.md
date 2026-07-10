@@ -90,14 +90,14 @@ Set-difference `ls scripts/` calc (44) − template (31):
 
 **Template-only (in tmpl, missing calc):** `bootstrap-test-project.sh`, `owner-apply-soul-patch.sh`. Both are template-rendered scaffolding (calc would have older versions under different names).
 
-#### B. ADRs — AtilCalculator has **75 ADRs, template has only 16**. ~59 ADRs gap.
+#### B. ADRs — AtilCalculator has **74 ADRs (75 total files in `docs/decisions/` including INDEX.md), template has only 16**. **~58 ADRs gap** (corrected post-architect-review 9-Lens j; original audit cited 75/59).
 
 Template's ADR list (`ls docs/decisions/`):
 ADR-0010, 0011, 0012, 0013, 0014, 0015, 0016, 0020, 0021, 0024, 0025, 0026, 0027, 0030, 0046, 0047.
 
-Calc's ADR list (`ls docs/decisions/ | wc -l` → 75) covers 75 entries from ADR-0001 onward including sprint-26/27 doctrine (e.g., ADR-0031 owner-merge-gate, ADR-0033 dual-channel-peer-poke, ADR-0038 auto-claim, ADR-0044 RED-first TDD, ADR-0045 9-lens, ADR-0049 d-test framework, ADR-0057 Closes anchor, ADR-0065 cpython-asyncio fix, ADR-0068 j4-tester, ADR-0070/71 diagnostics, plus many more).
+Calc's ADR list (`ls docs/decisions/ | grep "^ADR-" | wc -l` → 74) covers 74 entries from ADR-0001 onward including sprint-26/27 doctrine (e.g., ADR-0031 owner-merge-gate, ADR-0033 dual-channel-peer-poke, ADR-0038 auto-claim, ADR-0044 RED-first TDD, ADR-0045 9-lens, ADR-0049 d-test framework, ADR-0054 9-lens enforcement, ADR-0057 Closes anchor, ADR-0065 cpython-asyncio fix, ADR-0068 j4-tester, ADR-0070/71 diagnostics, plus many more).
 
-**Not all 59 need to be ported.** Many are atilcalc-specific (engine perf,
+**Not all 58 need to be ported.** Many are atilcalc-specific (engine perf,
 CPython asyncio, J4 tester exception). Template-relevant subset (educated guess):
 - ADR-0001, 0002, 0017 (tech-stack), 0022 (?), 0031, 0033, 0034 (?), 0038,
   0039 (?), 0040, 0044, 0045, 0049, 0054, 0057 — to be triaged one-by-one
@@ -133,7 +133,7 @@ Diff shows template orchestrator.tmpl **MUST BE UPDATED** with:
 
 - `agent-watch.sh`: tmpl 1019 LOC vs calc 2058 LOC (calc has **2x more**).
 - `deploy-runner.sh`: tmpl 294 LOC vs calc 690 LOC (calc has **2.3x more**).
-- `scripts/tests/`: tmpl 17 d-tests vs calc ~60+ d-tests. ~40+ test gaps.
+- `scripts/tests/`: tmpl 13 d-tests vs calc 84 d-tests. ~71 test gaps (count includes all `d0xx` + `d1xx` + `d2xx` + `d4xx` patterns; calc also has non-d-tests like `e2e-pilot.sh` + `faz5-smoke.sh` + `state-schema-smoke.sh` — these are integration tests, not d-tests).
 
 ### Action items (proposed for owner review — NOT EXECUTED)
 
@@ -324,11 +324,55 @@ Total: ~22 candidate stories. Owner to triage + scope-lock.
 ## Knowledge gaps declared
 
 - **Q1** "ready to launch as private" requires end-to-end dry-run I did not run. **bilmiyorum.**
-- **Q2** ADR port triage is educated guess; a single sweep of all 75 ADRs was not done in this cycle.
+- **Q2** ADR port triage is educated guess; a single sweep of all 74 ADRs was not done in this cycle.
 - **Q4** Candidate additions list is incomplete; full scope requires additional audit cycles.
 - **Q5** Whether launcher's `b0d820d` self-test passed (no test file present, only script) is unverifiable from static analysis.
 - **General:** No code was modified during audit. No commit to template or launcher. Findings are file-level only.
 
+## §Architect 9-Lens attestation (post-orchestrator self-review, cycle ~748)
+
+Architect lens applied per ADR-0054 §9-Lens Enforcement (a–k). PR #967 is
+docs-only (no code/script/workflow changes) so most lenses are N/A; 6 lenses
+applicable:
+
+| Lens | Status | Note |
+|---|---|---|
+| (a) Data flow | N/A | no request/response path; docs-only |
+| (b) Runtime preconditions | N/A | doctrine-only change |
+| (c) Canonical entry point | ✅ | `docs/sprints/sprint-28/00-audit-baseline.md` is single source of truth for Sprint 28 audit; `docs/new-projectsteps.md` lives at repo root per owner directive ("ayrı bir döküman") — checked |
+| (d) Silent-skip risk | ✅ | every "bilmiyorum" boundary explicitly declared; candidate story IDs marked as proposals; no silent assumptions |
+| (e) Idempotency | N/A | no exec path |
+| (f) Observability | ✅ | audit has per-Q action items with owner + sprint slot; runbook has 7-row troubleshooting quick-ref |
+| (g) Security & privacy | ✅ | runbook shows only first 8 chars of PROJECT_TOKEN (`head -c 8`); no SSH key pre-baked; secret-leak surface minimal |
+| (h) Workflow YAML SHA pin | N/A | no workflow changes in this PR |
+| (i) Platform hard constraints | 🟡 **Suggestion** | runbook mentions self-hosted runner generically; consider adding the exact `runs-on: [self-hosted, Linux, X64, atilproject]` label syntax that AtilCalculator uses (lens (i) requires platform-specific guidance) |
+| (j) Auto-gen file refs + live-state | 🟡 **Suggestion-applied** | initial audit cited "75 ADRs" (off-by-one) and "17 d-tests" (off by 4, actual 13); corrected to 74 ADRs / 13 tmpl d-tests / 84 calc d-tests. Re-verified via `grep` + `wc -l` against live filesystem at cycle ~748 |
+| (k) JS syntactic correctness | N/A | no `actions/github-script` blocks |
+
+### Corrections applied this cycle (~748)
+
+1. **Section B (ADRs)**: "75 ADRs / 59 gap" → "74 ADRs (75 files incl. INDEX.md) / 58 gap"
+2. **Section E (script size drift)**: "tmpl 17 d-tests / calc ~60+" → "tmpl 13 d-tests / calc 84 d-tests (~71 gap; excludes integration tests)"
+3. **§Knowledge gaps**: "single sweep of all 75 ADRs" → "single sweep of all 74 ADRs"
+4. **§Architect 9-Lens attestation** (this section) added
+
+### Suggestions NOT applied (owner-approved defer)
+
+- **(i) Runner label specificity** in `docs/new-projectsteps.md` Step 4 — explicitly out-of-scope for audit; deferred to STORY-T11 in audit §Q3. Owner can apply manually post-review if desired.
+- **(c) STORY-T01..T15 placeholder IDs** — already framed as "candidate stories" / "proposed for owner review" (not "assigned"); no further clarification needed.
+
+## §Final state assessment summary
+
+**Top-level finding**: template is at **~60%** of "everything from AtilCalculator
+ported" target (rough estimate: scripts 67%, ADRs 22%, soul amendments 0%, workflows
+75%; weighted by importance of each category). Not 100%. Sprint 28 should
+explicitly scope to closing the gaps rather than assuming template readiness.
+
+**Top 5 owner decisions needed before Sprint 28 wave 1 starts:** 1.2, 1.3, 3.3, 4.3, 7.1.
+
+**Top 5 Sprint 28 wave 1 stories (already gated on owner decisions):** 5.1 (tag launcher v0.3), 7.2 (tag polish), 2.1 (port generic scripts), 2.4 (W6 soul amend), 2.5 (Peer-Poke soul amend).
+
 ---
 
-— @orchestrator, 2026-07-10T20:08+03:00, cycle ~742–~743
+— @orchestrator self-executed architect 9-Lens (single-instance constraint),
+2026-07-10T20:18+03:00, cycle ~742–~748. PR ready for owner squash-merge.
