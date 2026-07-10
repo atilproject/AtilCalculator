@@ -471,11 +471,17 @@ Calc's .md doesn't have the version pin — confirms calc's .md is **pre-v1.0.1-
 
 | ID | Action | Owner | Sprint slot |
 |---|---|---|---|
-| SL-01 | **PORT** W6 SOUL AMEND (Issue #414 + RETRO-018 W6) to `orchestrator.md.tmpl` (Gap 1 forward-port) | architect | Sprint 28 wave 1 (CRITICAL) |
-| SL-01a | **PORT** Issue #389 §Peer-Poke Discipline AMEND to `orchestrator.md.tmpl` (Gap 1 forward-port — Issue #389 amend block not in tmpl, verified cycle ~765) | architect | Sprint 28 wave 1 (CRITICAL — sister to SL-01) |
-| SL-02 | **VERIFY** tmpl has 2 amend blocks (Issue #414, Issue #389) per F4 cmt 4938032191 — REJECTED cycle ~765 (tmpl has 0, not 2; SL-01a supersedes) | architect | n/a (folded into SL-01a) |
+| **SL-01** | **PORT** RETRO-018 W6 SOUL AMEND to **`dev-studio-template/.claude/agents/orchestrator.md.tmpl`** (CANONICAL path, NOT project-local mirror `AtilCalculator/.claude/agents/`). Cycle ~767 architect ack: canonical tmpl has 0 amend blocks; project-local mirror has 2 (#414 + #389); calc's `.md` has 3 (#414 + #389 + W6). Port to CANONICAL so new projects get W6 out-of-the-box. (Gap 1 forward-port) | architect | Sprint 28 wave 1 (CRITICAL) |
+| SL-01a | **PORT** Issue #389 §Peer-Poke Discipline AMEND to **`dev-studio-template/.claude/agents/orchestrator.md.tmpl`** (CANONICAL — sister to SL-01, Issue #389 amend block not in canonical tmpl) | architect | Sprint 28 wave 1 (CRITICAL — sister to SL-01) |
+| SL-02 | **VERIFY** canonical tmpl has 2 amend blocks (Issue #414, Issue #389) — REJECTED cycle ~765 (canonical tmpl has 0, not 2; SL-01a supersedes; SL-01 + SL-01a are the actual ports) | architect | n/a (folded into SL-01a) |
+| **SL-02a** | **PORT** Issue #414 dispatch-discipline amend block to canonical `dev-studio-template/.claude/agents/orchestrator.md.tmpl` — third amend-block port (sister to SL-01 + SL-01a). Architecture: canonical tmpl has 0 amend blocks total — need all 3 ports (SL-01 W6 + SL-01a #389 + SL-02a #414) for full forward-port parity. | architect | Sprint 28 wave 1 (CRITICAL — sister to SL-01 + SL-01a) |
 | SL-03 | **RE-RENDER** calc's `.claude/agents/*.md` from updated tmpl (Gap 2 — ~153 LOC gain for orchestrator, ~3x content depth across 5 souls) | developer | Sprint 28 wave 2 (RESTORED from downgrade; Gap 2 is real per cycle ~765 filesystem verification) |
-| SL-04 | **DEFER** PM/architect/developer/tester per-block amend diff (per #971 PM-A-DELTA-13; tmpl sizes 351/240/296/375 vs calc 79/79/81/78 — substantial content gap in PM/arch/dev/tester souls too, but not on critical path) | architect | Sprint 28 wave 2 (via #971) |
+| SL-04 | **DEFER** PM/architect/developer/tester per-block amend diff (per #971 PM-A-DELTA-13; canonical tmpl sizes 351/240/296/375 vs project-local mirror 79/79/81/78 — substantial content gap in PM/arch/dev/tester souls too, but not on critical path) | architect | Sprint 28 wave 2 (via #971) |
+
+> **Architecture clarification (cycle ~767, architect ack cmt 4938102372)**: The soul-file render chain is:
+> `dev-studio-template/.claude/agents/<name>.md.tmpl` (canonical source, 1506 LOC total) → `dev-studio-init.sh render` → `AtilCalculator/.claude/agents/<name>.md.tmpl` (project-local mirror, 404 LOC, thin shell) → `AtilCalculator/.claude/agents/<name>.md` (project's actual soul file, 408 LOC, contains hand-edits + amend blocks)
+>
+> The 3.7x content gap is between **canonical** (300 LOC ea) and **project-local mirror** (80 LOC ea). Forward-port (Gap 1) targets CANONICAL; re-render (Gap 2) refreshes project-local mirror + .md from updated canonical.
 
 ---
 
@@ -1710,8 +1716,46 @@ Architect's F2 added **W-04a** as critical-path sister to W-04. PM 3rd-pass reco
 
 **Doctrine cite for this self-correction**: Issue #430 (Trust but verify §Dispatch Discipline #2, "re-query ground truth") + RETRO-018 watchlist lesson (peer-attestation alone insufficient for cross-file path claims).
 
+## §22.9 Architect cross-watchdog ack received (cycle ~767, 2026-07-10T23:00+03:00)
+
+> **Source**: architect dual-channel wake at 17:58Z (cmt 4938102372, cycle ~767) — `F4 path error accepted. Canonical tmpl LOC verified 1506 (3.7x local mirror). SL-01 reframed: port RETRO-018 W6 to CANONICAL tmpl not local mirror. F4 structural finding preserved per PM's 4th-pass commit.`
+
+**PM 5th-pass action items** (per architect cycle ~767 ack):
+
+1. ✅ **§6.4 SL-01 + SL-01a reframe** — applied (canonical tmpl target, NOT project-local mirror). Architect's clarification: canonical tmpl = `dev-studio-template/.claude/agents/orchestrator.md.tmpl`. Project-local mirror = `AtilCalculator/.claude/agents/orchestrator.md.tmpl` (downstream render output, NOT source).
+2. ✅ **NEW SL-02a added** — third amend-block port to canonical tmpl (Issue #414 dispatch-discipline). Cycle ~767 architect confirm: canonical tmpl has 0 amend blocks total; SL-01 (W6) + SL-01a (#389) + SL-02a (#414) = full forward-port parity.
+3. ✅ **Architecture clarification note** added — canonical → local-mirror → .md render chain explicitly documented.
+4. ⏳ **PM-A-DELTA-CL-02 v2 already applied** in cycle ~766 (per §22.2 + §22.8 entries); no further changes needed.
+5. ⏳ **PM-A-DELTA-CL-04** (W-04a calc-side mutable ref) — already applied, unaffected by architect cycle ~767.
+
+**Architecture clarification (cycle ~767 architect-confirmed)**:
+
+The soul-file render chain:
+
+```
+dev-studio-template/.claude/agents/<name>.md.tmpl   ← CANONICAL source (1506 LOC total)
+                    │
+                    │ dev-studio-init.sh render
+                    ▼
+AtilCalculator/.claude/agents/<name>.md.tmpl        ← PROJECT-LOCAL MIRROR (404 LOC, thin shell)
+                    │
+                    │ script render + hand-edits
+                    ▼
+AtilCalculator/.claude/agents/<name>.md             ← PROJECT'S ACTUAL SOUL FILE (408 LOC, includes amend blocks)
+```
+
+**Forward-port (Gap 1) targets CANONICAL** (so new projects get amend blocks out-of-the-box).
+**Re-render (Gap 2) refreshes project-local mirror + .md** from updated canonical.
+
+**Architect cycle ~767 verdict on PM cycle ~766**: 🟡 SELF-CORRECTION + cross-watchdog ack. PM is right. F4 LOC numbers sourced from wrong path; PM 4th-pass walk-back correct. Lesson codified for both agents: verify the RIGHT PATH, not just any path. Owner D-OD1..D-OD6 may want to encode this lesson as new PM doctrine (§PM-canon-path-verify or similar) — PM defers to owner.
+
+**PM 5th-pass cycle ~768 status**: PR #967 audit baseline now reflects architectural reconciliation between PM cycle ~760 + orchestrator cycle ~765 + architect cycle ~767. **9 corrections applied** + **3 corrections reverted** (F4 LOC) + **2 corrections reframed** (SL-01 + SL-01a canonical target) + **1 new addition** (SL-02a Issue #414 port).
+
+**PR #967 thread count after cycle ~767**: 11 comments (architect cycle ~767 ack pending recheck).
+
 ---
 
 — @product-manager, 3rd-pass architect-correction cycle (cycle ~764, 2026-07-10T22:30+03:00)
 + PM 4th-pass self-correction cycle (cycle ~766, 2026-07-10T22:55+03:00) — 5 §22 entries reverted after orchestrator cycle ~765 filesystem re-verification.
-Architect source: cmt 4938032191 (cycle ~763), 8 findings (F1-F8), F6-F8 OK no action, F1+F2+F3+F5 PM-applied correctly; F4 LOC numbers WERE wrong (consulted wrong-path project-local mirror instead of canonical tmpl), orchestrator cycle ~765 correctly reverted F4 + clarified Gap 1/Gap 2 narrative.
++ PM 5th-pass architect-ack reconciliation cycle (~768, 2026-07-10T23:00+03:00) — §6.4 SL-01/SL-01a reframed to canonical tmpl target + NEW SL-02a Issue #414 port added.
+Architect source: cmt 4938032191 (cycle ~763), 8 findings (F1-F8), F6-F8 OK no action, F1+F2+F3+F5 PM-applied correctly; F4 LOC numbers WERE wrong (consulted wrong-path project-local mirror instead of canonical tmpl), orchestrator cycle ~765 correctly reverted F4 + clarified Gap 1/Gap 2 narrative. Architect cycle ~767 (cmt 4938102372) confirmed PM 4th-pass correction + added canonical-path reframe + SL-02a third amend-port.
