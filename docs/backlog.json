@@ -1197,6 +1197,363 @@
       "shipped_at": "2026-07-10T10:27:05+00:00",
       "close_issue": 941,
       "close_pr_refs": []
+    },
+    {
+      "id": "STORY-S28-001",
+      "title": "PORT RETRO-018 W6 amend block to canonical orchestrator tmpl",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "PR #967 squash-merge (audit-baseline.md source-of-truth)"
+      ],
+      "blocks": [
+        "STORY-S28-005 (re-render requires W6 block in canonical tmpl)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-001.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=SL-01. First of 3 amend-block ports to canonical tmpl (Gap 1). PM 5th-pass cmt 4938118016 reframe: target = dev-studio-template/.claude/agents/orchestrator.md.tmpl (CANONICAL), NOT project-local mirror.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-002",
+      "title": "PORT Issue #389 §Peer-Poke Discipline amend to canonical orchestrator tmpl",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "PR #967 squash-merge",
+        "STORY-S28-001 (sequencing — sister-pattern port)"
+      ],
+      "blocks": [
+        "STORY-S28-005"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-002.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=SL-01a. Second amend-block port. ADR-0033 dual-channel doctrine codified.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-003",
+      "title": "Forward-port agent-watch.sh + claim-next-ready.sh to tmpl scripts (sister-pattern)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "human"
+      ],
+      "story_points_proposed": 1.5,
+      "depends_on": [
+        "PR #967 squash-merge",
+        "ADR-0002 (autonomy loop), ADR-0038 (auto-claim)"
+      ],
+      "blocks": [],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-003.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=SL-02. Script forward-port (sister-pattern to soul amends). Per audit §3, calc has these but tmpl doesn't.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-004",
+      "title": "PORT Issue #414 dispatch-discipline amend block to canonical orchestrator tmpl (third amend-block port)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "PR #967 squash-merge",
+        "PR #962 (W6 amend precedent)"
+      ],
+      "blocks": [
+        "STORY-S28-005"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-004.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=SL-02a. Third amend-block port (NEW per architect cycle ~767 clarification). Sister-pattern to S28-001 (W6) + S28-002 (#389).",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-005",
+      "title": "RE-RENDER calc's .claude/agents/*.md from updated tmpl (Gap 2, sister-pattern)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "architect",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "STORY-S28-001",
+        "STORY-S28-002",
+        "STORY-S28-004 (Cadence Rule 1 atomic per ADR-0055 §1)"
+      ],
+      "blocks": [
+        "STORY-S28-010 (CLAUDE.md reconcile depends on re-render)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-005.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=SL-03. Closes Gap 2 of the 2-gap architecture (canonical tmpl → local mirror → .md render chain).",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-006",
+      "title": "Append 28th ADR to docs/decisions/INDEX.md (or close superseded entries)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "PR #967 squash-merge",
+        "§20.1 ADR pre-allocation map"
+      ],
+      "blocks": [
+        "STORY-S28-011",
+        "STORY-S28-012 (consume ADR-0058/0059 reservations)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-006.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=SL-04. Reserves ADR-0058..0071 (14 slots) per §20.1.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-007",
+      "title": "PORT Auto-Verdict-By hook (ADR-0024 §Path 2) from calc's peer-poke.sh to tmpl's peer-poke.sh.tmpl",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "architect",
+        "tester",
+        "human"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "PR #967 squash-merge",
+        "ADR-0024 §Path 2 spec"
+      ],
+      "blocks": [
+        "STORY-S28-008 (Cadence Rule 1 atomic — S-08a MUST land before S-08)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-007.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=S-08a. CRITICAL PATH: S-08 blocked on S-08a. PM-A-DELTA-CL-01 critical-path finding.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-008",
+      "title": "LEGACY-REMOVE peer-poke.sh + ping.sh from calc (after S-08a port)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "STORY-S28-007 (HARD GATE — Cadence Rule 1 atomic per ADR-0055)"
+      ],
+      "blocks": [
+        "STORY-S28-013 (d-test verifies no broken peer-poke references)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-008.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=S-08. Cleanup phase. PM-A-DELTA-CL-01 + CL-05 cadence findings preserved.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-009",
+      "title": "Mass-close 11 dormant Sprint 22 Q-cluster issues as not_planned",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "orchestrator",
+      "cc": [
+        "orchestrator",
+        "product-manager",
+        "human"
+      ],
+      "story_points_proposed": 2,
+      "depends_on": [
+        "Issue #939 (precedent — mass-close pattern)"
+      ],
+      "blocks": [],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-009.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=Sprint-22-Q. D-OD2 default accepted. Closes Q1/Q2/Q4-Q12 dormant since Sprint 22 closure.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-010",
+      "title": "Compare CLAUDE.md vs CLAUDE.md.tmpl post-W1 render (parity sweep)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "product-manager",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "STORY-S28-005 (Cadence Rule 1 — re-render must complete first)"
+      ],
+      "blocks": [],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-010.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=CLAUDE.md reconcile. PM-A-DELTA-08 locale drift follow-up.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-011",
+      "title": "Workflow permissions + timeout-minutes hardening backport to tmpl (TD-029)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "STORY-S28-006 (INDEX.md refresh — ADR-0059 reservation)",
+        "ADR-0059 (lens i baseline, draft during W1)"
+      ],
+      "blocks": [
+        "STORY-S28-013 (d083 GREEN required)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-011.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=TD-029. 9/9 tmpl workflows need permissions + timeout-minutes (vs 0/9 pre-backport).",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-012",
+      "title": "Workflow SHA-pinning backport (full 40-char SHA required, TD-028)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "STORY-S28-006 (INDEX.md refresh — ADR-0058 reservation)",
+        "ADR-0058 (lens h enforcement, draft during W1)"
+      ],
+      "blocks": [
+        "STORY-S28-013 (d082 GREEN required)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-012.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=TD-028. R-HIGH-01 close-out. 0/9 → 19+/19 SHA-pin count post-backport.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-013",
+      "title": "d-test regression suite for d050b + d063 + d082 sister-patterns (≥3 TCs each)",
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "tester",
+      "cc": [
+        "tester",
+        "developer",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 1,
+      "depends_on": [
+        "STORY-S28-011",
+        "STORY-S28-012 (d082/d083 cannot test code that doesn't exist)"
+      ],
+      "blocks": [],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-013.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=d-test regression. ADR-0044 RED-first + ADR-0049 ≥3 TCs doctrine.",
+      "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-014",
+      "title": "Path-Verify Doctrine finalize — Issue #972 close-out (architect-led, in-progress)",
+      "priority": "P3",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "product-manager",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "Issue #972 owner-decision (already accepted)"
+      ],
+      "blocks": [],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-014.md",
+      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "vision_metrics": [],
+      "notes": "Issue #974 ID=Path-Verify doc. PM cycle ~766 LIVE INSTANCE cite. Issue #972 status:in-progress.",
+      "v1_0_0_scope": "TEMPLATE"
     }
   ],
   "last_id": 17,
@@ -1209,7 +1566,7 @@
     "sprint_2_pm_scoped": "https://github.com/atilcan65/AtilCalculator/pull/78 (proposed-scope, merged)",
     "sprint_3_pm_scoped_pending": "https://github.com/atilcan65/AtilCalculator/pull/0 (this PM PR — in flight)"
   },
-  "plan_source": "docs/sprints/sprint-01/plan.md (Sprint 1, merged) → docs/sprints/sprint-02/plan.md (Sprint 2, ACTIVE) → docs/sprints/sprint-03/proposed-scope.md (Sprint 3, awaiting sizing ceremony)",
+  "plan_source": "docs/sprints/sprint-01/plan.md (Sprint 1, merged) → docs/sprints/sprint-02/plan.md (Sprint 2, ACTIVE) → docs/sprints/sprint-03/proposed-scope.md (Sprint 3, awaiting sizing ceremony) → docs/sprints/sprint-26/plan.md (Sprint 26, FROZEN) → docs/sprints/sprint-27/plan.md (Sprint 27, FROZEN) → docs/sprints/sprint-28/00-audit-baseline.md (PR #967, pending squash-merge) → docs/sprints/sprint-28/STORY-S28-001..014.md (PM grooming, cycle ~772)",
   "sprint_1_groomed_at": "2026-06-17T15:28:00Z",
   "sprint_1_committed_at": "2026-06-17T18:30:00Z (PR #32)",
   "sprint_1_shipped_at": "2026-06-18T11:54:53Z (PR #49, STORY-003b)",
@@ -1222,7 +1579,7 @@
   "sprint_3_groomed_at": "2026-06-19T18:45:00Z",
   "sprint_3_pm_scoped_at": "2026-06-19T18:45:00Z",
   "created_at": "2026-06-17T13:30:00Z",
-  "notes": "Sprint 1: 8 stories filed (STORY-001/002/003/003a/003b/004/005/006), all DONE. Sprint 2: 6 PM-authored feature stories groomed (STORY-007/008/009/010/011/012), 23 SP proposed, ALL 6 SHIPPED via PR #88/#111/#112/#117/#118/#122 by 2026-06-19T18:33:04Z. MVP-1 features complete (M1+M2+M3+M4+M5 all shipped). Sprint 3: PM-groomed 2026-06-19T18:45:00Z with 4 deploy stories (DEPLOY-001/002/003/004 = 9 SP) + 1 retro doc (RETRO-003 = 1 SP) + 1 template port (Issue #48 = 3 SP) = 13 SP proposed. Sprint 3 is operational hardening + retro ceremony, NOT feature work — closes the prod-liveness gap (Issue #127 / ADR-0027). Architect-owned chore work tracked separately in issues (#46 closed, #65 done, #45 in flight, #48 unblocked by RETRO-003). Sprint 2 retro pending (RETRO-003 in Sprint 3 backlog). Sprint 26 (in-flight, Issue #941 kickoff): 2 PM-curated STORIES (S26-001 d-test ≥5 baseline gap-closure 1.5sp P2 + S26-002 canary config.yml 0.5sp P3) plus 3 S25+ Wave 1 carryovers (S25-001/002/003 dormant, awaiting Sprint 26 sizing ceremony). Tester lane authoritative source for d-test scope (Issue #877 §tester lane follow-up row).",
+  "notes": "Sprint 1: 8 stories filed (STORY-001/002/003/003a/003b/004/005/006), all DONE. Sprint 2: 6 PM-authored feature stories groomed (STORY-007/008/009/010/011/012), 23 SP proposed, ALL 6 SHIPPED via PR #88/#111/#112/#117/#118/#122 by 2026-06-19T18:33:04Z. MVP-1 features complete (M1+M2+M3+M4+M5 all shipped). Sprint 3: PM-groomed 2026-06-19T18:45:00Z with 4 deploy stories (DEPLOY-001/002/003/004 = 9 SP) + 1 retro doc (RETRO-003 = 1 SP) + 1 template port (Issue #48 = 3 SP) = 13 SP proposed. Sprint 3 is operational hardening + retro ceremony, NOT feature work — closes the prod-liveness gap (Issue #127 / ADR-0027). Architect-owned chore work tracked separately in issues (#46 closed, #65 done, #45 in flight, #48 unblocked by RETRO-003). Sprint 2 retro pending (RETRO-003 in Sprint 3 backlog). Sprint 26 (in-flight, Issue #941 kickoff): 2 PM-curated STORIES (S26-001 d-test ≥5 baseline gap-closure 1.5sp P2 + S26-002 canary config.yml 0.5sp P3) plus 3 S25+ Wave 1 carryovers (S25-001/002/003 dormant, awaiting Sprint 26 sizing ceremony). Tester lane authoritative source for d-test scope (Issue #877 §tester lane follow-up row). Sprint 28 (Issue #974 kickoff, owner picked a hepsi default 2026-07-10T23:30+03:00): 14 PM-curated STORIES (STORY-S28-001..014 = 12sp + 8sp buffer) over 3 waves per PR #967 audit-baseline.md. Template-meta sprint (vs product-feature sprints 1-3, 26). W1 Foundation = soul-amend ports (S28-001/002/004) + scripts forward-port (S28-003) + Gap 2 re-render (S28-005) + ADR INDEX.md refresh (S28-006). W2 Feature port = Auto-Verdict-By hook port (S28-007) + LEGACY-REMOVE (S28-008) + Sprint-22-Q mass-close (S28-009) + CLAUDE.md reconcile (S28-010). W3 Polish = TD-029 workflow hardening (S28-011) + TD-028 SHA-pinning (S28-012) + d-test regression (S28-013) + Path-Verify Doctrine finalize (S28-014). Bucket-B (PM-A-DELTA-08/09/10/13 → Issues #968-971) stays at status:backlog. PM-A-DELTA-CL-19 (Sprint 28 kickoff naming-scheme drift SL-/S-/TD- vs §20.0 S28-W<N>-NN): filed for owner triage.",
   "version": "1.0.0",
   "v1_0_0_audited_at": "2026-07-07T17:59:30Z",
   "v1_0_0_auditor": "product-manager",
@@ -1234,5 +1591,7 @@
   "sprint_26_committed_at": "2026-07-09T19:27:00+00:00",
   "sprint_26_shipped_at": "2026-07-10T10:27:05+00:00",
   "sprint_26_retro_pending": false,
-  "sprint_26_retro_doc": "docs/sprints/sprint-26/RETRO-018.md"
+  "sprint_26_retro_doc": "docs/sprints/sprint-26/RETRO-018.md",
+  "sprint_28_groomed_at": "2026-07-10T18:13:00Z",
+  "sprint_28_source": "Issue #974 (Sprint 28 Kickoff, owner picked a hepsi default) + PR #967 audit-baseline.md"
 }
