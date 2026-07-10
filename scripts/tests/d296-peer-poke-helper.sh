@@ -8,15 +8,21 @@
 # syntax (`-l info -w -r <role>`). It closes the `notify.sh -l <role>` (Telegram-
 # only) footgun by making the wrong form unreachable through this entry point.
 #
-# Test cases (per docs/peer-poke-spec.md §Deliverable 1 §Acceptance, 3 TCs):
+# Test cases (per docs/peer-poke-spec.md §Deliverable 1 §Acceptance, 3 TCs + Sprint 26 gap-closure +2 TCs):
 #   T1: peer-poke.sh <role> "<msg>" → notify.sh called with -l info -w -r <role> "<msg>"
 #       (argv captured via d-stub mock that replaces notify.sh for the test duration)
 #   T2: Missing args (no role, no msg) → exit 2 + usage line to stderr
 #   T3: bash -n scripts/peer-poke.sh syntactically valid (lint pre-commit)
+#   T4 (Sprint 26): peer-poke.sh human "<msg>" → notify.sh called with -l info -w -r human
+#       (sister-pattern d038 T4; closes coverage gap for human role which peer-poke.sh
+#        does NOT list in usage line but DOES support via notify.sh -r human passthrough)
+#   T5 (Sprint 26): peer-poke.sh propagates notify.sh exit code (exec discipline sentinel)
+#       (regression guard: if a future refactor drops the `exec` keyword, callers using
+#        `set -e` or `if peer-poke.sh; then` will silently succeed on failed notify.sh)
 #
-# Sister test: n/a (this is a standalone d-test; ping.sh sister is d038-ping-wrapper.sh
-# but ping.sh and peer-poke.sh have identical wrapper semantics, only the calling
-# convention differs at argv-parsing edges).
+# Sister test: d038-ping-wrapper.sh (ping.sh sister has same exec pattern + role allowlist).
+# Cadence Rule 2 sister-alignment: T4 mirrors d038 T4 (human role); T5 mirrors d038 implicit
+# exit-code propagation behavior.
 #
 # Exit code: 0 = all pass, 1 = at least one fail.
 # Run standalone: bash scripts/tests/d296-peer-poke-helper.sh
@@ -53,6 +59,7 @@ section() { printf "\n${B}==== %s ====${D}\n" "$1"; }
 REAL_NOTIFY="$REPO_ROOT/scripts/notify.sh"
 BACKUP_NOTIFY="$REAL_NOTIFY.real-backup-$$"
 MOCK_LOG="$(mktemp)"
+export MOCK_LOG  # mock notify.sh (exec'd via peer-poke.sh) needs env inheritance
 
 # If real notify.sh doesn't exist yet (unlikely but defensive), skip move.
 if [[ -f "$REAL_NOTIFY" ]]; then
@@ -161,6 +168,89 @@ else
   else
     fail "bash -n $PEER_POKE_SH → syntax error" \
          "expected clean parse; check shell quoting, here-docs, getopts"
+  fi
+fi
+
+# ============================================================================
+# T4 (Sprint 26): peer-poke.sh human "<msg>" → notify.sh -l info -w -r human
+# ============================================================================
+# Sister-pattern: d038-ping-wrapper.sh T4 (ping.sh human role). peer-poke.sh
+# usage line lists 5 roles but impl has NO role allowlist — exec's notify.sh
+# with -r $ROLE regardless. T4 locks in that human (the 6th role per sister
+# d038) works through peer-poke.sh too. Per dev review cmt 4927XXXXX, T4 is
+# functionally GREEN on current impl (notify.sh supports -r human, agent-wake.sh
+# has human=pane 5). Follow-up 1-line impl change to peer-poke.sh usage line
+# is a separate dev PR (Issue #943 follow-up, NOT required for T4 GREEN).
+section "T4: peer-poke.sh human role → notify.sh with -l info -w -r human"
+
+if [[ ! -x "$PEER_POKE_SH" ]]; then
+  fail "scripts/peer-poke.sh missing or not executable at $PEER_POKE_SH" \
+       "T4 requires impl; see T1 failure above"
+else
+  : > "$MOCK_LOG"  # truncate mock log
+  "$PEER_POKE_SH" human "test message for human at $(date +%s)" >/dev/null 2>&1 || true
+
+  # Mock log line must contain -l info -w -r human (the dual-channel contract)
+  if grep -qF -- "-l info -w -r human" "$MOCK_LOG"; then
+    pass "peer-poke.sh invoked notify.sh with -l info -w -r human (sister-pattern d038 T4)"
+  else
+    fail "peer-poke.sh did NOT invoke correct flags for human role" \
+         "expected '-l info -w -r human' in mock log; got: $(cat "$MOCK_LOG")"
+  fi
+
+  # Anti-pattern check (mirror of T1's anti-pattern guard): MUST NOT use broken
+  # `-l human` form (the footgun this wrapper closes per Issue #320 RCA).
+  if grep -qE -- "^-l human([^a-z_-]|$)" "$MOCK_LOG"; then
+    fail "peer-poke.sh used broken -l human syntax" \
+         "wrapper should always pass -l info (the whole point)"
+  else
+    pass "peer-poke.sh does NOT use broken -l human syntax"
+  fi
+fi
+
+# ============================================================================
+# T5 (Sprint 26): peer-poke.sh propagates notify.sh exit code (exec discipline)
+# ============================================================================
+# WHY: peer-poke.sh uses `exec "$SCRIPT_DIR/notify.sh" ...` (line 135), which
+# replaces the process. notify.sh's exit code IS peer-poke.sh's exit code.
+# If a future refactor changes `exec` to `$()` or otherwise drops exit code
+# propagation, callers using `set -e` or `if peer-poke.sh; then` will silently
+# succeed when notify.sh failed (a real ops risk for CI scripts that depend
+# on peer-poke exit codes for retry logic).
+#
+# Test pattern: re-mock notify.sh to exit 1, run peer-poke.sh, assert exit 1.
+section "T5: peer-poke.sh propagates notify.sh exit code"
+
+if [[ ! -x "$PEER_POKE_SH" ]]; then
+  fail "scripts/peer-poke.sh missing — cannot test exit-code propagation" \
+       "T5 requires impl; see T1 failure above"
+else
+  # Re-install mock that exits 1 (overrides the default mock from setup section)
+  cat > "$REAL_NOTIFY" <<'MOCKEOF'
+#!/usr/bin/env bash
+echo "$@" >> "${MOCK_LOG:-/tmp/d296-mock-default.log}"
+exit 1
+MOCKEOF
+  chmod +x "$REAL_NOTIFY"
+  : > "$MOCK_LOG"
+
+  rc=0
+  "$PEER_POKE_SH" orchestrator "test for exit code propagation" >/dev/null 2>&1 || rc=$?
+
+  if [[ "$rc" -eq 1 ]]; then
+    pass "peer-poke.sh exit code = 1 when notify.sh exits 1 (exec propagation works)"
+  else
+    fail "peer-poke.sh exit code = $rc, expected 1" \
+         "exec propagation broken — future refactor risk for set -e callers"
+  fi
+
+  # Verify notify.sh was actually called (sanity check that rc=1 isn't from
+  # peer-poke.sh's own arg-validation path)
+  if grep -qF -- "-l info -w -r orchestrator" "$MOCK_LOG"; then
+    pass "notify.sh was called (rc=1 came from notify.sh exit, not arg-validation)"
+  else
+    fail "notify.sh was NOT called — exit code 1 may be from peer-poke arg-validation" \
+         "mock log: $(cat "$MOCK_LOG")"
   fi
 fi
 
