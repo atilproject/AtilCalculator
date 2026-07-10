@@ -360,11 +360,15 @@ def register_routes(app: FastAPI) -> None:
         # verifies the strict fail-loud contract: garbage → ValueError.
         _persist_env_raw = os.environ.get("ATILCALC_EVALUATE_PERSIST", "1")
         _persist_env = _persist_env_raw.strip().lower()
-        _TRUTHY_VALUES = frozenset({"1", "true", "yes", "on"})
-        _FALSY_VALUES = frozenset({"", "0", "false", "no", "off"})
-        if _persist_env in _TRUTHY_VALUES:
+        # Sister-pattern to d112 conftest precedent (tests/conftest.py:151-152):
+        # lowercase module-level frozenset constants for truthy/falsy parsing.
+        # N806 PEP 8 — uppercase reserved for class-level constants. Tested
+        # via d955 TC d (fail-loud anchor) + d117 TC3-TC4 (regression guard).
+        _truthy_values = frozenset({"1", "true", "yes", "on"})
+        _falsy_values = frozenset({"", "0", "false", "no", "off"})
+        if _persist_env in _truthy_values:
             _persist_enabled = True
-        elif _persist_env in _FALSY_VALUES:
+        elif _persist_env in _falsy_values:
             _persist_enabled = False
         else:
             # Fail-loud: unparseable operator input must raise ValueError
