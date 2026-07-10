@@ -102,7 +102,34 @@ class TestTranscendentalPerfBudget:
     perf profile — 2x multiplier applied via BUDGET_MULTIPLIER from
     tests/conftest.py. GH-hosted path (TC4 negative regression guard)
     preserves strict 100ms / 50ms budgets (BUDGET_MULTIPLIER=1.0).
+
+    Sprint 26 wave 1 Issue #954 closeout: this perf class opts out of
+    SQLite write via ATILCALC_EVALUATE_PERSIST=false (autouse fixture
+    below) to isolate the perf-budget bleed caused by pytest-cov
+    instrumentation + mechanical disk IO. Sister-pattern to d112
+    conftest env-var precedence (ADR-0019 amend-4): test infrastructure
+    is responsible for setting env-var per-test, NOT workflow-level
+    ci.yml env-block (over-scoped, would break unrelated history tests).
     """
+
+    @pytest.fixture(autouse=True)
+    def _atilcalc_persist_opt_out_for_perf(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Sprint 26 wave 1: opt out of SQLite persistence for this perf class.
+
+        Activates ATILCALC_EVALUATE_PERSIST=false ONLY for the 2 tests in
+        TestTranscendentalPerfBudget (autouse=True scope = class). Other test
+        classes retain default behavior (persistence ON, per ADR-0022 §Cross-
+        device sync model). Per ADR-0019 amend-5 §Decision + ADR-0056 silent_skip
+        doctrine: "false" is a valid DISABLED value (in `_falsy_values`); the
+        env-var precedence resolver in src/atilcalc/api/routes.py:361-378
+        reads os.environ per-request, so monkeypatch.setenv works.
+
+        Sister-pattern: d112 conftest precedent (tests/conftest.py) for
+        per-test env-var precedence; ADR-0019 amend-6 codification of the
+        "conftest/per-test owns env-var, not ci.yml" lesson (deferred to
+        architect per PR #958 cmt 4933228064 doctrinal verdict).
+        """
+        monkeypatch.setenv("ATILCALC_EVALUATE_PERSIST", "false")
 
     @pytest.fixture
     def client(self):
