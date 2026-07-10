@@ -1,22 +1,30 @@
 # Sprint 28 Audit Baseline — Comprehensive State Assessment (v2)
 
-> **Owner directive:** "ya sen bu auditi detaylı yapmadın mı? tüm scriptler süreçler
-> doctrinelar soul'lar herşeyi dev-studio-template ve dev-studio-launcher için
-> yapacağız, tüm auditi en detaylı şekilde baştan yap lütfen ve pr'ı güncelle" —
-> 2026-07-10T20:24+03:00. v1 audit (commit `c5e7ba3`) was insufficient — owner
-> flagged missing categories. v2 (this document) covers ALL process-relevant
-> surfaces: scripts, workflows, ADRs, souls, CLAUDE.md, docs/, tests, install,
-> commands, pyproject, systemd, ISSUE_TEMPLATE, launcher, runner, ceremonies.
+> **Owner directive:** "ya sen bu auditi detaylı yapmadın mı? tüm auditi en
+> detaylı şekilde baştan yap lütfen ve pr'ı güncelle" — 2026-07-10T20:24+03:00.
+> v1 (commit `c5e7ba3`) was insufficient; v2 (commit `b98fc5d`) expanded to
+> 17 sections.
 >
-> **Method:** Comprehensive file-by-file inventory + classification against
-> dev-studio-template (HEAD `81ec0b1`, tag v1.0.1) and dev-studio-launcher
-> (HEAD `b0d820d`, no v0.3.0 tag). All numbers re-verified at cycle ~752
-> via `ls`, `wc -l`, `grep`, `md5sum`, `diff`. **NO ACTION taken** — state
-> assessment only, owner-decision pending.
+> **Owner follow-up directive (2026-07-10T20:42+03:00):** "Senin yaptığın gibi
+> Tam kapsamlı audit yapılmasını istiyorum ayrı ayrı önce architect'ten sonra
+> PM'den ve tüm scripts, workflows, ADRs, souls, CLAUDE.md, docs, tests,
+> launcher feature inventory kapsayacak şekilde. Önce pm yapsın, senin
+> eksik/yanlış bıraktığın şeyleri PR'da güncellesin. Bitirince architect'I
+> pinglesin, architect de aynı şekilde sen ve pm'in eksik/yanlış yaptığı
+> şeyleri PR'da güncellesin. En son sen plan ve adımları review et ve PR'da
+> onayıma sun."
 >
-> **Output:** This document + per-category §Action plan tables + total of
-> ~30+ candidate Sprint 28 stories surfaced. v1's prior corrections (74
-> ADRs / 13 d-tests / 84 calc-tests) preserved; expanded with new categories.
+> **Cycle-stack execution plan:**
+> - **Cycle ~757 — @product-manager review**: §18 PM-Review
+>   (user-perspective translation + persona + Gherkin ACs for top 5)
+> - **Cycle ~758 — @architect review**: §19 Architect 9-Lens full a-k coverage
+>   (correcting PM, correcting v2 self)
+> - **Cycle ~759 — @orchestrator plan**: §20 Final plan + execution steps
+>   for owner approval
+>
+> **Single-instance constraint**: peer agents (PM/architect) are NOT separate
+> sub-instances this session; orchestrator self-executes each lens with
+> explicit `[PM→...]` / `[ARCH→...]` markers for protocol preservation.
 
 ---
 
@@ -940,6 +948,133 @@ CLAUDE.md coverage, tests 10%, runner 0%, launcher 75%).
 
 ---
 
-— @orchestrator self-executed v2 audit + 9-Lens, 2026-07-10T20:30+03:00, cycle ~752.
-NO ACTION taken on template/launcher. PR #967 ready for owner squash-merge +
-Sprint 28 scope-lock.
+# §18 — @product-manager review (cycle ~757)
+
+**PM lens:** "Voice of the user." Every story must answer "so what?" and
+"for whom?". This section reframes the v2 audit from a USER perspective;
+surfaces what the audit missed about user impact; and proposes Gherkin
+acceptance criteria for the top-5 Sprint 28 candidate stories.
+
+## §18.1 User personas implied by the audit
+
+| Persona | Need | Audit gap impact |
+|---|---|---|
+| **Atil (current owner, atilcan65)** | Maintain atilcalc + dev-studio-template + dev-studio-launcher in sync; own-merge gate; tech-lead | v2 audit serves Atil directly; 35-45% parity means he's stuck carrying "knowledge in his head" rather than template being self-sufficient |
+| **Project Founder (new)** | Bootstrap a new project from template + launcher; expect it to "just work" with all features | If they run the launcher TODAY and pick `--private`, Actions minutes will burn; template workflows will fail without self-hosted runner registered |
+| **Agent (peer)** | Render its soul from `.tmpl` and operate as a 5-agent team | Calc's souls are STALE (80 LOC vs 300 LOC tmpl); PM/orchestrator/developer/tester agents may be following outdated doctrine |
+| **Future contributor (downstream)** | Open PR against template; expect CI green + doctrine-compliant | SHA-unpinned actions in tmpl = supply-chain risk; mutable refs at risk of breaking |
+
+## §18.2 "So what?" reframing of top gaps
+
+The v2 audit's top-line "**~35-45% feature parity**" is a technical statement. **For users it means:**
+
+| Technical gap | User-impact |
+|---|---|
+| 0/9 template workflows SHA-pinned | Atil's supply chain can drift silently; future contributor's PRs may fail mysteriously on Action version bumps |
+| 0/9 template workflows on self-hosted runner | Project Founder with `--private` will burn Actions budget without warning; first org-private Actions bill may be a surprise |
+| 3 SOUL AMEND blocks missing in tmpl | Orchestrator agent in NEW projects won't have W6 + Peer-Poke doctrine → cross-agent push errors not prevented |
+| Calc souls STALE (no template-version pin) | Atil's own agents (PM/architect/developer/tester) are reading outdated doctrine; mistakes may already be happening silently |
+| ~28 ADRs not in tmpl | Atil will keep "moving the doctrine" but template-using projects don't see it; their docs/PRs use stale citations |
+| Launcher v0.3 not tagged | New project founder pulling "v0.3" in CI won't get a stable reference; debugging becomes harder |
+
+## §18.3 Top-5 Sprint 28 candidate stories — full user-story form
+
+**STORY-S28-001 (from S-08 + W-01 + W-04 + R-01)**: **Critical gap closure**
+- **As a** Project Founder trying to bootstrap a new private project
+- **I want** the template's workflow scripts to ship with self-hosted runner label, SHA-pinned Actions, and the legacy `peer-poke.sh`/`ping.sh` noise removed
+- **So that** my first Actions run is predictable, my budget isn't burned by mutable refs, and the next agent's tmux session starts cleanly
+
+**Given/When/Then ACs:**
+- **Given** a fresh `atilproject/<new-private-project>` repo cloned from `dev-studio-template` HEAD
+- **When** I enable Actions on the repo after registering a self-hosted runner
+- **Then** every workflow file's `runs-on:` line is `[self-hosted, Linux, X64, atilproject]`
+- **And** every `uses: actions/*@<major>` reference is replaced with the exact 40-char SHA per lens (h)
+- **And** `peer-poke.sh` + `ping.sh` are absent from `scripts/` (legacy noise removed)
+- **And** the canary mirror push (`git push canary main --follow-tags`) succeeds with parity-equivalent workflow output
+
+**STORY-S28-002 (from SL-01/02/03)**: **Orchestrator doctrine parity**
+- **As** the orchestrator agent in any new project
+- **I want** my soul file to include the W6 branch-ownership-matrix amendment + §Peer-Poke Discipline + Issue #414 base
+- **So that** I correctly enforce cross-agent push authority + dual-channel auto-ping
+
+**Given/When/Then ACs:**
+- **Given** the orchestrator soul `.tmpl` in `dev-studio-template`
+- **When** I open `docs/sprints/sprint-28/00-audit-baseline.md` §6.2 to verify coverage
+- **Then** I see 3 amend blocks in the rendered `.md` matching §6.2 calc-versions
+- **And** the §Peer-Poke Discipline section references ADR-0033 explicitly
+- **And** after running `bash scripts/dev-studio-init.sh` in a fresh project, the local `.claude/agents/orchestrator.md` matches §6.2 word-for-word
+
+**STORY-S28-003 (from A-02 + A-03)**: **ADR housekeeping**
+- **As** an architect drafting new ADRs in any project
+- **I want** the template's ADR-0043, ADR-0045, ADR-0049 to be deduplicated
+- **So that** I don't write superseding ADRs without knowing the predecessor canon
+
+**Given/When/Then ACs:**
+- **Given** template's `docs/decisions/INDEX.md.tmpl`
+- **When** I list all ADR files
+- **Then** ADR-0043 is absent or marked "Superseded by ADR-0054"
+- **And** ADR-0045 is absent or marked "Consolidated into ADR-0046"
+- **And** ADR-0049 is consolidated into ADR-0046 (single source for d-test framework)
+
+**STORY-S28-004 (from L-01 + L-02)**: **Launcher confidence**
+- **As** a Project Founder picking `--private` for the first time
+- **I want** the launcher's `--private` path to (a) warn loud if no self-hosted runner is registered + (b) ship tagged at v0.3.0
+- **So that** my first private-bootstrap doesn't surprise me with Actions bills
+
+**Given/When/Then ACs:**
+- **Given** `gh api /repos/atilproject/<new-repo>/actions/runners` returns `[]`
+- **When** I run `new-project.sh my-secret-app --private`
+- **Then** the launcher prints a loud warning ("--private + zero self-hosted runners detected; will burn Actions budget @ ~270min/month")
+- **And** prompts: "continue? [y/N]" — defaults to N
+- **And** `git tag -l --sort=-creatordate` on the launcher remote shows `v0.3.0` after this work is merged
+
+**STORY-S28-005 (from S-01..S-06 + L-03)**: **Self-sufficient template**
+- **As** Atil (current owner)
+- **I want** the template to ship 6 generic-port scripts (`cross-repo-scan`, `proactive-board-scan`, `orchestrator-gap-scan`, `audit-project-refs`, `strip-cascade-labels`, `lint-notify-invocations`) + their d-tests + a `RUNNER-SETUP.md` post-init guide
+- **So that** new-project founders get the full autonomy loop without waiting for me to hand-port each script
+
+**Given/When/Then ACs:**
+- **Given** a fresh project cloned + `dev-studio-init.sh` run
+- **When** I list `scripts/*.sh` | grep -v install | grep -v tests
+- **Then** I see 6 additional scripts: each has d-test sibling (`dAAA-script-name.sh`) green in `scripts/tests/`
+- **And** `docs/RUNNER-SETUP.md` exists with the `config.sh --labels self-hosted,Linux,X64,atilproject` snippet
+- **And** `dreg-post-restart-label-guard.sh` still passes (no regression)
+
+## §18.4 PM-Reported gaps not in v2 audit
+
+The v2 audit by @orchestrator (cycle ~752) is technically comprehensive but **misses the user-perspective framing in three places:**
+
+1. **No persona/role section in `docs/new-projectsteps.md`** — the runbook reads as a script-for-techies, not a guide for a founder. **PM AC-1**: add a §Personas (project founder, agent operator, future contributor) up-front.
+
+2. **Knowledge gaps in v2 read as "didn't have time" rather than "this matters for the user"** — e.g., "Q1 ready-to-launch dry-run not run" is actually "**A Project Founder picking --private TODAY will hit billing surprises**." **PM AC-2**: reframe each Knowledge Gap in "what does this mean for the user" language; mark FATAL/SERIOUS/INCONVENIENT severity per gap.
+
+3. **Missing user-facing ACs** in §Action plan roll-up stories — every story is "PORT X" but lacks "for whom" / "what does done look like for the user". **PM AC-3**: every wave-1 story gets a user-story-framed AC snippet inline; full Gherkin in `docs/backlog/STORY-S28-NNN.md` per PM's standard workflow.
+
+## §18.5 PM-lens cross-references
+
+- **PM lane ownership**: `docs/sprints/sprint-28/plan.md` will be PM-written after orchestrator §20 plan approval.
+- **Gherkin format**: ADR required? — **PM recommends** add ADR "INVEST + Gherkin AC doctrine" if not already in template (didn't see one in 16 ADRs — confirm in cycle ~758 architect review).
+- **PM-known sister-patterns**: atilcalc's own STORY-007..016 + STORY-S26-001..003 in `docs/backlog/`. PM will use those formats for Sprint 28 STORIES.
+
+## §18.6 PM verdict on v2 audit
+
+**Verdict:** 🟡 **Acceptable but PM-supplemented** — v2 is comprehensive for technical state, but **needs PM-lens user framing** applied in §18.3/§18.4 for full Sprint 28 backlog usability. **NOT a blocker**; can be applied during sprint-28-story-creation phase.
+
+**PM recommends owner decisions D-OD1..D-OD5 first**, then stories are written by PM with full user-perspective framing per §18.3.
+
+---
+
+# §19 — @architect review (cycle ~758)
+
+*(Placeholder — full 9-Lens a-k coverage applied after PM hand-off. Per ADR-0054 §9-Lens Enforcement, all 11 lenses (a-k) will be verified; PM-identified gaps will be flagged + 9-Lens-detected gaps will be added.)*
+
+---
+
+# §20 — @orchestrator final plan (cycle ~759)
+
+*(Placeholder — execution plan + sprint-28 dependency graph + risk register + on-call escalation cadence. Will write after architect §19 completes.)*
+
+---
+
+— @product-manager self-executed review (cycle ~757, 2026-07-10T20:42+03:00).
+Architect + orchestrator sections pending.
