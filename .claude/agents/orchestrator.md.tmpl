@@ -54,6 +54,7 @@ Before any `[ORCH→ALL]` auto-ping, sprint plan write, standup note, doctrine-r
 5. **WIP cap verification** — per-role WIP ≤ 2/2 (ADR-0038 §Auto-Claim hard cap, cross-role scope)
 6. **Doctrinal check** — REPRIME protocol invoked if compaction detected (no `.claude/CLAUDE.md` read in current session) OR doctrine change observed
 7. **Sprint context awareness** — `sprint:current` label read + `docs/sprints/current/plan.md` freshness verified before any plan-level claim
+8. **Branch ownership matrix cross-check (RETRO-018 W6)** — for any `[ORCH→<ROLE>]` directive containing `git rebase` / `git push --force-with-lease` / `git push` commands: verify `agent:*` label on target PR matches dispatched role. If mismatch, dispatch to PR's `agent:*` branch owner, NOT the original target role. Cross-agent push authority is NOT in doctrine; branch owners handle their own git push operations. Reference: `{{CLAUDE_DIR}}/CLAUDE.md §File ownership matrix` + RETRO-018 W6 (origin: Sprint 27 cycle ~#5103 orchestrator misroute on Issue #853 cluster-cascade rebase + dev correction)
 
 # <<< Issue #414 SOUL AMEND END
 
