@@ -1150,9 +1150,47 @@
       "vision_metrics": [],
       "notes": "PM-curated from Issue #941 §Scope row 2 (P3 carryover from v1.0.0 GA audit, Issue #853 AC4 surface 4). d-test d853-canary-config-yml.sh (≥3 TCs per ADR-0049) atomic with config.yml per Cadence Rule 1. Canary mirror push is owner/orchestrator territory per ADR-0010 (sister-pattern: d095 post-org-migration clone URL regression guard). Developer lane primary ownership per Issue #113.",
       "v1_0_0_scope": "OUT"
+    },
+    {
+      "id": "STORY-S26-003",
+      "title": "ADR-0019 amendment 5 — ATILCALC_EVALUATE_PERSIST env-var precedence contract (Issue #954 closeout)",
+      "issue": null,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "product-manager",
+        "developer",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [
+        "Issue #954 (P1 bug, dev-filed, arch decision)",
+        "ADR-0019 amendment 5 (already drafted, status: Proposed, cycle ~#1942, dated 2026-07-01)",
+        "PR #945 (Sprint 26 grooming, MERGED 2026-07-10T06:26:36Z)",
+        "Issue #941 (Sprint 26 Kickoff, Wave 1 full owner-approved)",
+        "Sister-pattern: ADR-0019 amendment 4 (conftest env-var precedence contract)",
+        "PR #951 (TestClient infra noise sister-fix, MERGED 2026-07-10T05:48:18Z)",
+        "Owner directive 2026-07-01 \"kalıcı fix olsun\" (Issue #728 origin)"
+      ],
+      "blocks": [
+        "PRs #946, #947, #948 cluster-cascade (TD-067c design + d296 d-test + d067c d-test) — unblocked by ATILCALC_EVALUATE_PERSIST=false CI override",
+        "Story #931 (TD-067c) PR #946 design closeout requires perf bleed fix",
+        "Sprint 26 acceptance criteria #4 (Issue #941 — v1.0.1 release + canary mirror sync verified)"
+      ],
+      "story_url": null,
+      "sprint": "Sprint 26",
+      "sprint_story_doc": "docs/backlog/STORY-S26-003.md",
+      "vision_metrics": [
+        "M5"
+      ],
+      "notes": "PM-curated 2026-07-10T06:32Z from orchestrator peer-poke (Wave 1 full owner-approval) + Issue #954 (P1 bug) + ADR-0019 amendment 5 (architect-drafted, status: Proposed). Sister-pattern to STORY-S26-001 (d296 d-test, 0.5sp) + STORY-S26-002 (canary config.yml, 0.5sp). Sprint 26 capacity: 2.0sp total = original Issue #941 capacity. Architect lane primary ownership (ADR drafting + impl coordination); developer impl + tester d-test per ADR-0044 RED-first. PM lens: permanent perf fix per owner directive, NOT BUDGET_MULTIPLIER raise (env-var gate is the contract; multiplier stays at 10.0).",
+      "v1_0_0_scope": "OUT"
     }
   ],
-  "last_id": 16,
+  "last_id": 17,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
