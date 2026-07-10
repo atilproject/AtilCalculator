@@ -1066,15 +1066,168 @@ The v2 audit by @orchestrator (cycle ~752) is technically comprehensive but **mi
 
 # §19 — @architect review (cycle ~758)
 
-*(Placeholder — full 9-Lens a-k coverage applied after PM hand-off. Per ADR-0054 §9-Lens Enforcement, all 11 lenses (a-k) will be verified; PM-identified gaps will be flagged + 9-Lens-detected gaps will be added.)*
+**Architect lens:** "Technical conscience of the team. Cite sources. YAGNI
+but flag irreversible. Security and observability are constraints." Per
+ADR-0054 §9-Lens Enforcement, all 11 lenses (a–k) verified on v2 + §18 PM
+supplement. Each lens produces: STATUS | EVIDENCE | CORRECTION (if any).
+
+## §19.1 9-Lens coverage matrix
+
+| Lens | Status | Evidence | Correction/Add |
+|---|---|---|---|
+| **(a) Data flow** (TD-016) | N/A | docs-only PR; no request/response path being added | none |
+| **(b) Runtime preconditions** (TD-018) | ✅ | audit §15 calls out deps (self-hosted runner must be registered); §R-01 surfaces in action plan | none |
+| **(c) Canonical entry point** (TD-019) | ✅ | single file SoT: this 00-audit-baseline.md (no duplicate elsewhere in `docs/sprints/sprint-28/`); `docs/new-projectsteps.md` is separate-SoT for runbook per owner directive | none |
+| **(d) Silent-skip risk** (TD-020) | ✅ | §Knowledge gaps declared explicitly; §18.4 PM reframing adds user-impact severity | none — but see A-19 below |
+| **(e) Idempotency** (—) | N/A | no exec path | none |
+| **(f) Observability** (—) | 🟡 | §Action plan roll-up has owner + slot per story; **MISSING**: per-story observable acceptance criteria (e.g., what log line / metric / counter shows it works) | **A-19.1: Add "Observable evidence" column to action plan tables in §3, §4, §5, §6, §14** |
+| **(g) Security & privacy** (—) | 🟡 | new-projectsteps.md masks PROJECT_TOKEN (`head -c 8`); deprecated `peer-poke.sh` flagged for removal; SHA-pinning gap noted (lens h) | **A-19.2: Confirm new-projectsteps.md doesn't expose `DEPLOY_SSH_KEY` in plain text anywhere; add explicit `gh secret set -R` snippet as canonical step** |
+| **(h) Workflow YAML SHA pin** (TD-028) | 🔴 **FAIL DETECTED** | v2 audit confirmed 0/9 tmpl workflows SHA-pinned; 19/19 calc pinned | **A-19.3: Add concrete pin-target-list to W-04** (see §19.3 below) |
+| **(i) Platform hard constraints** (TD-029) | 🔴 **FAIL DETECTED** | v2 audit confirmed 0/9 tmpl workflows on self-hosted runner; calc 12/12 | **A-19.4: Add `permissions:` block to all 9 tmpl workflows** — current calc workflows have `permissions: contents:read` etc. but tmpl is implicit; **A-19.5: Add explicit `timeout-minutes:` per workflow** — calc has 5-30min caps; tmpl none (could hang) |
+| **(j) Auto-gen file refs + live-state** (TD-030) | ✅ | re-verified every LOC (74/13/84), tag (v1.0.1/b0d820d), SHA (`85597c4`/`81ec0b1`) | **A-19.6: doc claims "STORY-S28-NNN" placeholders are real — verify format consistency: v2 uses "S-NN" / "W-NN" / "A-NN" / "SL-NN" / "L-NN" / "R-NN" / "T-NN" / "D-NN" / "STORY-S28-NNN" — should converge to SINGLE naming scheme before SPRINT 28 backlog creation** |
+| **(k) JS syntactic correctness** (TD-031) | N/A | no `actions/github-script` blocks in audit PR | none |
+
+## §19.2 Architect-Reported gaps not in v2 audit or PM supplement
+
+Beyond the 9-Lens matrix above, **architect surface-detected the following
+non-trivial issues:**
+
+### A-19.7 — ADR numbering risk
+
+The 16 ADRs already in template have IDs 0010-0047 in irregular order
+(`0010, 0011, 0012, 0013, 0014, 0015, 0016, 0020, 0021, 0024, 0025, 0026, 0027, 0030, 0046, 0047`).
+If we port ~28 calc ADRs (per §5.3 A-01), **ID conflicts will happen** —
+e.g., ADR-0031 (calc owner-override) collides with template's not-yet-allocated
+slot but ADR-0033 (calc auto-ping-dual-channel) is already conceptually reserved
+by template's `notify.sh -w/-r` baked in (but no ADR for it).
+
+**Architect recommends:** before port wave, **draft ADR-XXXX pre-allocation map**
+showing:
+- Which 28 ADRs port → which template ID slot they take
+- Whether template's ADR-0046 / ADR-0047 stay or get renumbered
+- Pre-allocate next-N ADRs for ports
+
+**Action:** Add A-19.7 as a wave-0 prep story (before wave 1).
+
+### A-19.8 — d-test runner drift
+
+calc's `d-tests` (e.g., `d853-canary-config-yml.sh`, `d955-atilcalc-evaluate-persist-env-var.sh`)
+have **atilcalc-specific test fixtures** (hardcoded `atilcalc.engine` references,
+project-specific paths). When porting to template, these fixtures need
+**generic-ization** — likely require extracting a `tests/fixtures/` library
+that template ships pre-populated.
+
+**Action:** A-19.8 split into:
+- A-19.8a: extract generic-fixtures library from calc's d-tests (sample 5)
+- A-19.8b: per-port d-test writes use the library
+
+### A-19.9 — Runner label 4-tuple org-coupling
+
+The pattern `runs-on: [self-hosted, Linux, X64, atilproject]` is **ORG-PINNED** —
+this means template workflows won't work outside `atilproject` org. **For a
+"general-purpose template"**, this is a coupling risk.
+
+**Architect recommends 3 options for owner:**
+- **Option A**: Keep org-pinned (atilproject only); document template as "atilproject-internal"
+- **Option B**: Use generic `runs-on: [self-hosted, Linux, X64]` (no `atilproject`); each project registers with that 3-tuple
+- **Option C**: Per-project `runs-on:` filled by `dev-studio-init.sh` from a template variable
+
+**Action:** A-19.9 surfaces D-OD6 (NEW owner-decision): runner label coupling strategy.
+
+### A-19.10 — Deploy workflow tmpl rendering dependency
+
+tmpl's `deploy.yml.tmpl` is **rendered** to `deploy.yml` by `dev-studio-init.sh`.
+The calc has hard-coded `deploy.yml` with atilcalc-specific SERVICE_NAME etc.
+If `dev-studio-init.sh` is run AFTER calc already has a deploy.yml, **it should
+not overwrite**. v2 audit didn't verify the "no-overwrite on existing" behavior.
+
+**Architect recommends:** verify `dev-studio-init.sh`'s deploy.yml.tmpl logic
+explicitly skips overwriting (cycle ~758 follow-up check).
+
+### A-19.11 — Issue template `config.yml.tmpl` rendering
+
+Template has `.github/ISSUE_TEMPLATE/config.yml.tmpl` (not yet rendered —
+`gh api` showed only `config.yml` in calc). Verify init script handles
+`.yml.tmpl` → `.yml` rendering correctly in current state.
+
+## §19.3 Concrete SHA-pin target list (for W-04)
+
+Pin targets needed (14+ action refs in 9 tmpl workflows), sourced from atilcalc's
+19 pinned actions + current tmpl's mutable refs:
+
+```
+actions/checkout           → @b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+actions/setup-python       → @a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+actions/setup-node         → @<TBD-pinned>  # get latest from current node-version Action
+amannn/action-semantic-pull-request → @e32d7e603df1aa1ba07e981f2a23455dee596825  # v5
+actions/github-script      → @f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.0.1
+... (10+ more, TBD by writing W-04)
+```
+
+**Architect self-acknowledges:** SHA pinning requires **5-10 min/action** to verify
+the pin is current and unbroken (each pin = immutable, must update on upgrade).
+Maintenance burden is real. **Recommend:** pin a baseline set + accept that future
+upgrades require pin-refresh PR with verification.
+
+## §19.4 9-Lens attestation (architect verdict)
+
+Per ADR-0054 §9-Lens Enforcement applied to PR #967 (v2 + PM-supplement):
+
+| Lens | Status | Note |
+|---|---|---|
+| (a) | N/A | docs-only |
+| (b) | ✅ | runtime preconditions surfaced |
+| (c) | ✅ | single SoT |
+| (d) | ✅ | gaps declared |
+| (e) | N/A | no exec |
+| (f) | 🟡 | **A-19.1 surfaced: missing observable evidence per story** |
+| (g) | 🟡 | **A-19.2: DEPLOY_SSH_KEY visibility check needed** |
+| (h) | 🔴 | **FAIL — 0/9 pinned; A-19.3 pin-target-list added** |
+| (i) | 🔴 | **FAIL — 0/9 self-hosted + missing permissions/timeout; A-19.4/19.5 added** |
+| (j) | ✅ | numbers verified live-state |
+| (k) | N/A | no github-script |
+
+## §19.5 Architect's structural concerns (for orchestrator §20)
+
+1. **Naming scheme inconsistency** (A-19.6): 9 different story-ID prefixes (`S-NN`, `W-NN`, `A-NN`, etc.). **PM/architect/orchestrator alignment needed before SPRINT 28 backlog creation** — recommend single convention `STORY-Txx-NN` (template-ports) + `STORY-S28-NNN` (Sprint 28 specific).
+2. **Dependency graph missing**: v2's action plan is wave-organized but **doesn't capture inter-story dependencies**. e.g., W-04 (SHA pin) doesn't depend on anything, but SL-03 (re-render souls) depends on SL-01/02 (amend ports first). Orchestrator §20 should build dep graph.
+3. **Risk register missing**: v2 has no formal risk register. Three classes of risk:
+   - **R-LOW**: cosmetic gaps (story naming, doc typos)
+   - **R-MED**: SHA pin maintenance burden (5-10 min per pin per upgrade), runner label org-coupling (limits reusability)
+   - **R-HIGH**: SHA-pin FAIL ongoing (lens h), runner-missing FAIL ongoing (lens i) — both ATTACK SURFACE on every Actions run until fixed
+4. **Backward compat** (A-19-not-flagged): if any project on atilcalc currently uses tmpl v1.0.0 template, will v1.0.1 changes break? **Architect requires:** confirm no breaking changes in 1.0.1 → 1.0.2 path; if yes, add CHANGELOG note + migration guide.
+5. **A-19.7 ADR pre-allocation map**: must complete **before wave 1 starts** to avoid ID conflicts in port wave.
+
+## §19.6 Architect verdict
+
+**Verdict:** 🟡 **PASS WITH REQUIRED-ACTIONS** — v2 + PM supplement is architecturally
+acceptable as Sprint 28 state assessment, BUT architect surfaced 6 new
+architect-level gaps (A-19.7 through A-19.11) that **must be addressed**:
+
+- **A-19.1, 19.2** = 🟡 minor (doc-level)
+- **A-19.3** (lens h pin list) = 🟠 critical path item
+- **A-19.4, 19.5** (permissions/timeout) = 🟠 critical path item
+- **A-19.6** (naming scheme) = 🟡 pre-backlog-creation alignment
+- **A-19.7** (ADR pre-allocation) = 🟠 critical pre-wave-1 gate
+- **A-19.8** (d-test fixtures) = 🟡 during port-wave
+- **A-19.9** (runner label coupling) = 🟠 NEW owner-decision D-OD6
+- **A-19.10, 19.11** (rendering verification) = 🟡 quick checks
+- **A-19 backward compat** = 🟠 check before wave 1 freeze
+
+[ARCH→ORCH] Hand-off to orchestrator for §20 final plan with these gates
++ dependency graph + risk register + owner-decision expansion.
+
+— @architect (self-executed, cycle ~758, 2026-07-10T20:45+03:00)
 
 ---
 
 # §20 — @orchestrator final plan (cycle ~759)
 
-*(Placeholder — execution plan + sprint-28 dependency graph + risk register + on-call escalation cadence. Will write after architect §19 completes.)*
+*(Placeholder — execution plan + sprint-28 dependency graph + risk register +
+on-call escalation cadence. Will write after architect §19 completes.)*
 
 ---
 
 — @product-manager self-executed review (cycle ~757, 2026-07-10T20:42+03:00).
-Architect + orchestrator sections pending.
+@architect self-executed §19 (cycle ~758, 2026-07-10T20:45+03:00).
+@orchestrator §20 pending.
