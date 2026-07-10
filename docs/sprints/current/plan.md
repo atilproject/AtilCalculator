@@ -15,11 +15,17 @@
 > - 🟡 Sprint 21 STALLED (Q6 default carry-over per Issue #708, in D-OD2 mass-close scope)
 > - 🟢 **Sprint 28 LIVE** — Issue #974 tracking; 4×PRs squash-merged; 1×PR awaiting owner merge
 >
-> **Active backlog:**
+> **Active backlog (14 items, post-W1 launch):**
 >
 > | # | State | Title | Owner |
 > |---|---|---|---|
 > | #974 | open, status:in-progress, agent:orchestrator | [Sprint 28] Kickoff | @orchestrator (this cycle) |
+> | #981 | open, status:in-progress, agent:architect | STORY-S28-001 (PORT RETRO-018 W6) | @architect (auto-claimed) |
+> | #982 | open, status:ready, agent:architect | STORY-S28-002 (PORT Issue #389) | @architect (W1 next-up) |
+> | #983 | open, status:in-progress, agent:developer | STORY-S28-003 (forward-port scripts) | @developer (auto-claimed) |
+> | #984 | open, status:ready, agent:architect | STORY-S28-004 (PORT Issue #414) | @architect (W1 next-up) |
+> | #985 | open, status:in-progress, agent:developer | STORY-S28-005 (RE-RENDER .claude/agents) | @developer (auto-claimed) |
+> | #986 | open, status:ready, agent:architect | STORY-S28-006 (Append 28th ADR) | @architect (W1 next-up) |
 > | #979 | open, draft, agent:architect | Path-Verify Doctrine SOUL AMEND (W3) | @architect (awaiting owner squash) |
 > | #978 | open, status:backlog, agent:product-manager | PM-A-DELTA-CL-19 naming-scheme triage | @PM (awaiting owner a/b/c) |
 > | #972 | open, status:in-progress, agent:architect | Path-Verify Doctrine codification | @architect (closes on #979 squash) |
@@ -28,16 +34,12 @@
 > | #969 | open, status:backlog, agent:architect | docs/ops/vm-hardening.md portability | @architect (PM-A-DELTA-09) |
 > | #968 | open, status:backlog, agent:architect | tmpl docs/templates/ parity check | @architect (PM-A-DELTA-08) |
 >
-> **W1 STORY launch (6 stories, opened cycle ~783):**
+> **W1 STORY launch summary (6 stories opened cycle ~846, 19:14:35Z by PM):**
 >
-> | # | Story | Owner | State |
-> |---|---|---|---|
-> | #981 | STORY-S28-001 (PORT RETRO-018 W6 orch tmpl) | @architect | status:in-progress (auto-claimed) |
-> | #982 | STORY-S28-002 (PORT Issue #389 Peer-Poke tmpl) | @architect | status:ready |
-> | #983 | STORY-S28-003 (Forward-port agent-watch.sh + claim-next-ready.sh) | @developer | status:in-progress (auto-claimed) |
-> | #984 | STORY-S28-004 (PORT Issue #414 dispatch-discipline tmpl) | @architect | status:ready |
-> | #985 | STORY-S28-005 (RE-RENDER calc's .claude/agents/*.md from updated tmpl) | @developer | status:in-progress (auto-claimed) |
-> | #986 | STORY-S28-006 (Append 28th ADR to docs/decisions/INDEX.md) | @architect | status:ready |
+> | Lane | Stories | Status |
+> |---|---|---|
+> | architect-owned (4) | #981, #982, #984, #986 | #981 in-progress (auto-claimed); #982/#984/#986 ready |
+> | developer-owned (2) | #983, #985 | both in-progress (auto-claimed via ADR-0038, WIP=2/2) |
 >
 > **Open PRs (2):**
 >
@@ -57,7 +59,7 @@
 >
 > **Sprint 28 wave plan** (per Issue #974 + PR #967 §20):
 >
-> - **W1 Foundation** (4.5sp): SL-01, SL-01a, SL-02, SL-02a, SL-03, SL-04 — *dev lane blocked on PM opening 14 STORY GitHub issues*
+> - **W1 Foundation** (4.5sp): SL-01, SL-01a, SL-02, SL-02a, SL-03, SL-04 — *W1 LAUNCHED (6 STORY issues #981-#986 opened by PM cycle ~846), 3 in-progress (auto-claimed), 3 ready*
 > - **W2 Feature port** (4sp): S-08a (atomic dep — design merged via #976), S-08, Sprint-22-Q mass-close, CLAUDE.md reconcile
 > - **W3 Polish** (3.5sp): TD-029, TD-028, d-test regression, Path-Verify doc (closes via PR #979 squash)
 > - **Total**: 12sp, **8sp buffer**
