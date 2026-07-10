@@ -339,8 +339,14 @@ def register_routes(app: FastAPI) -> None:
         # over a budget raise. The fix:
         #
         # - Default behaviour UNCHANGED (auto-persist ON).
-        # - Opt-out via ``ATILCALC_EVALUATE_PERSIST=0`` (or any non-``"1"``
-        #   / ``"true"`` / ``"yes"`` value) → skip the SQLite write entirely.
+        # - Opt-out via ``ATILCALC_EVALUATE_PERSIST=0`` (or any falsy value
+        #   per the FALSY set below) → skip the SQLite write entirely.
+        # - Strict fail-loud contract (Sprint 26 wave 1 Issue #954 closeout):
+        #   unparseable values (e.g. ``ATILCALC_EVALUATE_PERSIST=garbage``)
+        #   raise ValueError IMMEDIATELY at env-var read, per ADR-0056
+        #   silent_skip doctrine (fail-loud over silent downgrade) +
+        #   d112 TC6 conftest precedent (``float(env_val)`` raises on
+        #   garbage). Operator typos must NOT silently default to ENABLED.
         # - Production keeps auto-persistence (per ADR-0022 §Cross-device
         #   sync model) — durable cross-device history without an explicit
         #   POST /api/history call.
@@ -350,8 +356,27 @@ def register_routes(app: FastAPI) -> None:
         # The d112 d-test (sister-pattern to d100 / d109 / d110) verifies
         # the env-var precedence: ``ATILCALC_EVALUATE_PERSIST=0`` skips the
         # INSERT (no row written); default ``=1`` writes the row.
-        _persist_env = os.environ.get("ATILCALC_EVALUATE_PERSIST", "1").strip().lower()
-        _persist_enabled = _persist_env not in ("", "0", "false", "no", "off")
+        # The d955 d-test (STORY-S26-003 AC5/AC6, Issue #954 closeout)
+        # verifies the strict fail-loud contract: garbage → ValueError.
+        _persist_env_raw = os.environ.get("ATILCALC_EVALUATE_PERSIST", "1")
+        _persist_env = _persist_env_raw.strip().lower()
+        _TRUTHY_VALUES = frozenset({"1", "true", "yes", "on"})
+        _FALSY_VALUES = frozenset({"", "0", "false", "no", "off"})
+        if _persist_env in _TRUTHY_VALUES:
+            _persist_enabled = True
+        elif _persist_env in _FALSY_VALUES:
+            _persist_enabled = False
+        else:
+            # Fail-loud: unparseable operator input must raise ValueError
+            # per ADR-0056 silent_skip doctrine + d112 TC6 conftest
+            # precedent. Sister-pattern: d112 raises on garbage BUDGET_MULTIPLIER;
+            # we raise on garbage ATILCALC_EVALUATE_PERSIST.
+            raise ValueError(
+                f"ATILCALC_EVALUATE_PERSIST={_persist_env_raw!r} is not parseable; "
+                f"expected one of 1/true/yes/on/0/false/no/off "
+                f"(per ADR-0019 amend-5 §Decision + ADR-0056 silent_skip doctrine + "
+                f"d112 TC6 conftest precedent)"
+            )
         if _persist_enabled:
             ts_iso = _iso8601_now()
             try:
