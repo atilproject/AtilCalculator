@@ -1,6 +1,6 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 28 — LIVE on main (cycle ~781, 2026-07-10T22:30+03:00, post-4×squash-merge, owner triage pending on 3 items)**
+> **Active sprint:** **Sprint 28 — LIVE on main (cycle ~783, 2026-07-10T22:30+03:00, post-4×squash-merge + W1 launch, owner triage pending on 3 items)**
 >
 > 📄 **Sprint 28 kickoff issue:** [Issue #974](https://github.com/atilcan65/AtilCalculator/issues/974) — full 3-wave plan inline, in-progress
 > 📄 **Sprint 28 audit-baseline (MERGED):** [PR #967](https://github.com/atilcan65/AtilCalculator/pull/967) — squash-merged @ 18:57:07Z, commit `a02110c6`
@@ -8,7 +8,7 @@
 > 📄 **Sprint 27 closeout:** [`docs/sprints/sprint-27/close.md`](../sprint-27/close.md) — 3/3 work items shipped
 > 📄 **Sprint 27 retro (RETRO-019):** [`docs/sprints/sprint-27/RETRO-019.md`](../sprint-27/RETRO-019.md) — W1 (premature closure) + W7 (events API scan) doctrine candidates
 >
-> **Mode:** 🟢 **SPRINT 28 LIVE ON MAIN** — HEAD `ff9eacc` (PR #977 squash-merge), 14 STORY files in `docs/backlog/`, all 4 launch PRs merged
+> **Mode:** 🟢 **SPRINT 28 LIVE ON MAIN + W1 LAUNCHED** — HEAD `ff9eacc`, 14 STORY files in `docs/backlog/`, 6 W1 STORY issues opened (#981-#986), 3/6 already in-progress (architect + dev auto-claimed)
 >
 > **Sprint board status:**
 > - 🟢 Sprint 18, 20, 22, 23, 24, 25+, 26, 27 all CLOSED
@@ -28,11 +28,23 @@
 > | #969 | open, status:backlog, agent:architect | docs/ops/vm-hardening.md portability | @architect (PM-A-DELTA-09) |
 > | #968 | open, status:backlog, agent:architect | tmpl docs/templates/ parity check | @architect (PM-A-DELTA-08) |
 >
-> **Open PRs (1):**
+> **W1 STORY launch (6 stories, opened cycle ~783):**
+>
+> | # | Story | Owner | State |
+> |---|---|---|---|
+> | #981 | STORY-S28-001 (PORT RETRO-018 W6 orch tmpl) | @architect | status:in-progress (auto-claimed) |
+> | #982 | STORY-S28-002 (PORT Issue #389 Peer-Poke tmpl) | @architect | status:ready |
+> | #983 | STORY-S28-003 (Forward-port agent-watch.sh + claim-next-ready.sh) | @developer | status:in-progress (auto-claimed) |
+> | #984 | STORY-S28-004 (PORT Issue #414 dispatch-discipline tmpl) | @architect | status:ready |
+> | #985 | STORY-S28-005 (RE-RENDER calc's .claude/agents/*.md from updated tmpl) | @developer | status:in-progress (auto-claimed) |
+> | #986 | STORY-S28-006 (Append 28th ADR to docs/decisions/INDEX.md) | @architect | status:ready |
+>
+> **Open PRs (2):**
 >
 > | PR | Author | Lane | State | Action |
 > |---|---|---|---|---|
 > | #979 | architect | .claude/agents + scripts/tests | draft, MERGEABLE, d972 GREEN 5/5 | **owner squash-merge** (Closes #972) |
+> | #980 | orchestrator | docs/sprints/current/plan.md | draft, MERGEABLE, architect 🟢 OK 9-Lens (awaiting PM + owner squash) | **PM cross-watchdog + owner squash** |
 >
 > **Squash-merged today (4×PRs, 41s window 18:57:07Z → 18:57:48Z):**
 >
@@ -56,8 +68,8 @@
 > 2. **PR #979 squash-merge** — architect SOUL AMEND (3×.claude/agents/*.md.tmpl + d972 d-test 250 LOC), d972 GREEN 5/5, Closes #972 on squash. Owner merge gate per ADR-0031.
 > 3. **PM-A-DELTA-CL-19 naming-scheme** (Issue #978 + cmt 4938295585 on #974) — owner a/b/c option: (a) keep existing sprint-prefix (PR #977 path), (b) migrate to SL-/S-/TD- prefix, (c) defer to retro.
 >
-> **Lane gap (PM pinged at 22:18+03:00, awaiting response):**
-> W1 dev lane: 14 STORY files in `docs/backlog/` (merged via PR #977) but no corresponding GitHub issues opened. Per ADR-0002 + ADR-0038, dev lane cannot claim without issue cards. PM owns `docs/backlog/**` per file ownership matrix.
+> **Lane gap (PM acted, ~closed):**
+> W1 dev lane: PM opened 6 STORY issues #981-#986 in cycle ~783, closing the gap surfaced at 22:18+03:00. Architect auto-claimed #981, developer auto-claimed #983 + #985 via ADR-0038 (WIP cap 2/2 reached for dev lane). 3/6 W1 stories in-progress; 3/6 in ready queue.
 >
 > **Fired actions (cycle ~769-~781):**
 > - cmt 4938164239 (orchestrator synthesis, 6 D-OD matrix)
@@ -71,4 +83,4 @@
 >
 > **Dormant carry (Sprint 22/24/27):** 24 items, no action needed (owner-dormant per "yeni direktif için hazır olunca söyle")
 
-— @orchestrator, 2026-07-10T22:30+03:00 (cycle ~781, post-4×squash-merge, post-PR #979 spot-check)
+— @orchestrator, 2026-07-10T22:30+03:00 (cycle ~783, post-4×squash-merge, post-PR #979 spot-check, post-W1 launch)
