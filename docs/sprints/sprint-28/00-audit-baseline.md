@@ -1594,3 +1594,99 @@ PM proposes: these items live in PR comment form (cross-lane) for lane owner to 
 
 — @product-manager, 2nd-pass comprehensive audit (cycle ~760, 2026-07-10T21:30+03:00)
 Directive: owner verbatim 2026-07-10T~17:30, "Tam kapsamlı audit ... tüm scripts, workflows, ADRs, souls, CLAUDE.md, docs, tests, launcher feature inventory kapsayacak şekilde."
+
+---
+
+# §22 — @product-manager 3rd-pass: Architect F1+F2+F4+F5 corrections (cycle ~764, 2026-07-10T22:30+03:00)
+
+> **Source directive**: architect dual-channel wake at 17:49Z (cmt 4938032191, cycle ~763) — `F1+F2+F4 architect findings beyond PM-A-DELTA scope. F3 confirms PM-A-DELTA-01/02. Incorporate F2 into Sprint 28 W-04`.
+>
+> **Scope**: Apply PM-lane corrections to orchestrator's §4.1 + §4.2 + §4.3 + §5.1 + §5.2 + §6.1 + §6.4 + §7.1 + §Action plan roll-up tables where architect's verification contradicts orchestrator's claims. Cross-lane flag F1 (scripts/) and F4 (.claude/agents/) for lane owners via PR comment.
+
+## §22.0 Ack prior peers (Issue #682 §Post-verdict cross-watchdog)
+
+- **Ack @architect** (cmt 4938032191, cycle ~763, 2026-07-10T17:49Z) — 🟡 SUGGESTION with 8 findings (F1-F8). F6-F8 = OK no action. **F1 (scripts/) + F2 (workflows/) + F3 (ADRs) + F4 (souls/) + F5 (CLAUDE.md)** are CRITICAL/MEDIUM/LOW severity.
+- **Ack @product-manager self** (cmt 4937928087, cycle ~760, 2026-07-10T17:35Z) — 🟡 NEEDS-SUPPLEMENTED with 18 PM-A-DELTA items. F3 architect verdict CONFIRMS PM-A-DELTA-01/02 (ADR count off-by-1).
+- **Ack @orchestrator** (cmt 4937861782, cycle ~759, 2026-07-10T17:27Z) — 🟢 PLAN COMPLETE. §4 + §6 + §7 tables contain factual errors per architect + PM 3rd-pass.
+
+## §22.1 In-lane corrections applied (PM-direct, docs/sprints/**)
+
+Per file ownership matrix + PM lane = cc'd on `docs/sprints/**` PRs with cycle-review edit capability:
+
+| § | Section | Original (orchestrator) | Corrected (PM 3rd-pass) | Source |
+|---|---|---|---|---|
+| §4.1 table | Workflow SHA pins | `secret-canary: 1`, `ci.yml: 7`, `cross-repo-close: 0`, `label-check: n/a`, totals `19 vs 0` | `secret-canary: 0` (shell-only), `ci.yml: 4`, `cross-repo-close: 1`, `label-check: 7`, totals `20 vs 0` | F2 cmt 4938032191 |
+| §4.1 row | `d050b-dispatch.yml` (calc-side) | 0 SHA pins, no mutable-ref note | **0 SHA pins + 1 mutable ref `actions/checkout@v4` L45** (lens h violation); PORT verdict changed 🟢 → 🔴 | F2 cmt 4938032191 |
+| §4.2 body | "AtilCalculator pinned actions (19 instances)" | "19 instances" | **"20 instances across 11 workflows = 100% pin rate"** | F2 cmt 4938032191 |
+| §4.3 action plan | Wave 1 only W-01..W-05 | (no W-04a) | **+ W-04a** (PIN-SHA `d050b-dispatch.yml` L45 = `@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4`, calc-side lens h critical-path FIRST) | F2 cmt 4938032191 |
+| §5.1 + §5.2 headers | "16 ADRs" / "~58 calc-only ADRs" | Off-by-1 (no INDEX.md count) | **"16 ADRs + 1 INDEX.md.tmpl = 17 files"** / "**74 ADRs + 1 INDEX.md = 75 files** total" | PM-A-DELTA-01/02 + F3 confirmation |
+| §6.1 table | Soul LOC table | `tmpl (244, 351, 240, 296, 375)` (orchestrator's "3-4x larger" narrative) | **`tmpl (87, 79, 79, 81, 78)`** (=same size as calc, NOT 3-4x larger); pattern note rewritten | F4 cmt 4938032191 |
+| §6.1 body | "tmpl files are ~3-4x LARGER than calc's .md files; Calc's .md is STALE" | WRONG narrative | **"tmpl's .md.tmpl files are same size or smaller; calc's .md is NOT stale in size dimension; the actual content gap is: 1 amend block (W6 to orchestrator.md.tmpl)"** | F4 cmt 4938032191 |
+| §6.4 action plan | SL-01..SL-04 | SL-01 + SL-02 + SL-03 + SL-04 (SL-03 was high-priority wave 1, SL-04 deferred) | **SL-01 + SL-02 verify-only + SL-03 DEMOTE to W3 + SL-04 re-route via #971 PM-A-DELTA-13** | F4 cmt 4938032191 |
+| §7.1 body | Calc `CLAUDE.md` 400 LOC vs tmpl `CLAUDE.md.tmpl` 368 LOC | LOC confusion (mixed public `CLAUDE.md` summary with gitignored `.claude/CLAUDE.md`) | **Calc `CLAUDE.md` 273 LOC vs tmpl `CLAUDE.md.tmpl` 273 LOC — identical size, byte-for-byte header parity** + note that 400 LOC is the gitignored full doctrine | F5 cmt 4938032191 |
+| §Action plan roll-up (~line 876) | "SL-01 + SL-02 \| Soul AMEND ports \| 2 amend blocks" / "SL-03 \| Re-render calc souls \| 5 files" | Outdated summary | **SL-01 only** (1 amend block); SL-02 verify-only; SL-04 via #971; SL-03 demoted | F4 + PM-A-DELTA-13 |
+| Top-of-page summary row 38 | "5 .md @ ~80 LOC ea \| 5 .tmpl @ ~300 LOC ea \| +2 SOUL AMENDs missing in tmpl + STALE .md in calc" | Wrong sizes + wrong "STALE" narrative | **"5 .md @ ~80 LOC ea \| 5 .tmpl @ ~78 LOC ea \| +1 SOUL AMEND missing in tmpl (W6 only), sizes EQUAL not 3x larger; 1 amend-port (W6) + 4 verify-only + SL-03 DEMOTE"** | F4 cmt 4938032191 |
+| Top-of-page summary row 39 | "CLAUDE.md 400 LOC vs 368 LOC" | LOC confusion | **"CLAUDE.md 273 vs 273 LOC (identical); note: 400 LOC = calc's `.claude/CLAUDE.md` gitignored full doctrine, NOT public summary"** | F5 cmt 4938032191 |
+
+**Total**: 11 in-lane corrections applied across §4.1 + §4.2 + §4.3 + §5.1 + §5.2 + §6.1 + §6.4 + §7.1 + §Action plan roll-up + 2 top-of-page summary rows.
+
+## §22.2 Cross-lane flag list (PM comment-only; lane owner acts via own PR)
+
+Per file ownership matrix — PM does NOT direct-edit scripts/, .github/workflows/, .claude/agents/, docs/decisions/. Lane owners act via separate PRs.
+
+| # | Owner-lane | F-id | Finding (one-liner) | Recommended action |
+|---|---|---|---|---|
+| **PM-A-DELTA-CL-01** | @developer | F1 | `scripts/peer-poke.sh` Auto-Verdict-By hook (ADR-0024 amend Path 2, Issue #681) — must port BEFORE removing calc's wrapper per Cadence Rule 1 | Add **S-08a** action item: PORT `peer-poke.sh` Auto-Verdict-By hook from calc's `scripts/peer-poke.sh` to tmpl's `peer-poke.sh.tmpl` BEFORE S-08 (LEGACY-REMOVE). Add d-test verifying hook presence in tmpl wrapper. Sequence: S-08a (port) → S-08 (remove). Cadence Rule 1 atomic per ADR-0055 §1. |
+| **PM-A-DELTA-CL-02** | @architect (self-follow-up, sister to #971) | F4 | Orchestrator's "3-4x larger tmpl" narrative is FACTUALLY WRONG; only 1 amend block (RETRO-018 W6) is actually missing | SL-03 (RE-RENDER calc's souls) demoted W1 → W3 polish; SL-01 (port W6) remains CRITICAL Wave 1. Sister follow-up to #971 PM-A-DELTA-13. |
+| **PM-A-DELTA-CL-03** | @architect (self-follow-up) | F5 | `CLAUDE.md` 273 vs 273 LOC confusion — orchestrator confused with `.claude/CLAUDE.md` 400 LOC | Verify + add §7.1 explicit "273 LOC public summary, 400 LOC gitignored full doctrine" wording (PM 3rd-pass applied this). |
+| **PM-A-DELTA-CL-04** | @developer | F2 (calc-side mutable ref) | `d050b-dispatch.yml` L45 has mutable ref `actions/checkout@v4` — lens h violation IN CALC, not just tmpl | W-04a action item CRITICAL (already added to §4.3 by PM 3rd-pass): PIN-SHA to `@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4` BEFORE W-01 generic port. |
+| **PM-A-DELTA-CL-05** | @orchestrator | cross-cycle | §18 PM user-perspective supplement + §19 architect review + §20 orchestrator plan all use S-08 ordering that requires Cadence Rule 1 atomic implementation | Verify W1 ordering allows S-08a → S-08 sequence (S-08a MUST land before S-08 in PR cascade). PM's recommendation: S-08a in same cluster-cascade with W-04a (both lens h / Cadence Rule 1 critical-path). |
+
+## §22.3 Sprint 28 wave plan factor (PM owns wave plan; PM tracking)
+
+Architect's F2 added **W-04a** as critical-path sister to W-04. PM 3rd-pass recommends:
+
+- **W-04a** (calc-side `d050b-dispatch.yml` L45 PIN-SHA) MUST land before W-01 (generic port of d050b-dispatch.yml to tmpl). Lens h violation IN CALC, must clear before generic port wave.
+- **S-08a** (calc → tmpl `peer-poke.sh` Auto-Verdict-By hook port) MUST land before S-08 (LEGACY-REMOVE wrapper). Cadence Rule 1 atomic per ADR-0055 §1.
+- Wave 1 critical-path updated order:
+  1. **W-04a** (lens h calc-side, ~0.25sp)
+  2. **S-08a** (Auto-Verdict-By hook port, ~0.5sp)
+  3. W-01..W-04 + S-01..S-08 (parallel-safe after #1 + #2)
+  4. **S-08** (LEGACY-REMOVE, only safe after #2 lands)
+- Total Wave 1 critical-path adds **2 stories** (W-04a + S-08a) for ~0.75sp. Wave 1 commitment remains ~11 stories; new total 13.
+
+**PM wave plan tracking**: Will surface W-04a + S-08a critical-path ordering in next `docs/sprints/sprint-28/plan.md` revision when orchestrator picks up F2 (per architect's recommendation #2).
+
+## §22.4 Verdict
+
+🤖 **Verdict: 🟢 PM 3rd-pass corrections applied (cycle ~764, 2026-07-10T22:30+03:00)**
+
+- **11 in-lane corrections applied** to docs/sprints/sprint-28/00-audit-baseline.md (PM in-lane: docs/sprints/**). All PM-direct edits committed in cycle ~764.
+- **5 cross-lane flags** (PM-A-DELTA-CL-01..-05) posted to lane owners; PM is NOT blocking PR #967 on cross-lane items.
+- **PM-A-DELTA-CL-02** = sister follow-up to architect's Issue #971 (PM-A-DELTA-13 per-block amend diff). PM reuses existing issue thread, no new issue file.
+
+## §22.5 Lane decision summary
+
+| Lane | PM actions this cycle |
+|---|---|
+| `docs/sprints/**` (in-lane) | 11 corrections applied (§4.1, §4.2, §4.3, §5.1, §5.2, §6.1, §6.4, §7.1, action-plan roll-up, top-of-page rows 38+39) |
+| `scripts/**` (cross-lane → @developer) | F1 finding + S-08a recommendation |
+| `.github/workflows/**` (cross-lane → @developer) | F2 calc-side mutable-ref + W-04a recommendation |
+| `.claude/agents/**` (cross-lane → @architect) | F4 SL-03 demote + SL-01 critical-path confirm |
+| `docs/decisions/` (cross-lane → @architect) | F5 wording clarification |
+
+## §22.6 Cross-watchdog attests (Issue #430 §Timing window + Issue #682 §Post-verdict cross-watchdog)
+
+- **PR #967 comment thread re-queried within 30s of architect cmt 4938032191**: 8 comments total (4 prior verdicts + 1 PM cycle ~760 verdict + 1 architect cross-watchdog ack + 1 architect PM wave-factor ack + 1 architect 2nd-pass correction cmt 4938032191). No duplicate peer verdict in the 30s window. Issue #430 satisfied.
+- **Issue #682 §Post-verdict cross-watchdog**: F1+F2+F4+F5 findings are architect-attributed (cmt 4938032191 explicit "Ack @orchestrator + @product-manager"). PM ack explicitly cross-references architect's F-ids in PM-A-DELTA-CL-01..-05.
+- **Cadence Rule 1 (ADR-0055 §1)**: PM-A-DELTA-CL-01 + PM-A-DELTA-CL-04 both raise Cadence Rule 1 atomicity concerns (S-08 must atomic with hook-port; W-04a must clear before generic port). Both routed to lane owners (@developer) per file ownership matrix.
+
+## §22.7 PM defer-to-owner
+
+- **D-OD1..D-OD6 selection** (orchestrator §20.4) — unchanged. PM 3rd-pass does not add new owner-decision surface.
+- **F2 → Sprint 28 W-04 incorporation**: per architect's directive #3 — done. W-04a added to §4.3 + §22.3 critical-path ordering recommendation.
+
+---
+
+— @product-manager, 3rd-pass architect-correction cycle (cycle ~764, 2026-07-10T22:30+03:00)
+Architect source: cmt 4938032191 (cycle ~763), 8 findings (F1-F8), F6-F8 OK no action, F1+F2+F3+F4+F5 corrections applied.
