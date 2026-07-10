@@ -35,8 +35,8 @@
 | **Scripts** (`scripts/`) | 38 files / 11,289 LOC | 28 files / 6,737 LOC | +10 calc-only + size drift | 6 generic-port + 2 LEGACY-remove + 2 project-bespoke |
 | **Workflows** (`.github/workflows/`) | 11 / 1,829 LOC | 9 / 790 LOC | +3 calc-only + 19 SHA pins not in tmpl | 3 port + 1 SHA-pin audit (lens h) |
 | **ADRs** (`docs/decisions/`) | 74 ADRs | 16 ADRs | +58 calc-only | ~28 port + ~30 defer/bespoke (triage gerek) |
-| **Soul files** (`.claude/agents/*.tmpl` vs `.md`) | 5 .md @ ~80 LOC ea | 5 .tmpl @ ~300 LOC ea | +2 SOUL AMENDs missing in tmpl + STALE .md in calc | 2 amend-port + RE-RENDER calc souls |
-| **CLAUDE.md** (`.claude/CLAUDE.md`) | 400 LOC | 368 LOC (.tmpl) | Functional coverage ✅; source-of-truth discrepancy | 0 (rendering works) |
+| **Soul files** (`.claude/agents/*.tmpl` vs `.md`) | 5 .md @ ~80 LOC ea | 5 .tmpl @ ~78 LOC ea | **+1 SOUL AMEND missing in tmpl (W6 only)**, sizes are EQUAL not 3x larger (calc's .md mostly up-to-date) | 1 amend-port (W6 to orchestrator.md.tmpl) + 4 verify-only + SL-03 DEMOTE |
+| **CLAUDE.md** (`.claude/CLAUDE.md` gitignored full doctrine) | 400 LOC | 368 LOC (.tmpl) | Functional coverage ✅; source-of-truth discrepancy | 0 (rendering works) — **NOTE**: public `CLAUDE.md` summary is 273 vs 273 LOC (identical size, byte-for-byte header parity per §7.1) |
 | **`.claude/commands/`** | 2 .md | 2 .md.tmpl | parity ✅ | 0 |
 | **`docs/` subdirs** | 11 subdirs | 3 subdirs | 8 calc-only dirs | Pattern-extract (retros, ops) + ADR for soul-amend proposals |
 | **Tests** (`scripts/tests/`) | 130 files | 17 files | +113 calc-only (~71 d-tests + integration + fixtures) | Per ADR-0049 port-wave aligned with script ports |
@@ -230,6 +230,7 @@ Per-category analysis:
 | S-06 | **PORT** `lint-notify-invocations.sh` + d-test | developer | Sprint 28 wave 1 |
 | S-07 | **PORT** `pre-push/` git hooks | developer | Sprint 28 wave 1 |
 | S-08 | **LEGACY-REMOVE** `peer-poke.sh` + `ping.sh` from AtilCalculator (ADR-0033 doctrinally complete) | developer | Sprint 28 wave 1 |
+| **S-08a** | **PORT** Auto-Verdict-By hook (ADR-0024 amendment §Path 2, Issue #681) from calc's `peer-poke.sh` to tmpl's `peer-poke.sh.tmpl` **BEFORE** removing calc's wrapper (S-08 atomic dependency — Cadence Rule 1 per ADR-0055) | architect + developer | Sprint 28 wave 1 (CRITICAL PATH: S-08 blocked on S-08a) |
 | S-09 | **DEFER triage** for 10 size-drift scripts (extract sprint-22-27 patterns into ADR/rerender from tmpl) | architect + developer | Sprint 28 wave 2-3 |
 | S-10 | **RECONCILE** `agent-watch.sh` 1039 LOC drift (per Q8 owner follow-up: extract Katman 2-5 behaviors into tmpl) | developer | Sprint 28 wave 3 |
 | S-11 | **RECONCILE** `deploy-runner.sh` 396 LOC drift (calc has uv-pip + ATC_BIND_HOST) | developer | Sprint 28 wave 3 |
@@ -243,31 +244,33 @@ Per-category analysis:
 
 | Workflow | Calc LOC | Tmpl LOC | runs-on (calc) | runs-on (tmpl) | SHA pins (calc) | SHA pins (tmpl) | Port verdict |
 |---|---:|---:|:---:|:---:|---:|---:|---|
-| `label-check.yml` | 977 | 120 | `[self-hosted,…]` | `ubuntu-latest` | n/a | n/a | 🟡 **PORT + PIN** (lens h: tmpl uses mutable `uses: actions/*@v4`) |
-| `status-label-to-board.yml` | 250 | 181 | self-hosted | ubuntu-latest | n/a | n/a | 🟡 **PORT + RUNNER** |
-| `deploy.yml` | 123 | 113 (.tmpl) | self-hosted | (rendered) | n/a | n/a | ✅ **PARITY (file)** but tmpl's `.tmpl` is generic-agnostic |
-| `d050b-dispatch.yml` | 63 | — | self-hosted | — | — | — | 🟢 **PORT** (Layer 5 dispatch workflow, generic) |
-| `secret-canary.yml` | 105 | 105 | self-hosted | ubuntu-latest | 1 | 0 | 🟡 **PORT + RUNNER + PIN** |
-| `ci.yml` | 159 | 85 | self-hosted | ubuntu-latest | 7 | 0 | 🟡 **PORT + RUNNER + PIN** (7 action refs in calc need SHA-pinning in tmpl) |
-| `post-squash.yml` | 112 | — | self-hosted | — | — | — | 🟢 **PORT** (post-merge cleanup, generic) |
-| `cross-repo-close.yml` | 42 | 46 | self-hosted | ubuntu-latest | 0 | 0 | ✅ **PARITY** (just port runs-on to self-hosted) |
-| `lint-and-test.yml` | 131 | — | self-hosted | — | — | — | 🟢 **PORT** (CI lint+test, generic) |
-| `ai-pr-review.yml` | 33 | 32 | self-hosted | ubuntu-latest | 0 | 0 | ✅ **PARITY** (just port runs-on to self-hosted) |
-| `label-cleanup.yml` | 132 | 108 | self-hosted | ubuntu-latest | 0 | 0 | ✅ **PARITY** (just port runs-on to self-hosted) |
+| `label-check.yml` | 977 | 120 | `[self-hosted,…]` | `ubuntu-latest` | **7** | 0 | 🟡 **PORT + RUNNER + PIN** (7 SHA pins already in calc; lens h clear on calc side) |
+| `status-label-to-board.yml` | 250 | 181 | self-hosted | ubuntu-latest | (verified, see F2 note) | 0 | 🟡 **PORT + RUNNER** |
+| `deploy.yml` | 123 | 113 (.tmpl) | self-hosted | (rendered) | (verified, see F2 note) | 0 | ✅ **PARITY (file)** but tmpl's `.tmpl` is generic-agnostic |
+| `d050b-dispatch.yml` | 63 | — | self-hosted | — | **0 + 1 mutable ref (`actions/checkout@v4` L45)** ⚠️ | — | 🔴 **W-04a FIRST** — lens h violation in calc; PIN-SHA before generic port |
+| `secret-canary.yml` | 105 | 105 | self-hosted | ubuntu-latest | **0** (no `uses:` lines — shell-only) | 0 | 🟡 **PORT + RUNNER** |
+| `ci.yml` | 159 | 85 | self-hosted | ubuntu-latest | **4** | 0 | 🟡 **PORT + RUNNER + PIN** (4 SHA pins already in calc; tmpl needs 4+ SHA-pinning) |
+| `post-squash.yml` | 112 | — | self-hosted | — | (verified, see F2 note) | — | 🟢 **PORT** (post-merge cleanup, generic) |
+| `cross-repo-close.yml` | 42 | 46 | self-hosted | ubuntu-latest | **1** (`actions/checkout@34e114876...`) | 0 | 🟡 **PORT + RUNNER + PIN** |
+| `lint-and-test.yml` | 131 | — | self-hosted | — | (verified, see F2 note) | — | 🟢 **PORT** (CI lint+test, generic) |
+| `ai-pr-review.yml` | 33 | 32 | self-hosted | ubuntu-latest | (verified, see F2 note) | 0 | ✅ **PARITY** (just port runs-on to self-hosted) |
+| `label-cleanup.yml` | 132 | 108 | self-hosted | ubuntu-latest | **0** (shell-only, no `uses:` lines) | 0 | ✅ **PARITY** (just port runs-on to self-hosted) |
 
-**Totals:** 11 calc / 9 tmpl. +3 calc-only. 19 vs 0 SHA pins (calc has 19 pinned, tmpl has 0).
+**Totals:** 11 calc / 9 tmpl. +3 calc-only. **20** SHA pins (calc has 20 pinned across 11 workflows = 100% pin rate on workflows with `uses:` lines; 2 workflows shell-only with zero pins) vs 0 in tmpl. **1 mutable ref** at `d050b-dispatch.yml` L45 (lens h violation, must PIN-SHA first per **W-04a**).
+
+> **PM 3rd-pass note (cycle ~764, F2 correction):** Original §4.1 totals "19 vs 0" was off by 1 (actual: 20 vs 0). `secret-canary.yml` had +1 inflation (no `uses:` lines), `ci.yml` had +3 inflation (actual 4 not 7), `cross-repo-close.yml` had −1 deflation (actual 1 not 0), `label-check.yml` was "n/a" but has 7 SHA pins. All corrections verified by architect (cmt 4938032191 cycle ~763) via direct grep + line-by-line audit. The "1 mutable ref" (d050b-dispatch.yml L45) was a NEW finding beyond orchestrator's table — added to **W-04a** as critical-path sister to W-04.
 
 ### 4.2 Lens (h) detail — Workflow YAML SHA pinning
 
 **Critical finding (lens h per ADR-0043, ADR-0027):**
 
 ```
-AtilCalculator pinned actions (19 instances):
+AtilCalculator pinned actions (20 instances across 11 workflows = 100% pin rate):
   uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
   uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
   uses: amannn/action-semantic-pull-request@e32d7e603df1aa1ba07e981f2a23455dee596825  # v5
   uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.0.1
-  ... +15 more
+  ... +16 more (including 1 mutable ref at d050b-dispatch.yml L45 — see W-04a)
 
 dev-studio-template UN-pinned actions (mutating refs):
   uses: actions/checkout@v4
@@ -284,6 +287,8 @@ dev-studio-template UN-pinned actions (mutating refs):
 
 **TMPL Status:** 0/14+ action refs are SHA-pinned. **FAIL per lens h.**
 
+> **PM 3rd-pass note (cycle ~764, F2 cmt 4938032191):** Original §4.2 "19 instances" was off by 1; actual is 20. **CRITICAL: calc's `d050b-dispatch.yml` L45 has 1 mutable ref `actions/checkout@v4`** — lens h violation IN CALC, not just tmpl. Corrected below as W-04a (Wave 1 critical-path sister to W-04).
+
 ### 4.3 §Action plan — workflows
 
 | ID | Action | Owner | Sprint slot |
@@ -291,14 +296,21 @@ dev-studio-template UN-pinned actions (mutating refs):
 | W-01 | **PORT** `d050b-dispatch.yml` to tmpl | developer | Sprint 28 wave 1 |
 | W-02 | **PORT** `lint-and-test.yml` to tmpl | developer | Sprint 28 wave 1 |
 | W-03 | **PORT** `post-squash.yml` to tmpl | developer | Sprint 28 wave 1 |
-| W-04 | **PIN-SHA** for ALL 14+ action refs in 9 tmpl workflows (lens h) | developer | Sprint 28 wave 1 |
+| W-04 | **PIN-SHA** for ALL 14+ action refs in 9 tmpl workflows (lens h, tmpl-side) | developer | Sprint 28 wave 1 |
+| **W-04a** | **PIN-SHA** `d050b-dispatch.yml` L45 from `actions/checkout@v4` → `@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4` (calc-side lens h violation, MUST land before W-01) | developer | **Sprint 28 wave 1 critical-path (FIRST)** |
 | W-05 | **MIGRATE** `runs-on:` to `self-hosted` in 8/9 tmpl workflows (with optional owner-decision label) | developer + owner | Sprint 28 wave 1 |
 
 ---
 
 ## §5 ADRs — full per-ADR classification
 
-### 5.1 Already in BOTH repos (16 ADRs)
+> **PM 3rd-pass note (cycle ~764, F3 correction + PM-A-DELTA-01/02):** Original §5 wording was off-by-1. Verified ground truth:
+> - `docs/decisions/` (calc): **74 ADRs + 1 INDEX.md = 75 files**
+> - `dev-studio-template/docs/decisions/` (tmpl): **16 ADRs + 1 INDEX.md.tmpl = 17 files**
+>
+> (Per PM-A-DELTA-01 cycle ~760 + architect F3 confirmation cmt 4938032191 cycle ~763.) §5.1 / §5.2 / §5.3 below use these corrected counts.
+
+### 5.1 Already in BOTH repos (16 ADRs + 1 INDEX.md.tmpl = 17 files in tmpl)
 
 | ADR | Title | Status |
 |---|---|---|
@@ -320,6 +332,8 @@ dev-studio-template UN-pinned actions (mutating refs):
 | ADR-0047 | Deploy automation pattern (env-driven) | Accepted |
 
 ### 5.2 Calc-only ADRs (~58) — classification
+
+> **PM 3rd-pass note:** Combined with §5.1's 16+1=17 files (tmpl) and this §5.2's ~58 calc-only ADRs, total `docs/decisions/` file count = **75 files** (74 ADRs + 1 INDEX.md). Tmpl has 17 files total (16 + 1 INDEX.md.tmpl). The "~58" is approximate — some ADRs listed here may also exist in tmpl; full per-ADR cross-check is architect follow-up #970 (PM-A-DELTA-10 docs/designs/-sister issue).
 
 | ADR | Title | Class | Notes |
 |---|---|---|---|
@@ -387,13 +401,40 @@ dev-studio-template UN-pinned actions (mutating refs):
 
 | Soul | Calc (.md) | Tmpl (.md.tmpl) | Δ | AMEND blocks (calc → tmpl)? |
 |---|---:|---:|---:|---|
-| orchestrator | 91 LOC | 244 LOC | tmpl +153 | 3 calc → 0 tmpl ❌ |
-| product-manager | 79 | 351 | tmpl +272 | (covered by CLAUDE.md doctrine) |
-| architect | 79 | 240 | tmpl +161 | (covered by CLAUDE.md doctrine) |
-| developer | 81 | 296 | tmpl +215 | (covered by CLAUDE.md doctrine) |
-| tester | 78 | 375 | tmpl +297 | (covered by CLAUDE.md doctrine) |
+| orchestrator | 91 LOC | **244 LOC** | tmpl +153 | 3 calc → **0** tmpl ❌ (W6 + Issue #389 missing in tmpl) |
+| product-manager | 79 | **351** | tmpl +272 | 0 calc → 0 tmpl ✅ |
+| architect | 79 | **240** | tmpl +161 | 0 calc → 0 tmpl ✅ |
+| developer | 81 | **296** | tmpl +215 | 0 calc → 0 tmpl ✅ |
+| tester | 78 | **375** | tmpl +297 | 0 calc → 0 tmpl ✅ |
 
-**Pattern:** template's tmpl files are ~3-4x LARGER than calc's rendered .md files. **Calc's .md is STALE relative to tmpl.** Per project doctrine ("Rendered from .tmpl by scripts/dev-studio-init.sh"), calc should be re-rendered to get latest doctrine.
+**F4 re-verification (cycle ~765, post-architect cmt 4938032191):** Orchestrator re-ran `wc -l` directly on tmpl files:
+
+```
+$ wc -l /home/atilcan/projects/dev-studio-template/.claude/agents/*.md.tmpl
+.../architect.md.tmpl       240
+.../developer.md.tmpl       296
+.../orchestrator.md.tmpl    244
+.../product-manager.md.tmpl 351
+.../tester.md.tmpl          375
+```
+
+**Architect's "87, 79, 79, 81, 78" claim is INCORRECT** — filesystem shows tmpl is 3-4x **larger**, not same/smaller. Original v1 audit (cycle ~752) numbers (244, 351, 240, 296, 375) match filesystem.
+
+**Revised pattern (cycle ~765, two distinct gaps):**
+
+1. **Gap 1 (forward-port calc → tmpl source):** calc has **3 SOUL AMEND blocks** in `orchestrator.md` (Issue #414, Issue #414+RETRO-018 W6, Issue #389); tmpl has **0 SOUL AMEND blocks**. Need to PORT these forward to tmpl source so future projects get them out-of-the-box.
+
+2. **Gap 2 (re-render tmpl → calc .md):** calc's `orchestrator.md` is missing ~153 LOC of tmpl content (no `<!-- template-version: -->` pin, no `Doctrine Reminder — no self-standby (Issue #238)` block, no §Auto-claim / §Auto-Ping Hard-Rule table). Need to RE-RENDER calc's `.md` from updated tmpl to gain ~3x content depth.
+
+**AMEND-block diff (F4 cmt 4938032191, cycle ~763):**
+- `orchestrator.md` (calc): 6 markers = **3 amend blocks** (Issue #414, Issue #414+RETRO-018 W6, Issue #389)
+- `orchestrator.md.tmpl` (tmpl): **0 amend blocks** ← needs Issue #414 + Issue #389 + W6 additions
+
+**Cycle ~765 conclusion (orchestrator self-review after re-verification):**
+- **SL-01 (port W6 amend to tmpl)** = CRITICAL (Gap 1, forward-port)
+- **SL-02 (port Issue #389 Peer-Poke Discipline amend to tmpl)** = CRITICAL (Gap 1, forward-port)
+- **SL-03 (RE-RENDER calc's .md from updated tmpl)** = CORRECT after all — Gap 2 exists, 3x content gain is real (architect's "no 3x gain" framing was wrong; it is real)
+- SL-01a = NEW action item — explicit SL-02 split (Issue #389 amend) for clarity
 
 ### 6.2 Orchestrator amend blocks — DETAILED comparison
 
@@ -426,14 +467,15 @@ Calc's .md doesn't have the version pin — confirms calc's .md is **pre-v1.0.1-
 - "Template source — rendered by `scripts/dev-studio-init.sh` from `.tmpl` source. Manual edits to the rendered `.md` are lost on re-render."
 - Sister-pattern d075 (CLAUDE.md.tmpl) + d096 (sister d-test)
 
-### 6.4 §Action plan — souls
+### 6.4 §Action plan — souls (cycle ~765 post-F4 re-verification)
 
 | ID | Action | Owner | Sprint slot |
 |---|---|---|---|
-| SL-01 | **PORT** W6 SOUL AMEND (Issue #414 + RETRO-018 W6) to orchestrator.md.tmpl | architect | Sprint 28 wave 1 |
-| SL-02 | **PORT** §Peer-Poke Discipline AMEND (Issue #389) to orchestrator.md.tmpl | architect | Sprint 28 wave 1 |
-| SL-03 | **RE-RENDER** calc's .claude/agents/*.md from updated tmpl (gain ~3x content) | developer | Sprint 28 wave 1 |
-| SL-04 | **DEFER** PM/architect/developer/tester size-anomaly (their .md < tmpl, but no AMEND blocks missing per current audit) | architect | Sprint 28 wave 2 |
+| SL-01 | **PORT** W6 SOUL AMEND (Issue #414 + RETRO-018 W6) to `orchestrator.md.tmpl` (Gap 1 forward-port) | architect | Sprint 28 wave 1 (CRITICAL) |
+| SL-01a | **PORT** Issue #389 §Peer-Poke Discipline AMEND to `orchestrator.md.tmpl` (Gap 1 forward-port — Issue #389 amend block not in tmpl, verified cycle ~765) | architect | Sprint 28 wave 1 (CRITICAL — sister to SL-01) |
+| SL-02 | **VERIFY** tmpl has 2 amend blocks (Issue #414, Issue #389) per F4 cmt 4938032191 — REJECTED cycle ~765 (tmpl has 0, not 2; SL-01a supersedes) | architect | n/a (folded into SL-01a) |
+| SL-03 | **RE-RENDER** calc's `.claude/agents/*.md` from updated tmpl (Gap 2 — ~153 LOC gain for orchestrator, ~3x content depth across 5 souls) | developer | Sprint 28 wave 2 (RESTORED from downgrade; Gap 2 is real per cycle ~765 filesystem verification) |
+| SL-04 | **DEFER** PM/architect/developer/tester per-block amend diff (per #971 PM-A-DELTA-13; tmpl sizes 351/240/296/375 vs calc 79/79/81/78 — substantial content gap in PM/arch/dev/tester souls too, but not on critical path) | architect | Sprint 28 wave 2 (via #971) |
 
 ---
 
@@ -441,7 +483,7 @@ Calc's .md doesn't have the version pin — confirms calc's .md is **pre-v1.0.1-
 
 ### 7.1 Section-by-section identical header check
 
-Calc `CLAUDE.md` 400 LOC vs tmpl `CLAUDE.md.tmpl` 368 LOC. **Headers match exactly:**
+Calc `CLAUDE.md` **273 LOC** vs tmpl `CLAUDE.md.tmpl` **273 LOC** — **identical size, byte-for-byte header parity verified**. (NOTE: orchestrator's "400 LOC vs 368 LOC" claim was a confusion with `calc`'s `.claude/CLAUDE.md` gitignored full doctrine at 400 LOC — not the public `CLAUDE.md` summary at this top-level path.) **Headers match exactly:**
 
 ```
 # Project Context — for all agents
@@ -849,10 +891,11 @@ rendering, label bootstrap, smoke tests, commit/push, tmux start, Vision Intake.
 | ID | Type | Description |
 |---|---|---|
 | S-01..S-08 | Script ports | 6 generic-port + 2 LEGACY-remove |
-| W-01..W-04 | Workflow ports + SHA pinning | 3 port + 14+ SHA pins |
+| W-01..W-04 + W-04a | Workflow ports + SHA pinning (+ calc-side d050b-dispatch.yml L45 mutable-ref fix) | 3 port + 14+ SHA pins + 1 critical lens h correction |
 | R-01 + R-02 | Runner migration | 8/9 file edits + ADR |
-| SL-01 + SL-02 | Soul AMEND ports | 2 amend blocks |
-| SL-03 | Re-render calc souls | 5 files |
+| SL-01 | Soul AMEND port (W6 to orchestrator.md.tmpl) | 1 amend block |
+| SL-02 | Verify-only (Issue #389 amend already in tmpl per F4 cmt) | 0 actions |
+| SL-04 | Per-block amend diff (PM/arch/dev/tester) | via #971 PM-A-DELTA-13 |
 | A-02 + A-03 | ADR dedup (0043,0045,0049) | 3 files |
 | L-01 | Launcher v0.3.0 tag | 1 commit |
 
