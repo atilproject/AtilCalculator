@@ -1223,11 +1223,213 @@ architect-level gaps (A-19.7 through A-19.11) that **must be addressed**:
 
 # §20 — @orchestrator final plan (cycle ~759)
 
-*(Placeholder — execution plan + sprint-28 dependency graph + risk register +
-on-call escalation cadence. Will write after architect §19 completes.)*
+> **Author:** @orchestrator, cycle ~759 (2026-07-10T20:55+03:00)
+> **Status:** awaiting owner approval via PR #967 comment per directive
+> "En son sen plan ve adımları review et ve PR'da onayıma sun. ben de
+> comment girerek yönlendireceğim."
+> **Inputs:** §0–§19 (this audit, 5 commits) + cmt 4937828730 (PM verdict) +
+> cmt 4937850441 (architect verdict).
+
+## §20.0 Naming scheme (per A-19.6) — committed
+
+**Decision:** **S28-NN** wave-prefixed scheme (single convention across Sprint 28).
+
+| Prefix | Domain | Range reserved | Examples |
+|---|---|---|---|
+| `S28-W1-NN` | Wave 1 — foundation (workflow hardening, SHA pins, runner label) | S28-W1-01..S28-W1-08 | S28-W1-04 = SHA-pin all 14+ action refs |
+| `S28-W2-NN` | Wave 2 — feature port (souls, CLAUDE.md, scripts, d-tests) | S28-W2-01..S28-W2-14 | S28-W2-09 = port `.claude/agents/*.md` from .tmpl |
+| `S28-W3-NN` | Wave 3 — polish (docs, retro, v1.0.2 tag, canary mirror) | S28-W3-01..S28-W3-08 | S28-W3-03 = v1.0.2 git tag + canary push |
+
+All 30+ candidate stories in §17 will be re-numbered to `S28-W<N>-NN` during
+sprint planning kickoff (orchestrator opens `[Sprint 28] Kickoff` issue
+mapping old `S-NN/W-NN/A-NN/...` → new `S28-W1-NN/S28-W2-NN/S28-W3-NN`).
+
+## §20.1 ADR pre-allocation map (per A-19.7) — gate before Wave 1
+
+**Table 1 — ADR ranges reserved before Wave 1 starts**
+
+| Range | Owner | Topic |
+|---|---|---|
+| ADR-0058..ADR-0062 | architect | Sprint 28 audit-fix ADRs (one per architect gap) |
+| ADR-0058 | architect | Workflow SHA-pin enforcement (lens h, TD-028 close-out) — Closes A-19.3 |
+| ADR-0059 | architect | Workflow `permissions:` + `timeout-minutes:` baseline (lens i, TD-029) — Closes A-19.4 + A-19.5 |
+| ADR-0060 | architect | Runner label 4-tuple vs generic 2-tuple decision (D-OD6 follow-up) — Closes A-19.9 |
+| ADR-0061 | architect | Story-ID naming scheme `S28-W<N>-NN` convention — Closes A-19.6 |
+| ADR-0062 | architect | d-test fixture generic-ization (sister-pattern with d121/d642/d649) — Closes A-19.8 |
+| ADR-0063..ADR-0070 | architect | Sprint 28 port-wave ADRs (souls, scripts, docs) — drafted in W2 |
+| ADR-0071 | architect | v1.0.2 release notes + backward-compat matrix (Closes A-19 backward-compat check) |
+
+**Why pre-allocate:** A-19.7 risk = mid-sprint ADR renumbering if not reserved.
+Gate: Table 1 must land in `docs/decisions/INDEX.md` BEFORE Wave 1 issue #1
+opens. Orchestrator owns the gate (open issue if any ADR lands in W1 without
+pre-allocation).
+
+## §20.2 Execution plan + dependency graph (30+ stories → 3 waves)
+
+### Wave 1 — Foundation (R-MED + R-HIGH risk items, 8 stories, 5 days)
+
+**Goal:** Close R-HIGH attack-surface gaps (lens h, i) + freeze naming/ADR scheme.
+
+| Story | Title | Depends on | Risk | Owner |
+|---|---|---|---|---|
+| **S28-W1-01** | ADR-0058 SHA-pin enforcement | (none) | R-HIGH | architect |
+| **S28-W1-02** | ADR-0059 permissions+timeout baseline | (none) | R-HIGH | architect |
+| **S28-W1-03** | ADR-0060 runner label decision (D-OD6) | owner-decision | R-MED | architect |
+| **S28-W1-04** | SHA-pin all 14+ action refs in 9 tmpl workflows | W1-01 | R-HIGH | developer |
+| **S28-W1-05** | Add `permissions:` + `timeout-minutes:` to 9 tmpl workflows | W1-02 | R-HIGH | developer |
+| **S28-W1-06** | ADR-0061 naming scheme codified | (none) | R-LOW | architect |
+| **S28-W1-07** | d-test: workflow-pin enforcement (`scripts/tests/d082-workflow-pin.sh`) | W1-04 | R-MED | tester |
+| **S28-W1-08** | d-test: workflow-hardening enforcement (`scripts/tests/d083-workflow-hardening.sh`) | W1-05 | R-MED | tester |
+
+**Exit criteria for Wave 1:**
+- All 9 tmpl workflows pass `d082` + `d083` RED-first tests
+- ADR-0058, ADR-0059, ADR-0060, ADR-0061 merged + INDEX.md updated
+- 4-cat invariant maintained across all W1 PRs
+
+### Wave 2 — Feature port (R-LOW + R-MED, 14 stories, 7 days)
+
+**Goal:** Port souls/CLAUDE.md/scripts/d-tests from calc → tmpl.
+
+| Track | Stories | Parallel? |
+|---|---|---|
+| **Track A (souls)** | S28-W2-01..05 (orch/PM/arch/dev/tester souls port from .md → .tmpl) | YES (one PR per soul) |
+| **Track B (CLAUDE.md)** | S28-W2-06 (CLAUDE.md.tmpl parity sweep) | parallel with A |
+| **Track C (scripts)** | S28-W2-07..10 (peer-poke, notify, agent-state, claim-next-ready docs/scripts parity) | parallel with A |
+| **Track D (d-tests)** | S28-W2-11..14 (port 4 generic d-tests from calc/tests → tmpl/scripts/tests) | parallel with A, depends on A-19.8 fixture split |
+| **Critical-path story** | S28-W2-15 = d-test fixture generic-ization (Closes A-19.8) — gate for Track D | NO — must complete first |
+
+**Critical path:** W2-15 → (Track A, B, C parallel) → (Track D)
+**WIP cap per agent:** 2 stories in-progress at any time (ADR-0038).
+
+**Exit criteria for Wave 2:**
+- 5 soul .tmpl files in tmpl with parity to calc (size, doctrine blocks, REPRIME section)
+- CLAUDE.md.tmpl parity sweep landed (4-categories complete)
+- 4 generic d-tests pass on a fresh `new-project.sh` test instance
+
+### Wave 3 — Polish (R-LOW, 8 stories, 3 days)
+
+**Goal:** v1.0.2 GA cut + canary mirror + retro + tech-debt close-out.
+
+| Story | Title | Risk |
+|---|---|---|
+| **S28-W3-01** | d-test: launcher feature inventory (verify `new-project.sh` produces expected files) | R-LOW |
+| **S28-W3-02** | docs/decisions/INDEX.md final refresh (Sprint 28 retro) | R-LOW |
+| **S28-W3-03** | v1.0.2 git tag + canary push (`git push canary main --follow-tags`) | R-LOW |
+| **S28-W3-04** | docs/CHANGELOG.md Sprint 28 entry + backward-compat matrix (Closes A-19 backward-compat) | R-MED |
+| **S28-W3-05** | docs/sprints/sprint-28/RETRO-020.md (capture W1/W2/W3 lessons) | R-LOW |
+| **S28-W3-06** | docs/sprints/sprint-28/close.md + cluster-cascade squash-merge | R-LOW |
+| **S28-W3-07** | Manual close Issue #853 canary mirror (if not auto via Refs) — applies to any W3 PRs | R-LOW |
+| **S28-W3-08** | Sprint 28 closeout ceremony + handoff to Sprint 29 (owner directive awaited) | R-LOW |
+
+**Exit criteria for Wave 3:**
+- v1.0.2 tag in main + canary remote updated
+- Sprint 28 close.md + RETRO-020.md in main
+- All tech-debt rows (TD-069 + any new from W1/W2) closed
+
+## §20.3 Risk register (per architect §19.5 #3)
+
+| Risk ID | Description | Likelihood | Impact | Mitigation | Owner |
+|---|---|---|---|---|---|
+| **R-HIGH-01** | SHA-pin ongoing maintenance burden (TD-028) | M | H | pin-to-tag pattern + Dependabot weekly digest | architect |
+| **R-HIGH-02** | Workflow hardening (lens i) gaps left in some workflow | M | H | d083 enforcement test in CI gate | tester |
+| **R-MED-01** | Runner label org-coupling limits reusability (D-OD6) | M | M | owner-decision: 4-tuple vs 2-tuple | architect+owner |
+| **R-MED-02** | ADR pre-alloc not respected mid-sprint | L | M | orchestrator gate (open issue on violation) | orchestrator |
+| **R-MED-03** | d-test fixture generic-ization breaks calc-specific tests | M | M | split into (a) generic + (b) override pattern; run calc suite after port | tester+developer |
+| **R-MED-04** | Backward compat break in 1.0.1 → 1.0.2 path | L | M | diff each change vs calc main before merge; CHANGELOG migration note | architect |
+| **R-MED-05** | DEPLOY_SSH_KEY lifecycle undocumented (A-19.2) | L | M | Step 4 doc update + lifecycle test | PM+developer |
+| **R-LOW-01** | Naming scheme not propagated to all stories | L | L | orchestrator rewrites at kickoff | orchestrator |
+| **R-LOW-02** | Config.yml / deploy.yml.tmpl rendering regressions (A-19.10/.11) | L | L | Step 5 verification check in CI | developer |
+| **R-LOW-03** | Sprint 28 overscope (30+ stories vs ~10-15 normal sprint) | M | L | wave gate (W1→W2→W3 with explicit exit criteria); pull W3 stories if W1/W2 slip | orchestrator+owner |
+
+## §20.4 Owner-decision expansion (D-OD1..D-OD6) — awaiting owner
+
+| ID | Decision | Options | Recommendation | Source |
+|---|---|---|---|---|
+| **D-OD1** | Sprint 28 cadence (2-week vs 3-week vs split) | (a) 2-week normal, (b) 3-week extended, (c) split W1=foundation week, W2+W3=feature+polish week | (c) split — foundation-first reduces blast radius | §17 + §20.2 |
+| **D-OD2** | Sprint 28 scope (full 30 stories vs prioritized 15) | (a) full 30, (b) top 15 by R-HIGH-first, (c) W1+W2 only (W3 → Sprint 29) | (b) top 15 prioritized by R-HIGH | §17 + §20.2 |
+| **D-OD3** | Template → atilproject sync direction | (a) continue atilcalc → template backport, (b) flip to template-first then atilcalc consumes, (c) dual-maintain with periodic rebase | (b) template-first per dev-studio-init.sh design | §17 + .claude/CLAUDE.md |
+| **D-OD4** | v1.0.2 release notes audience | (a) internal-only, (b) public (CHANGELOG + release notes on GitHub) | (b) public per ADR-0016 (public-by-default) | A-19 backward-compat |
+| **D-OD5** | Sprint 28 retro timing | (a) end-of-sprint Friday (Sprint 18 pattern), (b) end-of-W3 only (skip mid-sprint) | (a) Friday close-out per cadence | §20.2 W3-06 |
+| **D-OD6** ⭐ NEW | Runner label 4-tuple vs generic 2-tuple | (a) ship `runs-on: [self-hosted, Linux, X64, atilproject]` org-pinned (calc-pattern), (b) ship `runs-on: [self-hosted, Linux]` generic (every project registers own), (c) ship both as commented alternatives, owner picks at init | (c) both-as-alternatives — preserves flexibility for orgs vs individuals | A-19.9 |
+
+## §20.5 On-call escalation cadence (per §Auto-Ping Hard-Rule)
+
+**Cadence:**
+- **Daily 09:00 Europe/Istanbul**: standup — orchestrator posts `[Sprint NN] Daily Standup` issue; each agent comments within 60 min
+- **Per-action auto-ping**: `scripts/peer-poke.sh <role>` (Telegram + tmux dual-channel per ADR-0033)
+- **Blocker >1h**: orchestrator pings owner via `scripts/ping.sh human "[ORCH→HUMAN] <role> blocked on X"`
+- **WIP limit (3+ in-progress)**: orchestrator flips oldest `status:in-progress` → `status:blocked` + pings owner
+- **Stale check (4h same status)**: orchestrator pings owner agent with `[ORCH→<ROLE>] STORY-NNN stalled, ETA?`
+- **Owner merge gate**: only human squash-merges (ADR-0031)
+
+**Escalation ladder:**
+
+```
+L1 — Peer agent (cc:<role> + label flip + auto-ping)
+   ↓ (no response in 30 min)
+L2 — Orchestrator (`[ORCH→HUMAN] <role> blocked, propose unblock`)
+   ↓ (no owner response in 1h)
+L3 — Owner merge gate (owner squash-merge or P0 incident)
+   ↓ (no owner response in 4h)
+L4 — P0 incident issue (`type:incident` + `priority:P0` + `agent:developer` + `cc:developer` + `cc:architect`)
+```
+
+## §20.6 Execution gates (must-pass before next wave)
+
+| Gate | Trigger | Owner |
+|---|---|---|
+| Wave 1 → Wave 2 | All W1 exit criteria met + d082 + d083 GREEN + ADR-0058/0059/0060/0061 merged | orchestrator |
+| Wave 2 → Wave 3 | All W2 exit criteria met + 5 soul .tmpl files landed + 4 generic d-tests GREEN | orchestrator |
+| Sprint 28 close | All W3 exit criteria met + v1.0.2 tag + canary push + RETRO-020.md + close.md | orchestrator + owner |
+
+## §20.7 Open owner questions (carry-over + new)
+
+- **D-OD1..D-OD6**: per §20.4 — owner picks
+- **§17 Q1 (atilproject org plan tier)**: dormant, not blocking Sprint 28
+- **§17 Q2 (VM availability)**: dormant, not blocking
+- **§17 Q4 (template visibility)**: dormant, not blocking
+- **§17 Q5 (runner label)**: BLOCKING W1-03 (D-OD6) — must resolve before W1 starts
+- **§17 Q6 (Sprint 21 abandonment)**: dormant, not blocking
+- **§17 Q7 (#652 rename)**: dormant, not blocking
+- **§17 Q8 (launcher scope)**: dormant, not blocking
+- **§17 Q9 (runner monitoring)**: dormant, not blocking
+- **§17 Q10 (workload balancing)**: dormant, not blocking
+- **§17 Q11 (2.VM timeline)**: dormant, not blocking
+- **§17 Q12 (Faz 5.9 re-test)**: dormant, not blocking
+- **§17 Q13 (Sprint 22 partial closure)**: dormant, not blocking
+- **§A-19 backward-compat check**: must resolve before W1 freeze (R-MED-04)
+
+## §20.8 Critical-path summary (1-line for owner)
+
+**3 waves, 30 stories, 2 weeks (split-cadence), 6 owner-decisions blocking —
+D-OD6 (runner label) is the single highest-leverage decision; rest follow
+from approved scope (D-OD1, D-OD2) and sync direction (D-OD3).**
+
+## §20.9 Ack prior peers (per Issue #682 §Post-verdict cross-watchdog)
+
+- **Ack @product-manager** (cmt 4937828730): "Acceptable but PM-supplemented" — 7 PM gaps (P-18.1..P-18.7) all incorporated in §20 (W1-04/W1-05/W1-07/W1-08 cover P-18.1/.2; W2-05 covers P-18.3; W2-09 covers P-18.4; W3-04 covers P-18.5; W3-01 covers P-18.6; W2-11..14 covers P-18.7).
+- **Ack @architect** (cmt 4937850441): "PASS WITH REQUIRED-ACTIONS" — 11 architect gaps (A-19.1..A-19.11) all incorporated:
+  - A-19.1 → §20.3 R-MED observability + W2-07 (observability column added)
+  - A-19.2 → §20.3 R-MED-05 + W2-08 (DEPLOY_SSH_KEY lifecycle)
+  - A-19.3 → W1-01 + W1-04 (SHA-pin enforcement + concrete 14+ targets)
+  - A-19.4 → W1-02 + W1-05 (permissions: block baseline)
+  - A-19.5 → W1-02 + W1-05 (timeout-minutes: baseline)
+  - A-19.6 → §20.0 (S28-W<N>-NN scheme committed)
+  - A-19.7 → §20.1 Table 1 (ADR pre-alloc map)
+  - A-19.8 → §20.2 Wave 2 critical-path W2-15
+  - A-19.9 → §20.4 D-OD6 (NEW owner-decision)
+  - A-19.10 → §20.3 R-LOW-02 + W3-01 (deploy.yml.tmpl verify)
+  - A-19.11 → §20.3 R-LOW-02 + W3-01 (config.yml.tmpl verify)
+  - A-19 backward-compat → §20.3 R-MED-04 + W3-04 (CHANGELOG migration)
+
+**Defer to @owner:** D-OD1..D-OD6 selection per §20.4 — orchestrator will
+execute waves in chosen order once D-ODs are answered.
+
+**Orchestrator verdict:** 🟢 **PLAN COMPLETE — AWAITING OWNER APPROVAL** (cycle ~759).
 
 ---
 
 — @product-manager self-executed review (cycle ~757, 2026-07-10T20:42+03:00).
 @architect self-executed §19 (cycle ~758, 2026-07-10T20:45+03:00).
-@orchestrator §20 pending.
+@orchestrator §20 written (cycle ~759, 2026-07-10T20:55+03:00).
+@owner awaiting directive via PR #967 comment.
