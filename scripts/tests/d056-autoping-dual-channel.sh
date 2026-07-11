@@ -7,15 +7,19 @@
 # tmux context WITHOUT -w -r silently falls through to Telegram-only delivery
 # — peer tmux panes never wake (Issue #221, Issue #320, owner directive
 # 2026-06-25). Commit 4695a15 hard-enforced this on the notify.sh side.
-# ping.sh is the canonical wrapper that always sets -l info -w -r <role>.
+# scripts/peer-poke.sh is the canonical wrapper that always sets -l info -w -r <role>.
+# (scripts/ping.sh legacy wrapper was REMOVED in S28-008 LEGACY-REMOVE per Issue #989;
+#  peer-poke.sh covers the same surface as ping.sh — see d296 for peer-poke.sh coverage.)
 #
 # Sister-pattern: d054 (deep-narrow single-purpose), d051 (5-soul dispatch),
-# d058 (work-stream aware factory), d060 (fake-gh).
+# d058 (work-stream aware factory), d060 (fake-gh), d065 (notify.sh dual-channel sister).
 #
-# 9 TCs (1 PASS baseline + 8 regression guards, ADR-0044 RED-first doctrine):
-# TC1 baseline PASS + TC2-TC9 regression guards on the dual-channel enforcement.
-# Pre-impl expected: 9 PASS (doctrine already enforced by commit 4695a15).
-# Post-impl expected: 9 PASS (regression guard — if dual-channel breaks, RED).
+# 5 TCs (post-S28-008 LEGACY-REMOVE, ADR-0044 RED-first doctrine):
+# TC1-TC5 are regression guards on the notify.sh dual-channel enforcement.
+# Originally 9 TCs (TC1-TC4 covered legacy scripts/ping.sh wrapper; REMOVED in
+# S28-008 since ping.sh is gone — peer-poke.sh replaced it).
+# Pre-S28-008 expected: 9 PASS (doctrine already enforced by commit 4695a15).
+# Post-S28-008 expected: 5 PASS (regression guard — if dual-channel breaks, RED).
 #
 # Doctrine anchors:
 # - ADR-0033 (Auto-Ping dual-channel doctrine, Issue #221 + Issue #320)
@@ -23,13 +27,13 @@
 # - §17 LIVE INSTANCE #5 (orch stale-cache drift — sister-pattern origin)
 # - Issue #320 RCA (broken `notify.sh -l <role>` form, 22 places)
 # - Commit 4695a15 (notify.sh hard-enforce dual-channel from tmux context)
+# - Issue #989 / S28-008 LEGACY-REMOVE (ping.sh deleted; peer-poke.sh is canonical)
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 NOTIFY_SH="${REPO_ROOT}/scripts/notify.sh"
-PING_SH="${REPO_ROOT}/scripts/ping.sh"
 
 # TTY-aware color setup (sister-pattern to d054/d058)
 if [[ -t 1 ]]; then
@@ -46,7 +50,6 @@ section() { printf "\n${B}==== %s ====${D}\n" "$1"; }
 # Preflight
 command -v bash >/dev/null 2>&1 || { echo "ERROR: bash required" >&2; exit 2; }
 [ -f "$NOTIFY_SH" ] || { echo "ERROR: notify.sh not found at $NOTIFY_SH" >&2; exit 2; }
-[ -f "$PING_SH" ] || { echo "ERROR: ping.sh not found at $PING_SH" >&2; exit 2; }
 
 # Self-test mode (RED-first per ADR-0044)
 if [ "${1:-}" != "--self-test" ]; then
@@ -69,54 +72,6 @@ curl() {
   fi
 }
 export -f curl
-
-# ============================================================================
-# TC1 (BASELINE PASS): ping.sh ALWAYS uses -l info -w -r internally
-# ============================================================================
-section "TC1: ping.sh canonical wrapper uses -l info -w -r (canonical form)"
-# Anchor: line 59 of ping.sh MUST exec notify.sh with -l info -w -r
-if grep -qE '^exec[[:space:]]+"\$SCRIPT_DIR/notify.sh"[[:space:]]+-l[[:space:]]+info[[:space:]]+-w[[:space:]]+-r[[:space:]]+"\$ROLE"' "$PING_SH"; then
-  pass "TC1: ping.sh line 59 has canonical -l info -w -r invocation"
-else
-  fail "TC1: ping.sh MUST invoke notify.sh with -l info -w -r <role> (ADR-0033)"
-fi
-
-# ============================================================================
-# TC2 (PASS): ping.sh accepts all 6 valid roles
-# ============================================================================
-section "TC2: ping.sh accepts all 6 valid roles (orch/PM/arch/dev/tester/human)"
-# Anchor: line 47-54 case statement
-if grep -qE 'orchestrator\|product-manager\|architect\|developer\|tester\|human' "$PING_SH"; then
-  pass "TC2: ping.sh role whitelist covers all 6 valid roles"
-else
-  fail "TC2: ping.sh MUST whitelist orchestrator|product-manager|architect|developer|tester|human"
-fi
-
-# ============================================================================
-# TC3 (PASS): ping.sh with invalid role → exit 2 + error message
-# ============================================================================
-section "TC3: ping.sh invalid role → exit 2 + usage hint"
-# Functional test: invoke ping.sh with bogus role, verify exit 2
-TMUX='' bash "$PING_SH" bogus-role "test message" >/dev/null 2>&1
-rc=$?
-if [ "$rc" -eq 2 ]; then
-  pass "TC3: ping.sh invalid role exits 2 (canonical wrapper discipline)"
-else
-  fail "TC3: ping.sh invalid role should exit 2, got $rc"
-fi
-
-# ============================================================================
-# TC4 (PASS): ping.sh with missing role → exit 2 + usage
-# ============================================================================
-section "TC4: ping.sh missing role arg → exit 2 + usage hint"
-# Functional test: invoke ping.sh with no args, verify exit 2
-TMUX='' bash "$PING_SH" >/dev/null 2>&1
-rc=$?
-if [ "$rc" -eq 2 ]; then
-  pass "TC4: ping.sh missing role exits 2 (canonical wrapper discipline)"
-else
-  fail "TC4: ping.sh missing role should exit 2, got $rc"
-fi
 
 # ============================================================================
 # TC5 (PASS): notify.sh from tmux WITHOUT -w -r → ERROR + exit 2
@@ -195,13 +150,13 @@ printf "\n${B}==== d056 SELF-TEST SUMMARY ====${D}\n"
 printf "  ${G}PASS${D}: %d\n" "$PASS"
 printf "  ${R}FAIL${D}: %d\n" "$FAIL"
 
-# Pre-impl expected: 9 PASS (doctrine already enforced by commit 4695a15, regression guard)
-# Post-impl expected: 9 PASS (regression guard — if dual-channel breaks, RED)
-if [ "$PASS" -eq 9 ] && [ "$FAIL" -eq 0 ]; then
-  printf "  ${G}d056 GREEN${D} — 9/9 PASS = Auto-Ping dual-channel enforcement regression-guarded\n"
+# Pre-S28-008 expected: 9 PASS (TC1-TC4 covered legacy ping.sh wrapper; REMOVED in S28-008)
+# Post-S28-008 expected: 5 PASS (regression guard — TC1-TC5 notify.sh dual-channel enforcement)
+if [ "$PASS" -eq 5 ] && [ "$FAIL" -eq 0 ]; then
+  printf "  ${G}d056 GREEN${D} — 5/5 PASS = notify.sh dual-channel enforcement regression-guarded (post-S28-008 LEGACY-REMOVE)\n"
   exit 0
-elif [ "$PASS" -ge 5 ] && [ "$FAIL" -ge 1 ]; then
-  printf "  ${Y}d056 RED${D} — %d/%d PASS + %d/%d FAIL = doctrine regression detected\n" "$PASS" 9 "$FAIL" 9
+elif [ "$PASS" -ge 3 ] && [ "$FAIL" -ge 1 ]; then
+  printf "  ${Y}d056 RED${D} — %d/%d PASS + %d/%d FAIL = doctrine regression detected\n" "$PASS" 5 "$FAIL" 5
   exit 1
 else
   printf "  ${R}d056 RED (unexpected)${D} — counts outside expected range. Investigate.\n"

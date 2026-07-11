@@ -15,9 +15,11 @@
 #   - Direct notify.sh from tmux without -w -r → exit 2 (loud failure)
 #   - Bypass options: scripts/ping.sh <role>, TMUX='', or non-tmux shell
 #
-# d065 = 5 TCs (TC1-TC5) programmatic enforcement via bash + fake-curl factory
+# d065 = 4 TCs (TC1-TC4) programmatic enforcement via bash + fake-curl factory
 # (sister-pattern to d064-cluster-lag.sh — both bash + fake-tool regression
 # tests against shipped infra scripts).
+# Post-S28-008 LEGACY-REMOVE: TC5 (legacy scripts/ping.sh wrapper bypass) REMOVED
+# since ping.sh is gone. peer-poke.sh now provides the wrapper surface (see d296).
 #
 # Sister-pattern family (d-test lineage, ADR-0049):
 #   - d058 (Issue #505 ADR-0038 §Work-Stream Awareness impl)
@@ -26,26 +28,27 @@
 #   - d063 (RETRO-011 §1 stale-cc deadlock-breaker)
 #   - d064 (ADR-0059 §1 cluster-squash batch-lag detection — direct sister, same week)
 #
-# 5 TCs (per STORY-S18-004 design doc §API contract + Issue #607 AC2 + RETRO-012 §2a):
+# 4 TCs (per STORY-S18-004 design doc §API contract + Issue #607 AC2 + RETRO-012 §2a):
 #   TC1: tmux context WITHOUT -w -r → exit 2 (dual-channel hard-enforce, RETRO-012 §2a)
 #   TC2: tmux context WITH -w -r <role> → exit 0 (proper usage path)
 #   TC3: non-tmux context WITHOUT -w -r → exit 0 (backward compat for legacy + non-tmux shells)
 #   TC4: -w without -r → exit 2 (orphan wake detection, ADR-0033 baseline)
-#   TC5: scripts/ping.sh <role> canonical wrapper bypasses tmux guard → exit 0 (migration path)
+# (TC5 = legacy scripts/ping.sh <role> wrapper bypass — REMOVED in S28-008 LEGACY-REMOVE
+#  since ping.sh is gone. peer-poke.sh covers the same surface; see d296 for peer-poke tests.)
 #
 # Usage:
-#   bash d065-dual-channel-enforcement.sh --self-test     # run inline fixture (5 TCs)
+#   bash d065-dual-channel-enforcement.sh --self-test     # run inline fixture (4 TCs)
 #
 # Exit codes:
-#   0 — all PASS (TC1-TC5 green, dual-channel enforcement active)
+#   0 — all PASS (TC1-TC4 green, dual-channel enforcement active)
 #   1 — at least one FAIL (RED state — enforcement missing OR fixture bug)
 #   2 — preflight failure (missing tool, etc.)
 #
 # RED-first discipline (ADR-0044):
 #   Pre-impl: TC1 PASS only if notify.sh exists; TC2-TC5 FAIL (impl missing or buggy)
-#   Post-impl: all 5 TCs must PASS
+#   Post-impl: all 4 TCs must PASS (TC5 removed in S28-008)
 #   RETRO-012 §2a codifies: notify.sh impl shipped via PR #598 squash bf1e237,
-#     so post-impl state is GREEN if all 5 TCs pass.
+#     so post-impl state is GREEN if all 4 TCs pass.
 #
 # Run standalone: bash scripts/tests/d065-dual-channel-enforcement.sh --self-test
 
@@ -54,7 +57,6 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 NOTIFY_SH="${REPO_ROOT}/scripts/notify.sh"
-PING_SH="${REPO_ROOT}/scripts/ping.sh"
 
 # Colors (TTY-aware)
 if [[ -t 1 ]]; then
@@ -78,12 +80,12 @@ if [ "${1:-}" != "--self-test" ]; then
   exit 2
 fi
 
-printf "${B}d065 self-test (5 TCs per ADR-0033 dual-channel enforcement, RETRO-012 §2a)${D}\n"
+printf "${B}d065 self-test (4 TCs per ADR-0033 dual-channel enforcement, RETRO-012 §2a)${D}\n"
 printf "${B}========================================================================${D}\n"
 printf "  Impl under test: %s\n" "$NOTIFY_SH"
 printf "  Fixture: fake-curl factory (mocks Telegram API for offline test)\n"
 printf "  Sister-pattern: d064-cluster-lag.sh (ADR-0059, same week)\n"
-printf "  RED-first: post-impl all 5 TCs must PASS.\n\n"
+printf "  RED-first: post-impl all 4 TCs must PASS (TC5 ping.sh wrapper bypass REMOVED in S28-008).\n\n"
 
 PASS=0; FAIL=0; INFO=0
 EXIT_CODE=0
@@ -128,27 +130,6 @@ run_notify() {
   local rc=$?
   NOTIFY_OUT="$(cat "$notify_out_file")"
   rm -f "$notify_out_file"
-  return $rc
-}
-
-# Helper: run scripts/ping.sh <role> with isolated env + fake-curl
-# Args: fake_bin, tmux_value, role, message
-run_ping() {
-  local fake_bin="$1"
-  local tmux_value="$2"
-  local role="$3"
-  local msg="$4"
-
-  local ping_out_file="$TEST_TMPDIR/ping_out_$$_$RANDOM.txt"
-  TMUX="$tmux_value" \
-    PATH="$fake_bin:$PATH" \
-    TELEGRAM_BOT_TOKEN="fake-bot-token-for-test" \
-    TELEGRAM_CHAT_ID="12345" \
-    bash "$PING_SH" "$role" "$msg" \
-    > "$ping_out_file" 2>&1
-  local rc=$?
-  PING_OUT="$(cat "$ping_out_file")"
-  rm -f "$ping_out_file"
   return $rc
 }
 
@@ -257,31 +238,6 @@ else
 fi
 
 # ============================================================================
-# TC5: scripts/ping.sh <role> canonical wrapper bypasses tmux guard → exit 0
-# ============================================================================
-section "TC5: scripts/ping.sh <role> canonical wrapper bypasses tmux guard (migration path)"
-if [ ! -f "$PING_SH" ]; then
-  fail "TC5 — scripts/ping.sh not found (migration wrapper missing)" \
-    "expected $PING_SH. RETRO-012 §2a codifies scripts/ping.sh as canonical wrapper."
-  EXIT_CODE=1
-else
-  state="$TEST_TMPDIR/tc5"
-  install_fake_curl "$state/fake_bin"
-  # ping.sh is the canonical wrapper — it always sets -w -r correctly.
-  # Test from tmux context: should NOT trigger dual-channel guard because
-  # ping.sh internally sets -w -r.
-  run_ping "$state/fake_bin" "/tmp/fake.sock,12345,0" "developer" "test ping from tmux via canonical wrapper"
-
-  if [ $? -ne 0 ]; then
-    fail "TC5 — expected exit 0 on scripts/ping.sh from tmux context" \
-      "got rc=$? out=$PING_OUT. ping.sh canonical wrapper must always work."
-    EXIT_CODE=1
-  else
-    pass "TC5 — scripts/ping.sh developer → exit 0 from tmux (canonical wrapper bypasses guard)"
-  fi
-fi
-
-# ============================================================================
 # Summary
 # ============================================================================
 printf "\n${B}==== Summary ====${D}\n"
@@ -294,5 +250,5 @@ if [ "$FAIL" -gt 0 ]; then
   exit 1
 fi
 
-printf "\n${G}GREEN state: all 5 TCs PASS — dual-channel enforcement active (RETRO-012 §2a codification)${D}\n"
+printf "\n${G}GREEN state: all 4 TCs PASS — dual-channel enforcement active (RETRO-012 §2a codification, post-S28-008 LEGACY-REMOVE)${D}\n"
 exit 0
