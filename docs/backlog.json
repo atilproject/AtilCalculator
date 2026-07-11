@@ -1562,9 +1562,36 @@
       "vision_metrics": [],
       "notes": "Issue #974 ID=Path-Verify doc. PM cycle ~766 LIVE INSTANCE cite. Issue #972 status:in-progress.",
       "v1_0_0_scope": "TEMPLATE"
+    },
+    {
+      "id": "STORY-S28-015",
+      "title": "ADR-0057 Closes anchor strict-format CI gate (closes #984 + #988 + #972 family)",
+      "priority": "P3",
+      "status": "ready",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [
+        "ADR-0057 (already accepted — strict format mandate)",
+        "Architect ack @ 2026-07-11T09:06:28Z (cycle ~1729)"
+      ],
+      "blocks": [
+        "Future manual-close incidents (forward-only gate)"
+      ],
+      "sprint": "Sprint 28",
+      "sprint_story_doc": "docs/backlog/STORY-S28-015.md",
+      "issue_pending": "https://github.com/atilcan65/AtilCalculator/issues/994",
+      "vision_metrics": [],
+      "notes": "Issue #994 ID=TD-XXX. PM grooming cycle ~1729 per [ORCH→PM] dual-channel wake at 09:02Z. Architect lane WIP=0/2 post-W2 cluster ship at cycle ~819. T-shirt S (~20-40 LOC YAML regex). Supersedes TD-068 + TD-069 sister-tickets. Manual-close counter = 4 since #785 family (live instance: tmpl#67 parenthetical-without-owner). Sister-pattern: scripts/tests/ d-test framework (≥5 TCs for regex coverage).",
+      "v1_0_0_scope": "TEMPLATE",
+      "issue_status": "backlog"
     }
   ],
-  "last_id": 989,
+  "last_id": 994,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
@@ -1602,6 +1629,6 @@
   "sprint_26_retro_doc": "docs/sprints/sprint-26/RETRO-018.md",
   "sprint_28_groomed_at": "2026-07-10T18:13:00Z",
   "sprint_28_source": "Issue #974 (Sprint 28 Kickoff, owner picked a hepsi default) + PR #967 audit-baseline.md",
-  "updated_at": "2026-07-11T00:59:00Z",
-  "last_modified_by": "product-manager (Issue #987 disposition, cycle ~847)"
+  "updated_at": "2026-07-11T09:08:00Z",
+  "last_modified_by": "product-manager (PM grooming cycle ~1729, Issue #994 dual-channel wake from ORCH)"
 }
