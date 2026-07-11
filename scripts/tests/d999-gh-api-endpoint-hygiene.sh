@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dXXX-gh-api-endpoint-hygiene.sh — Issue #999 gh api POST /pulls/N footgun guardrail
+# d999-gh-api-endpoint-hygiene.sh — Issue #999 gh api POST /pulls/N footgun guardrail
 #   Sister-d-test to d123 (RCA-12 d-test) + d056 (dual-channel enforcement) per ADR-0049.
 #   ≥7 TCs RED-first per ADR-0049 §Sister-pattern baseline ≥3 met.
 #
@@ -126,7 +126,7 @@ fi
 
 # ===== Summary =====
 echo ""
-echo "=== dXXX-gh-api-endpoint-hygiene.sh summary ==="
+echo "=== d999-gh-api-endpoint-hygiene.sh summary ==="
 echo "PASS: ${PASS_COUNT} / ${TC_NUM}"
 echo "FAIL: ${FAIL_COUNT} / ${TC_NUM}"
 
