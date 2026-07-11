@@ -42,6 +42,11 @@
 
 set -euo pipefail
 
+# Path-Verify Doctrine (Issue #972 + ADR-0055 §1): the .md.tmpl files are the
+# tracked source-of-truth; the .md files are gitignored local-renders
+# (auto-generated from `scripts/dev-studio-init.sh` per ADR-0013, ADR-0050).
+# The d-test MUST target .md.tmpl — that's what CI checks and what humans
+# edit, per the file ownership matrix (.claude/ = human-only territory).
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 SOUL_DIR="${REPO_ROOT}/.claude/agents"
 
@@ -64,7 +69,7 @@ check() {
 
 # ===== TC1: architect.md has the POST /pulls/N footgun warning =====
 TC1_DESC="architect.md contains 'POST /pulls/N' footgun warning"
-if grep -q "POST /pulls/N" "${SOUL_DIR}/architect.md"; then
+if grep -q "POST /pulls/N" "${SOUL_DIR}/architect.md.tmpl"; then
     check "$TC1_DESC" 0
 else
     check "$TC1_DESC" 1
@@ -72,7 +77,7 @@ fi
 
 # ===== TC2: developer.md sister amend present =====
 TC2_DESC="developer.md contains 'POST /pulls/N' sister amend"
-if grep -q "POST /pulls/N" "${SOUL_DIR}/developer.md"; then
+if grep -q "POST /pulls/N" "${SOUL_DIR}/developer.md.tmpl"; then
     check "$TC2_DESC" 0
 else
     check "$TC2_DESC" 1
@@ -80,7 +85,7 @@ fi
 
 # ===== TC3: tester.md sister amend present =====
 TC3_DESC="tester.md contains 'POST /pulls/N' sister amend"
-if grep -q "POST /pulls/N" "${SOUL_DIR}/tester.md"; then
+if grep -q "POST /pulls/N" "${SOUL_DIR}/tester.md.tmpl"; then
     check "$TC3_DESC" 0
 else
     check "$TC3_DESC" 1
@@ -88,7 +93,7 @@ fi
 
 # ===== TC4: orchestrator.md sister amend present =====
 TC4_DESC="orchestrator.md contains 'POST /pulls/N' sister amend"
-if grep -q "POST /pulls/N" "${SOUL_DIR}/orchestrator.md"; then
+if grep -q "POST /pulls/N" "${SOUL_DIR}/orchestrator.md.tmpl"; then
     check "$TC4_DESC" 0
 else
     check "$TC4_DESC" 1
@@ -96,7 +101,7 @@ fi
 
 # ===== TC5: correct endpoint pattern documented in architect.md =====
 TC5_DESC="architect.md documents '/issues/{N}/comments' as correct endpoint pattern"
-if grep -q "issues/{N}/comments" "${SOUL_DIR}/architect.md"; then
+if grep -q "issues/{N}/comments" "${SOUL_DIR}/architect.md.tmpl"; then
     check "$TC5_DESC" 0
 else
     check "$TC5_DESC" 1
@@ -104,7 +109,7 @@ fi
 
 # ===== TC6: root cause explanation (PATCH semantics) in architect.md =====
 TC6_DESC="architect.md explains 'PATCH semantics' root cause"
-if grep -q "PATCH semantics" "${SOUL_DIR}/architect.md"; then
+if grep -q "PATCH semantics" "${SOUL_DIR}/architect.md.tmpl"; then
     check "$TC6_DESC" 0
 else
     check "$TC6_DESC" 1
@@ -113,7 +118,7 @@ fi
 # ===== TC7: negative test — no misleading footgun-pattern examples =====
 # Should NOT have copy-pasteable footgun patterns that could mislead readers
 TC7_DESC="architect.md has no copy-pasteable 'POST /pulls/{N} -f body' footgun examples"
-if ! grep -qE "POST /pulls/\{?N\}? -f body" "${SOUL_DIR}/architect.md"; then
+if ! grep -qE "POST /pulls/\{?N\}? -f body" "${SOUL_DIR}/architect.md.tmpl"; then
     check "$TC7_DESC" 0
 else
     check "$TC7_DESC" 1
