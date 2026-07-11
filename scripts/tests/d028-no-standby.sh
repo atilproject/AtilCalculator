@@ -163,11 +163,18 @@ else
   fail "wake_nudge context lost d015 fields" "expected agent_count: \$queue + cc_count: \$cc + note: \$note"
 fi
 # d015 T3/T4 — agent:<role> + cc:<role> label filters preserved
-if grep -Fq 'label "agent:${ROLE}"' "$WATCH_SH" && \
-   grep -Fq 'label "cc:${ROLE}"' "$WATCH_SH"; then
-  pass "queue check filters preserved (agent:<role> + cc:<role>)"
+# Cycle ~5893 update (tester pushback on d028 T7 false-RED): agent-watch.sh
+# migrated from `gh issue list --label "agent:${ROLE}"` (CLI) to REST API
+# `gh api ... issues?labels=agent:${ROLE}` per Issue #806 silent-drop fix
+# (commit 03d7e65, 2026-07-04, TD-046). Defense-in-depth is preserved via
+# the REST path; test grep must follow the new pattern. Old grep was:
+#   `label "agent:${ROLE}"` (gh CLI --label flag with double-quoted value)
+# New grep targets the REST API URL query parameter pattern.
+if grep -Fq 'labels=agent:${ROLE}' "$WATCH_SH" && \
+   grep -Fq 'labels=cc:${ROLE}' "$WATCH_SH"; then
+  pass "queue check filters preserved (agent:<role> + cc:<role>) — REST API per Issue #806 silent-drop fix"
 else
-  fail "queue check filters lost" "expected gh issue list with agent/c:<ROLE> label filters"
+  fail "queue check filters lost" "expected gh api REST labels=agent/c:<ROLE> query params (Issue #806 fix)"
 fi
 
 # ============================================================================
