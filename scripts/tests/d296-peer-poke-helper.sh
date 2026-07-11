@@ -14,15 +14,17 @@
 #   T2: Missing args (no role, no msg) → exit 2 + usage line to stderr
 #   T3: bash -n scripts/peer-poke.sh syntactically valid (lint pre-commit)
 #   T4 (Sprint 26): peer-poke.sh human "<msg>" → notify.sh called with -l info -w -r human
-#       (sister-pattern d038 T4; closes coverage gap for human role which peer-poke.sh
+#       (closes coverage gap for human role which peer-poke.sh
 #        does NOT list in usage line but DOES support via notify.sh -r human passthrough)
 #   T5 (Sprint 26): peer-poke.sh propagates notify.sh exit code (exec discipline sentinel)
 #       (regression guard: if a future refactor drops the `exec` keyword, callers using
 #        `set -e` or `if peer-poke.sh; then` will silently succeed on failed notify.sh)
 #
-# Sister test: d038-ping-wrapper.sh (ping.sh sister has same exec pattern + role allowlist).
-# Cadence Rule 2 sister-alignment: T4 mirrors d038 T4 (human role); T5 mirrors d038 implicit
-# exit-code propagation behavior.
+# Sister-pattern history: d296 originally had d038-ping-wrapper.sh as a sister test
+# (same exec pattern + role allowlist). d038 was REMOVED in S28-008 LEGACY-REMOVE per
+# Issue #989 when scripts/ping.sh was deleted. d296 is now the sole peer-poke regression
+# guard in the calc repo. The canonical source of scripts/peer-poke.sh is the symlink
+# to dev-studio-template/scripts/peer-poke.sh.tmpl (S28-008 LEGACY-REMOVE).
 #
 # Exit code: 0 = all pass, 1 = at least one fail.
 # Run standalone: bash scripts/tests/d296-peer-poke-helper.sh
@@ -54,7 +56,7 @@ section() { printf "\n${B}==== %s ====${D}\n" "$1"; }
 # Setup: replace real notify.sh with a mock that captures argv, restore on EXIT.
 # WHY: peer-poke.sh uses absolute path "$SCRIPT_DIR/notify.sh" (not $PATH lookup),
 # so a PATH-based mock would be ignored. We must mock the actual file at the path
-# peer-poke.sh invokes. Pattern lifted from d038-ping-wrapper.sh.
+# peer-poke.sh invokes. Pattern: file-level mock + restore-on-EXIT trap.
 # ============================================================================
 REAL_NOTIFY="$REPO_ROOT/scripts/notify.sh"
 BACKUP_NOTIFY="$REAL_NOTIFY.real-backup-$$"
@@ -174,13 +176,10 @@ fi
 # ============================================================================
 # T4 (Sprint 26): peer-poke.sh human "<msg>" → notify.sh -l info -w -r human
 # ============================================================================
-# Sister-pattern: d038-ping-wrapper.sh T4 (ping.sh human role). peer-poke.sh
-# usage line lists 5 roles but impl has NO role allowlist — exec's notify.sh
-# with -r $ROLE regardless. T4 locks in that human (the 6th role per sister
-# d038) works through peer-poke.sh too. Per dev review cmt 4927XXXXX, T4 is
-# functionally GREEN on current impl (notify.sh supports -r human, agent-wake.sh
-# has human=pane 5). Follow-up 1-line impl change to peer-poke.sh usage line
-# is a separate dev PR (Issue #943 follow-up, NOT required for T4 GREEN).
+# peer-poke.sh usage line lists 5 roles but impl has NO role allowlist — exec's
+# notify.sh with -r $ROLE regardless. T4 locks in that human (the 6th role) works
+# through peer-poke.sh too. Per dev review cmt 4927XXXXX, T4 is functionally GREEN
+# on current impl (notify.sh supports -r human, agent-wake.sh has human=pane 5).
 section "T4: peer-poke.sh human role → notify.sh with -l info -w -r human"
 
 if [[ ! -x "$PEER_POKE_SH" ]]; then
@@ -192,7 +191,7 @@ else
 
   # Mock log line must contain -l info -w -r human (the dual-channel contract)
   if grep -qF -- "-l info -w -r human" "$MOCK_LOG"; then
-    pass "peer-poke.sh invoked notify.sh with -l info -w -r human (sister-pattern d038 T4)"
+    pass "peer-poke.sh invoked notify.sh with -l info -w -r human (6th role coverage)"
   else
     fail "peer-poke.sh did NOT invoke correct flags for human role" \
          "expected '-l info -w -r human' in mock log; got: $(cat "$MOCK_LOG")"

@@ -120,9 +120,9 @@ rm -f "$VALID_FIX"
 section "T4: mixed fixture → only broken lines"
 MIXED_FIX="$(mktemp)"
 cat > "$MIXED_FIX" <<'EOF'
-diff --git a/scripts/ping.sh b/scripts/ping.sh
---- a/scripts/ping.sh
-+++ b/scripts/ping.sh
+diff --git a/scripts/notify-invocations.sh b/scripts/notify-invocations.sh
+--- a/scripts/notify-invocations.sh
++++ b/scripts/notify-invocations.sh
 @@ -1,3 +1,4 @@
 +scripts/notify.sh -l info -w -r developer "valid"
 +scripts/notify.sh -l tester "broken — no -w -r"
