@@ -77,9 +77,12 @@ jobs:
 
             // d297 regexes used LITERALLY (no re-invention, guaranteed 1:1 parity).
             // Source: scripts/tests/d297-closes-format-check.sh (cycle ~#5854 strict).
-            const REGEX_STRICT_NUMBER = /^Closes\s+#[0-9]+$/;
-            const REGEX_STRICT_OWNER  = /^Closes\s+[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+#[0-9]+$/;
-            const REGEX_STRICT_LINK   = /^Closes\s+\[#[0-9]+\]\(https?:\/\/github\.com\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+\/issues\/[0-9]+\)$/;
+            // TD-074 (refs PR #1001 TC8b2a1046b): tightened from JS \s+ to ASCII
+            // [ \t]+ to match bash d297 POSIX strictness and reject NBSP/BOM/etc.
+            // Tester's recommended fix verbatim; parity with bash d297 enforced.
+            const REGEX_STRICT_NUMBER = /^Closes[ \t]+#[0-9]+$/;
+            const REGEX_STRICT_OWNER  = /^Closes[ \t]+[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+#[0-9]+$/;
+            const REGEX_STRICT_LINK   = /^Closes[ \t]+\[#[0-9]+\]\(https?:\/\/github\.com\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+\/issues\/[0-9]+\)$/;
 
             function isStrictCloses(line) {
               return REGEX_STRICT_NUMBER.test(line)
@@ -88,7 +91,7 @@ jobs:
             }
 
             const lines = body.split('\n');
-            const closesLines = lines.filter(l => /^Closes\s+/.test(l));
+            const closesLines = lines.filter(l => /^Closes[ \t]+/.test(l));
 
             if (closesLines.length === 0) {
               core.info(`silent_skip pr=#${pr.number} reason=no-closes-anchors policy="warn-only"`);
