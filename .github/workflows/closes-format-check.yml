@@ -91,7 +91,14 @@ jobs:
             }
 
             const lines = body.split('\n');
-            const closesLines = lines.filter(l => /^Closes[ \t]+/.test(l));
+            // Detection regex is INTENTIONALLY BROADER than the 3 strict regexes
+            // (PR #1005 tester NIT 1, cycle ~#5894): use \s+ here so NBSP/BOM/IDEO/
+            // SHY/ZWSP/ZWJ-prefixed Closes lines flow through to isStrictCloses(),
+            // which then correctly REJECTs them with [ \t]+ ASCII class. If we
+            // tightened detection to [ \t]+ too (as in the 3 strict regexes per
+            // TD-074), NBSP-prefixed lines would silently skip the strict check —
+            // a fail-silent bypass for invisible-whitespace spoof vectors.
+            const closesLines = lines.filter(l => /^Closes\s+/.test(l));
 
             if (closesLines.length === 0) {
               core.info(`silent_skip pr=#${pr.number} reason=no-closes-anchors policy="warn-only"`);
