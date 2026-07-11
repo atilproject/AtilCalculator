@@ -212,13 +212,26 @@ section_t5() {
 
 # ============================================================================
 # TC6 (AC4 regression): PR #998 RCA-19 fix body uses strict-format Closes anchor
+#   Drift fix (cycle ~#5854): prior draft silent-skipped when gh API unavailable,
+#   hiding regression (per ADR-0045 §Lens silent-skip path coverage requirement).
+#   New behavior: fail-loud on gh API error / PR not found / empty body.
 # ============================================================================
 section_t6() {
     printf "${B}TC6 (AC4 regression): PR #998 RCA-19 fix body has strict-format Closes anchor${D}\n"
+    # Pre-flight: gh CLI must be available (fail-loud per ADR-0045 §Lens)
+    if ! command -v gh >/dev/null 2>&1; then
+        fail "TC6 — gh CLI not available in PATH (cannot verify regression; fail-loud per ADR-0045 §Lens)"
+        return 0
+    fi
     local pr_body
-    if ! pr_body=$(gh api repos/atilcan65/AtilCalculator/pulls/998 --jq '.body' 2>/dev/null); then
-        info "TC6 — gh API unavailable (rate-limited?), skipping live PR body check"
+    if ! pr_body=$(gh api repos/atilcan65/AtilCalculator/pulls/998 --jq '.body' 2>&1); then
+        fail "TC6 — gh API call failed (rate-limited, network, or PR #998 not found). fail-loud per ADR-0045 §Lens silent-skip mitigation."
+        info "  Error: $pr_body"
         info "  ADR-0057 exemplar: PR #998 body restored at cmt-id 4944342219 closeout (Closes atilcan65/AtilCalculator#993 anchor preserved)"
+        return 0
+    fi
+    if [ -z "$pr_body" ]; then
+        fail "TC6 — gh API returned empty body for PR #998 (cannot verify regression; fail-loud per ADR-0045 §Lens)"
         return 0
     fi
     # Find anchor line — must match strict owner/repo#N format (ADR-0057 exemplar)
