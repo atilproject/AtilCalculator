@@ -19,7 +19,7 @@
 # Cadence Rule 1 (ADR-0055 §1) atomic single-commit sister to PR #997 AC
 # rev (docs-only) + architect implementation PR (downstream).
 #
-# 7 top-level TCs (per ADR-0049 d-test framework sister-pattern + dispatch spec):
+# 8 top-level TCs (per ADR-0049 d-test framework sister-pattern + dispatch spec):
 #   TC1 (AC2 positive): strict `Closes #N` regex match
 #   TC2 (AC2 positive): strict `Closes owner/repo#N` regex match (owner-qualified)
 #   TC3 (AC2 positive): markdown link variant `Closes [#N](url)` regex match
@@ -30,9 +30,11 @@
 #   TC6 (AC4 regression): PR #998 RCA-19 fix body uses strict-format Closes anchor
 #   TC7 (AC2 NEGATIVE): trailing-whitespace `Closes #N ` must FAIL (cycle ~#5854 self-review drift fix;
 #                        regex tightened to AC1 + d054 TC5 sister-pattern canonical strict)
+#   TC8 (AC2 NEGATIVE): NBSP `Closes<U+00A0>#N` must FAIL (cycle ~5892 adversarial probe — invisible-
+#                        char strict-format coverage; mirrors TC7's drift-fix iteration pattern)
 #
 # Per ADR-0044 RED-first TDD doctrine:
-#   - TC1-TC4 + TC7 are contract tests (PASS-by-contract — d-test defines the regex
+#   - TC1-TC4 + TC7-TC8 are contract tests (PASS-by-contract — d-test defines the regex
 #     and tests its behavior on canonical inputs from the issue body evidence table
 #     + AC1 + d054 TC5 strict format)
 #   - TC5 is the RED gate — FAILs until architect implements
@@ -42,10 +44,24 @@
 #     uses strict-format Closes anchor (ADR-0057 exemplar from this cycle)
 #
 # Post-impl GREEN state (after architect implementation PR merges):
-#   - TC1-TC4 + TC7: PASS (contract tests, always PASS)
+#   - TC1-TC4 + TC7-TC8: PASS (contract tests, always PASS)
 #   - TC5: PASS (workflow file exists with all 8 sub-cats)
 #   - TC6: PASS (PR #998 + future PRs use strict-format)
-#   → 7/7 GREEN → d297 marks ADR-0057 enforcement complete
+#   → 8/8 GREEN → d297 marks ADR-0057 enforcement complete
+#
+# Engine parity observation (cycle ~5892 adversarial probe, see TC8 commit):
+#   - bash POSIX `[[:space:]]` (this d-test) is locale-fragile — on glibc en_US.UTF-8
+#     it treats NBSP/BOM/IDEOGRAPHIC-SPACE as NON-whitespace (current observed behavior);
+#     on other locales (or with explicit Unicode-aware POSIX class) it might match them.
+#   - JavaScript regex `\s` (closes-format-check.yml impl) is Unicode-aware by default —
+#     it ALWAYS matches NBSP/BOM/IDEOGRAPHIC-SPACE as whitespace.
+#   - Practical implication: bash d-test PASS for "NBSP must REJECT" but JS impl would
+#     ACCEPT NBSP as whitespace (silent permissiveness).
+#   - Recommended fix (architect lane, ADR-0043 / impl regex tightening): replace
+#     `\s` with explicit ASCII whitespace class `[ \t]+` in closes-format-check.yml JS
+#     regex constants to guarantee locale-independent strictness.
+#   - This d-test codifies the contract (REJECT NBSP); impl-side Unicode control is
+#     tracked as ADR-0057 §Strict-Regex follow-up, NOT blocking d297 GREEN.
 #
 # Doctrinal cite:
 #   - ADR-0057 (Closes anchor strict-format — anchor rule)
@@ -264,6 +280,28 @@ section_t7() {
     fi
 }
 
+# ============================================================================
+# TC8 (AC2 NEGATIVE): NBSP (U+00A0) anchor `Closes<NOBR-SPACE>#N` must FAIL strict-format
+#   Adversarial probe iteration (cycle ~5892): NBSP between `Closes` and `#N` is an
+#   invisible-whitespace spoof vector — humans reviewing PR bodies may not notice the
+#   non-canonical char, but ADR-0057 strict format mandates canonical ASCII-only
+#   whitespace. Per TC7's drift-fix pattern, this TC codifies the bash-side contract
+#   that NBSP REJECTs. Sister-finding: JS impl regex `\s` is Unicode-aware and would
+#   ACCEPT NBSP; tracked as ADR-0057 §Strict-Regex follow-up (impl regex tightening
+#   `[ \t]+` to guarantee locale-independent strictness, out of d297 RED scope).
+# ============================================================================
+section_t8() {
+    printf "${B}TC8 (AC2 NEGATIVE): NBSP (U+00A0) anchor FAILS strict-format check (invisible-whitespace spoof)${D}\n"
+    # Construct input with explicit UTF-8 NBSP (0xC2 0xA0) — single-shot printf
+    local input
+    input=$(printf 'Closes\xc2\xa0#993')
+    if is_strict_closes "$input"; then
+        fail "TC8 — NBSP MATCHED strict regex (would allow invisible-whitespace spoof; ADR-0057 strict-format violated; recommended impl fix: ASCII-only whitespace class [ \\t]+)"
+    else
+        pass "TC8 — NBSP correctly REJECTED by ADR-0057 strict contract (canonical-strict intent codified; sister-finding: JS impl \\s accepts NBSP — tracked ADR-0057 follow-up)"
+    fi
+}
+
 # === Execute TCs ===
 section_t1
 section_t2
@@ -272,16 +310,17 @@ section_t4
 section_t5
 section_t6
 section_t7
+section_t8
 
 # === Summary ===
 printf "\n${B}== d297 summary ==${D}\n"
 printf "  PASS: %d / FAIL: %d\n" "$PASS_COUNT" "$FAIL_COUNT"
 if [ "$FAIL_COUNT" -eq 0 ]; then
-    printf "${G}GREEN — d297 d-test contract honored, ADR-0057 CI gate complete${D}\n"
+    printf "${G}GREEN — d297 d-test contract honored, ADR-0057 CI gate complete (8/8 incl. TC8 NBSP drift-fix)${D}\n"
     exit 0
 else
     printf "${R}RED — d297 d-test contract violated, ADR-0057 CI gate incomplete${D}\n"
     printf "${Y}  Expected RED state on dispatch: TC5 FAIL until closes-format-check.yml lands${D}\n"
-    printf "${Y}  Other TCs FAIL would indicate regex contract drift or regression${D}\n"
+    printf "${Y}  Other TCs FAIL would indicate regex contract drift or regression (TC7/TC8 NEGATIVE invariants)${D}\n"
     exit 1
 fi
