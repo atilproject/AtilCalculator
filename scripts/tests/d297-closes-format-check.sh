@@ -19,7 +19,7 @@
 # Cadence Rule 1 (ADR-0055 §1) atomic single-commit sister to PR #997 AC
 # rev (docs-only) + architect implementation PR (downstream).
 #
-# 6 top-level TCs (per ADR-0049 d-test framework sister-pattern + dispatch spec):
+# 7 top-level TCs (per ADR-0049 d-test framework sister-pattern + dispatch spec):
 #   TC1 (AC2 positive): strict `Closes #N` regex match
 #   TC2 (AC2 positive): strict `Closes owner/repo#N` regex match (owner-qualified)
 #   TC3 (AC2 positive): markdown link variant `Closes [#N](url)` regex match
@@ -28,10 +28,13 @@
 #   TC5 (AC5 ADR-0043):  YAML workflow 8-sub-category presence check
 #                        (path/runs-on/permissions/timeout/concurrency/if/secrets/no-raw-docker-ssh)
 #   TC6 (AC4 regression): PR #998 RCA-19 fix body uses strict-format Closes anchor
+#   TC7 (AC2 NEGATIVE): trailing-whitespace `Closes #N ` must FAIL (cycle ~#5854 self-review drift fix;
+#                        regex tightened to AC1 + d054 TC5 sister-pattern canonical strict)
 #
 # Per ADR-0044 RED-first TDD doctrine:
-#   - TC1-TC4 are contract tests (PASS-by-contract — d-test defines the regex
-#     and tests its behavior on canonical inputs from the issue body evidence table)
+#   - TC1-TC4 + TC7 are contract tests (PASS-by-contract — d-test defines the regex
+#     and tests its behavior on canonical inputs from the issue body evidence table
+#     + AC1 + d054 TC5 strict format)
 #   - TC5 is the RED gate — FAILs until architect implements
 #     `.github/workflows/closes-format-check.yml` (or label-check.yml step) with
 #     all 8 ADR-0043 sub-categories present
@@ -39,14 +42,14 @@
 #     uses strict-format Closes anchor (ADR-0057 exemplar from this cycle)
 #
 # Post-impl GREEN state (after architect implementation PR merges):
-#   - TC1-TC4: PASS (contract tests, always PASS)
+#   - TC1-TC4 + TC7: PASS (contract tests, always PASS)
 #   - TC5: PASS (workflow file exists with all 8 sub-cats)
 #   - TC6: PASS (PR #998 + future PRs use strict-format)
-#   → 6/6 GREEN → d297 marks ADR-0057 enforcement complete
+#   → 7/7 GREEN → d297 marks ADR-0057 enforcement complete
 #
 # Doctrinal cite:
 #   - ADR-0057 (Closes anchor strict-format — anchor rule)
-#   - ADR-0044 (RED-first TDD, ≥3 baseline honored via 6 TCs)
+#   - ADR-0044 (RED-first TDD, ≥3 baseline honored via 7 TCs)
 #   - ADR-0049 (d-test framework, ≥5 baseline + sister-pattern ≥2)
 #   - ADR-0055 §1 (Cadence Rule 1 atomic single-commit)
 #   - ADR-0043 (8-sub-category compliance for workflow YAML)
@@ -70,7 +73,7 @@
 #   bash scripts/tests/d297-closes-format-check.sh --self-test
 #
 # Exit codes:
-#   0 — all 6 TCs PASS (GREEN state — implementation complete)
+#   0 — all 7 TCs PASS (GREEN state — implementation complete)
 #   1 — at least one TC FAIL (RED state — implementation pending or regression)
 #   2 — preflight failure (missing dependencies)
 #
@@ -94,15 +97,19 @@ if [ "${1:-}" = "--self-test" ]; then
     printf "  RED baseline:  TC5 RED until closes-format-check.yml lands per ADR-0057 enforcement\n\n"
 fi
 
-# === Regex contract (inline reference, sourced from Issue #994 §Proposed fix) ===
-# Per ADR-0057: strict Closes anchor must match one of:
+# === Regex contract (inline reference, sourced from Issue #994 §Proposed fix + AC1 from PR #997) ===
+# Per ADR-0057 + AC1 (PR #997 AC rev) canonical strict regex:
 #   1. `Closes #N` — number-only (e.g., `Closes #993`)
 #   2. `Closes owner/repo#N` — owner-qualified (e.g., `Closes atilcan65/AtilCalculator#982`)
 #   3. `Closes [#N](url)` — markdown link variant (e.g., `Closes [#989](https://github.com/atilcan65/AtilCalculator/issues/989)`)
-# Anything else (parenthetical, no owner qualifier, S28-NNN prefix, etc.) FAILS.
-REGEX_STRICT_NUMBER='^Closes[[:space:]]+#[0-9]+[[:space:]]*$'
-REGEX_STRICT_OWNER='^Closes[[:space:]]+[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+#[0-9]+[[:space:]]*$'
-REGEX_STRICT_LINK='^Closes[[:space:]]+\[#[0-9]+\]\(https?://github\.com/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+/issues/[0-9]+\)[[:space:]]*$'
+# Anything else (parenthetical, no owner qualifier, S28-NNN prefix, TRAILING WHITESPACE, etc.) FAILS.
+#
+# Drift fix (cycle ~#5854 self-review): prior draft had `[[:space:]]*$` which was permissive
+# (allowed trailing whitespace). Aligned to AC1 strict (no trailing whitespace per d054 TC5
+# sister-pattern + ADR-0057 §Closes-vs-Refs Intent Rule).
+REGEX_STRICT_NUMBER='^Closes[[:space:]]+#[0-9]+$'
+REGEX_STRICT_OWNER='^Closes[[:space:]]+[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+#[0-9]+$'
+REGEX_STRICT_LINK='^Closes[[:space:]]+\[#[0-9]+\]\(https?://github\.com/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+/issues/[0-9]+\)$'
 
 is_strict_closes() {
     local input="$1"
@@ -228,6 +235,22 @@ section_t6() {
     fi
 }
 
+# ============================================================================
+# TC7 (AC2 NEGATIVE): trailing-whitespace anchor `Closes #N ` must FAIL strict-format
+#   Drift fix (cycle ~#5854 self-review): prior draft had `[[:space:]]*$` which was
+#   permissive (allowed trailing whitespace). Aligned to AC1 + d054 TC5 sister-pattern
+#   + ADR-0057 strict format. This TC guarantees the regex is canonical-strict.
+# ============================================================================
+section_t7() {
+    printf "${B}TC7 (AC2 NEGATIVE): trailing-whitespace \`Closes #N \` FAILS strict-format check${D}\n"
+    local input='Closes #993 '
+    if is_strict_closes "$input"; then
+        fail "TC7 — trailing-whitespace MATCHED strict regex (would silently allow non-canonical anchor; ADR-0057 §Closes-vs-Refs Intent Rule violated)"
+    else
+        pass "TC7 — trailing-whitespace correctly REJECTED by ADR-0057 canonical strict regex (matches d054 TC5 sister-pattern)"
+    fi
+}
+
 # === Execute TCs ===
 section_t1
 section_t2
@@ -235,6 +258,7 @@ section_t3
 section_t4
 section_t5
 section_t6
+section_t7
 
 # === Summary ===
 printf "\n${B}== d297 summary ==${D}\n"
