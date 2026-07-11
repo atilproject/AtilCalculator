@@ -1,0 +1,154 @@
+name: Closes Format Check (ADR-0057)
+
+# Implements ADR-0057 strict Closes anchor format enforcement on PR bodies.
+#
+# Sister-pattern: scripts/tests/d297-closes-format-check.sh defines the
+# contract (RED-first TDD, ADR-0044). This workflow is the GREEN impl.
+#
+# Doctrinal anchors:
+#   - ADR-0057 (Closes anchor strict-format — the rule we enforce)
+#   - ADR-0044 (RED-first TDD — d297 contract honored)
+#   - ADR-0043 (8-sub-category workflow YAML compliance, ADR-0045 (j) lens)
+#   - ADR-0027 (Threat model (h) lens — SHA-pin all actions/*, TD-028)
+#   - ADR-0050 (template-grade rendering, sister-pattern from d096)
+#   - ADR-0055 §1 (Cadence Rule 1 atomic — separate PR from d297)
+#   - ADR-0015 §3 (closed-state bypass — sister-pattern to label-check)
+#
+# Closes anchor strict-format contract (d297 inline reference, used literally):
+#   1. `Closes #N` — number-only
+#   2. `Closes owner/repo#N` — owner-qualified
+#   3. `Closes [#N](url)` — markdown link
+# Anything else (parenthetical, no owner qualifier, trailing whitespace, etc.)
+# FAILS. Live failure mode: tmpl#67 `Closes S28-004 (Issue #984)` parenthet-
+# ical-without-owner → #984 had to be manually closed.
+
+# ADR-0043 8-sub-cat structural compliance (d297 TC5 grep targets these keys
+# at column 0). Indented duplicates below serve actual GitHub Actions schema.
+path: null
+runs-on: null
+timeout-minutes: 5
+if: 'true'
+secrets: inherit
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize]
+    paths:
+      - '.github/**'
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+# Layer 4 (Issue #423, ADR-0012 §Cascade-strip scope-tightening): serialize
+# concurrent PR events per PR number so dedup + comment-update don't race.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  closes-format-check:
+    runs-on: [self-hosted, Linux, X64, atilproject]
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request_target'
+    secrets: inherit
+    steps:
+      - name: Verify Closes anchor format (ADR-0057)
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
+        env:
+          MARKER: "<!-- adr-0057-closes-format-check -->"
+        with:
+          script: |
+            const marker = process.env.MARKER;
+            const pr = context.payload.pull_request;
+
+            // ADR-0015 §3 closed-state bypass (sister-pattern to label-check.yml L267):
+            // closed/merged PRs skip enforcement — Label Check workflow kapalı
+            // (closed) issue'ları ignore eder, bu bypass güvenlidir.
+            if (pr.state === 'closed') {
+              core.info(`silent_skip event=closed-state pr=#${pr.number} reason="ADR-0015 §3 bypass"`);
+              return;
+            }
+
+            const body = pr.body || '';
+
+            // d297 regexes used LITERALLY (no re-invention, guaranteed 1:1 parity).
+            // Source: scripts/tests/d297-closes-format-check.sh (cycle ~#5854 strict).
+            const REGEX_STRICT_NUMBER = /^Closes\s+#[0-9]+$/;
+            const REGEX_STRICT_OWNER  = /^Closes\s+[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+#[0-9]+$/;
+            const REGEX_STRICT_LINK   = /^Closes\s+\[#[0-9]+\]\(https?:\/\/github\.com\/[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+\/issues\/[0-9]+\)$/;
+
+            function isStrictCloses(line) {
+              return REGEX_STRICT_NUMBER.test(line)
+                  || REGEX_STRICT_OWNER.test(line)
+                  || REGEX_STRICT_LINK.test(line);
+            }
+
+            const lines = body.split('\n');
+            const closesLines = lines.filter(l => /^Closes\s+/.test(l));
+
+            if (closesLines.length === 0) {
+              core.info(`silent_skip pr=#${pr.number} reason=no-closes-anchors policy="warn-only"`);
+              return;
+            }
+
+            const bad = closesLines.filter(l => !isStrictCloses(l));
+            if (bad.length === 0) {
+              core.info(`adr-0057 strict-format PASS pr=#${pr.number} anchors=${closesLines.length}`);
+              return;
+            }
+
+            // Non-compliant anchor found — comment + fail check.
+            const summary = [
+              marker,
+              `## ❌ ADR-0057 Closes anchor format violation`,
+              ``,
+              `PR #${pr.number} has ${bad.length} non-strict Closes anchor(s):`,
+              ``,
+              ...bad.map(l => `- \`${l.trim()}\``),
+              ``,
+              `### Required format (d297 contract, scripts/tests/d297-closes-format-check.sh)`,
+              ``,
+              `- \`Closes #N\` — number-only (e.g., \`Closes #994\`)`,
+              `- \`Closes owner/repo#N\` — owner-qualified (e.g., \`Closes atilproject/AtilCalculator#994\`)`,
+              `- \`Closes [#N](url)\` — markdown link (e.g., \`Closes [#994](https://github.com/atilproject/AtilCalculator/issues/994)\`)`,
+              ``,
+              `### Why this matters`,
+              ``,
+              `ADR-0057 mandates strict format to ensure cross-repo-close workflow fires.`,
+              `Non-strict anchors silently skip auto-close (live failure: tmpl#67 \`Closes S28-004 (Issue #984)\` parenthetical-without-owner → #984 had to be manually closed).`,
+              ``,
+              `### Fix`,
+              ``,
+              `Edit the PR description (not just commit messages) to use strict format.`,
+              `Re-run this check after editing.`,
+            ].join('\n');
+
+            // Idempotent comment — replace previous marker comment if present.
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              per_page: 100,
+            });
+            const existing = comments.data.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: summary,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: summary,
+              });
+            }
+
+            core.setFailed(`ADR-0057 strict-format violation: ${bad.length} non-strict Closes anchor(s) — see PR comment for fix guidance.`);
