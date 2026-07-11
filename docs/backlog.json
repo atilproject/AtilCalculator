@@ -1202,7 +1202,7 @@
       "id": "STORY-S28-001",
       "title": "PORT RETRO-018 W6 amend block to canonical orchestrator tmpl",
       "priority": "P1",
-      "status": "backlog",
+      "status": "in-progress",
       "agent": "architect",
       "cc": [
         "architect",
@@ -1218,16 +1218,17 @@
       ],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-001.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/981",
       "vision_metrics": [],
       "notes": "Issue #974 ID=SL-01. First of 3 amend-block ports to canonical tmpl (Gap 1). PM 5th-pass cmt 4938118016 reframe: target = dev-studio-template/.claude/agents/orchestrator.md.tmpl (CANONICAL), NOT project-local mirror.",
-      "v1_0_0_scope": "TEMPLATE"
+      "v1_0_0_scope": "TEMPLATE",
+      "issue_status": "in-progress"
     },
     {
       "id": "STORY-S28-002",
       "title": "PORT Issue #389 §Peer-Poke Discipline amend to canonical orchestrator tmpl",
       "priority": "P1",
-      "status": "backlog",
+      "status": "ready",
       "agent": "architect",
       "cc": [
         "architect",
@@ -1244,23 +1245,24 @@
       ],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-002.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/982",
       "vision_metrics": [],
       "notes": "Issue #974 ID=SL-01a. Second amend-block port. ADR-0033 dual-channel doctrine codified.",
-      "v1_0_0_scope": "TEMPLATE"
+      "v1_0_0_scope": "TEMPLATE",
+      "issue_status": "ready"
     },
     {
       "id": "STORY-S28-003",
       "title": "Forward-port agent-watch.sh + claim-next-ready.sh to tmpl scripts (sister-pattern)",
       "priority": "P1",
-      "status": "backlog",
+      "status": "in-progress",
       "agent": "developer",
       "cc": [
         "developer",
         "tester",
         "human"
       ],
-      "story_points_proposed": 1.5,
+      "story_points_proposed": 1,
       "depends_on": [
         "PR #967 squash-merge",
         "ADR-0002 (autonomy loop), ADR-0038 (auto-claim)"
@@ -1268,16 +1270,17 @@
       "blocks": [],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-003.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/983",
       "vision_metrics": [],
       "notes": "Issue #974 ID=SL-02. Script forward-port (sister-pattern to soul amends). Per audit §3, calc has these but tmpl doesn't.",
-      "v1_0_0_scope": "TEMPLATE"
+      "v1_0_0_scope": "TEMPLATE",
+      "issue_status": "in-progress"
     },
     {
       "id": "STORY-S28-004",
       "title": "PORT Issue #414 dispatch-discipline amend block to canonical orchestrator tmpl (third amend-block port)",
       "priority": "P1",
-      "status": "backlog",
+      "status": "ready",
       "agent": "architect",
       "cc": [
         "architect",
@@ -1294,16 +1297,17 @@
       ],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-004.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/984",
       "vision_metrics": [],
       "notes": "Issue #974 ID=SL-02a. Third amend-block port (NEW per architect cycle ~767 clarification). Sister-pattern to S28-001 (W6) + S28-002 (#389).",
-      "v1_0_0_scope": "TEMPLATE"
+      "v1_0_0_scope": "TEMPLATE",
+      "issue_status": "ready"
     },
     {
       "id": "STORY-S28-005",
       "title": "RE-RENDER calc's .claude/agents/*.md from updated tmpl (Gap 2, sister-pattern)",
       "priority": "P1",
-      "status": "backlog",
+      "status": "in-progress",
       "agent": "developer",
       "cc": [
         "developer",
@@ -1311,7 +1315,7 @@
         "orchestrator",
         "human"
       ],
-      "story_points_proposed": 1,
+      "story_points_proposed": 0.5,
       "depends_on": [
         "STORY-S28-001",
         "STORY-S28-002",
@@ -1322,16 +1326,17 @@
       ],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-005.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/985",
       "vision_metrics": [],
       "notes": "Issue #974 ID=SL-03. Closes Gap 2 of the 2-gap architecture (canonical tmpl → local mirror → .md render chain).",
-      "v1_0_0_scope": "TEMPLATE"
+      "v1_0_0_scope": "TEMPLATE",
+      "issue_status": "in-progress"
     },
     {
       "id": "STORY-S28-006",
       "title": "Append 28th ADR to docs/decisions/INDEX.md (or close superseded entries)",
       "priority": "P1",
-      "status": "backlog",
+      "status": "ready",
       "agent": "architect",
       "cc": [
         "architect",
@@ -1349,16 +1354,17 @@
       ],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-006.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/986",
       "vision_metrics": [],
       "notes": "Issue #974 ID=SL-04. Reserves ADR-0058..0071 (14 slots) per §20.1.",
-      "v1_0_0_scope": "TEMPLATE"
+      "v1_0_0_scope": "TEMPLATE",
+      "issue_status": "ready"
     },
     {
       "id": "STORY-S28-007",
       "title": "PORT Auto-Verdict-By hook (ADR-0024 §Path 2) from calc's peer-poke.sh to tmpl's peer-poke.sh.tmpl",
       "priority": "P1",
-      "status": "backlog",
+      "status": "ready",
       "agent": "developer",
       "cc": [
         "developer",
@@ -1366,7 +1372,7 @@
         "tester",
         "human"
       ],
-      "story_points_proposed": 1,
+      "story_points_proposed": 2,
       "depends_on": [
         "PR #967 squash-merge",
         "ADR-0024 §Path 2 spec"
@@ -1376,23 +1382,24 @@
       ],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-007.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/988",
+      "issue_status": "ready",
       "vision_metrics": [],
-      "notes": "Issue #974 ID=S-08a. CRITICAL PATH: S-08 blocked on S-08a. PM-A-DELTA-CL-01 critical-path finding.",
+      "notes": "Issue #974 ID=S-08a. CRITICAL PATH: S-08 blocked on S-08a. PM-A-DELTA-CL-01 critical-path finding. Opened cycle ~847 per Issue #987 dev-lane gap-signal. Cadence Rule 1 atomic with S28-008. Story point revised 1 → 2 (matches W1 #983 sister-pattern).",
       "v1_0_0_scope": "TEMPLATE"
     },
     {
       "id": "STORY-S28-008",
       "title": "LEGACY-REMOVE peer-poke.sh + ping.sh from calc (after S-08a port)",
       "priority": "P1",
-      "status": "backlog",
+      "status": "ready",
       "agent": "developer",
       "cc": [
         "developer",
         "architect",
         "human"
       ],
-      "story_points_proposed": 0.5,
+      "story_points_proposed": 1,
       "depends_on": [
         "STORY-S28-007 (HARD GATE — Cadence Rule 1 atomic per ADR-0055)"
       ],
@@ -1401,9 +1408,10 @@
       ],
       "sprint": "Sprint 28",
       "sprint_story_doc": "docs/backlog/STORY-S28-008.md",
-      "issue_pending": "PM to open at Sprint 28 kickoff",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/989",
+      "issue_status": "ready",
       "vision_metrics": [],
-      "notes": "Issue #974 ID=S-08. Cleanup phase. PM-A-DELTA-CL-01 + CL-05 cadence findings preserved.",
+      "notes": "Issue #974 ID=S-08. Cleanup phase. PM-A-DELTA-CL-01 + CL-05 cadence findings preserved. Opened cycle ~847 per Issue #987 dev-lane gap-signal. HARD GATE on S28-007 — auto-claim will pick S28-008 only AFTER S28-007 closes. Story point revised 0.5 → 1 (audit-usages open question adds scope).",
       "v1_0_0_scope": "TEMPLATE"
     },
     {
@@ -1556,7 +1564,7 @@
       "v1_0_0_scope": "TEMPLATE"
     }
   ],
-  "last_id": 17,
+  "last_id": 989,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
@@ -1593,5 +1601,7 @@
   "sprint_26_retro_pending": false,
   "sprint_26_retro_doc": "docs/sprints/sprint-26/RETRO-018.md",
   "sprint_28_groomed_at": "2026-07-10T18:13:00Z",
-  "sprint_28_source": "Issue #974 (Sprint 28 Kickoff, owner picked a hepsi default) + PR #967 audit-baseline.md"
+  "sprint_28_source": "Issue #974 (Sprint 28 Kickoff, owner picked a hepsi default) + PR #967 audit-baseline.md",
+  "updated_at": "2026-07-11T00:59:00Z",
+  "last_modified_by": "product-manager (Issue #987 disposition, cycle ~847)"
 }
