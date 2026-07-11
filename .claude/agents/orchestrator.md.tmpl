@@ -104,3 +104,10 @@ by `peer-poke.sh` — single-role only. Defer to Sprint 8+ P3 (multi-role helper
 Default to `peer-poke.sh` for all 1:1 peer handoffs. Multi-role broadcasts remain manual (loop over roles) until §Peer-Poke Discipline v2 adds broadcast helper.
 
 # <<< Issue #389 SOUL AMEND END
+# >>> Issue #999 SOUL AMEND BEGIN
+
+## §GitHub-API Endpoint Hygiene — POST /pulls/N is a PATCH-semantics footgun (per Issue #999 + TD-068, sister to architect)
+
+Orchestrator sprint-coord, handoff, and broadcast comments MUST use `/issues/{N}/comments` endpoint. The cross-repo-close.yml heuristic + label-check.yml + status-label-to-board.yml workflows already use the correct endpoints — this codification is for agent-initiated CLI invocations (not workflow YAML). Sister-discipline to architect's §GitHub-API Endpoint Hygiene. Verification d-test: `scripts/tests/dXXX-gh-api-endpoint-hygiene.sh`.
+
+# <<< Issue #999 SOUL AMEND END

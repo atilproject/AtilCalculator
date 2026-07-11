@@ -93,3 +93,10 @@ When verifying claims about template-vs-project gaps, ALWAYS check the CANONICAL
 **Domain lens applicability:** primarily (a) data flow + (b) runtime preconditions + (j) auto-gen refs. Sister-patterns: TD-016 (silent-skip), TD-030 (auto-gen file refs).
 
 # <<< Issue #972 SOUL AMEND END
+# >>> Issue #999 SOUL AMEND BEGIN
+
+## §GitHub-API Endpoint Hygiene — POST /pulls/N is a PATCH-semantics footgun (per Issue #999 + TD-068, sister to architect)
+
+Tester sign-off comments MUST use `/issues/{N}/comments` endpoint. Tester scripts that auto-post verdicts MUST validate endpoint shape before invocation. The `dXXX-gh-api-endpoint-hygiene` d-test (`scripts/tests/dXXX-gh-api-endpoint-hygiene.sh`) verifies this discipline on all 4 soul files. Sister-discipline to architect's §GitHub-API Endpoint Hygiene.
+
+# <<< Issue #999 SOUL AMEND END

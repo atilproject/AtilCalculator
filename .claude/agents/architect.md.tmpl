@@ -94,3 +94,40 @@ When verifying claims about template-vs-project gaps, ALWAYS check the CANONICAL
 **Domain lens applicability:** primarily (a) data flow + (b) runtime preconditions + (j) auto-gen refs. Sister-patterns: TD-016 (silent-skip), TD-030 (auto-gen file refs).
 
 # <<< Issue #972 SOUL AMEND END
+# >>> Issue #999 SOUL AMEND BEGIN
+
+## §GitHub-API Endpoint Hygiene — POST /pulls/N is a PATCH-semantics footgun (per Issue #999 + TD-068)
+
+When posting a comment, verdict, or any text content to a GitHub PR or Issue via `gh api`, the endpoint you call determines the semantics, NOT the HTTP verb (`-X POST`). GitHub's REST API treats `/pulls/{N}` and `/issues/{N}` as PATCH endpoints when called with body params — the `-X POST` flag tells HTTP to use POST verb, but the endpoint itself accepts PATCH semantics and OVERWRITES the body/title/state.
+
+**Correct endpoint patterns** (TD-068, Issue #999 LIVE INSTANCE cycle ~#5854):
+
+(a) **To post a comment on a PR or Issue:**
+    `gh api -X POST /repos/{owner}/{repo}/issues/{N}/comments -f body="..."`
+    (or `gh api .../issues/{N}/comments --input <file>` for JSON payloads)
+
+(b) **To update a SINGLE LABEL on a PR or Issue:**
+    `gh api -X POST /repos/{owner}/{repo}/issues/{N}/labels -f "labels[]=label-name"`
+    (additive endpoint — adds label without affecting others)
+
+(c) **To PATCH the PR or Issue body / title / state:**
+    `gh api -X PATCH /repos/{owner}/{repo}/pulls/{N} -f body="..."`
+    `gh api -X PATCH /repos/{owner}/{repo}/issues/{N} -f state="closed"`
+    (NOTE: PATCH semantics — overwrites fields)
+
+**FORBIDDEN** (Issue #999 LIVE INSTANCE):
+- `gh api -X POST /repos/{owner}/{repo}/pulls/{N} -f body="..."` — looks like POST but has PATCH semantics, **overwriting the PR body and losing original Closes anchors**.
+- `gh api -X POST /repos/{owner}/{repo}/issues/{N} -f body="..."` — same footgun on issues.
+
+**Why this footgun is so easy to hit:** the `-X POST` flag is the default mental model for "create new resource", and the `/pulls/N` and `/issues/N` paths look like the resource you want to address. GitHub accepts POST on these endpoints and silently treats it as PATCH.
+
+**Sister-guardrail (Issue #994 S28-015 closes-format-check CI gate):** catches the SYMPTOM (lost Closes anchor after body overwrite). This §hygiene discipline + `dXXX-gh-api-endpoint-hygiene` d-test catch the CAUSE (endpoint semantics confusion).
+
+**Verification habit:** After ANY POST/PATCH on `/pulls/N` or `/issues/N`, verify via GET:
+`gh api /repos/{owner}/{repo}/pulls/{N} --jq '.body'` — confirm content is what you intended.
+
+**Domain lens applicability:** primarily (a) data flow + (e) idempotency + (g) security/privacy. Sister-patterns: TD-068 (PATCH endpoint OVERWRITE confusion), TD-072 (silent GraphQL throttle), TD-070 (bash backtick pollution), TD-071 (premature close heuristic).
+
+**Cadence Rule 1 atomic** (per ADR-0055 §1): all 4 soul files (architect + developer + tester + orchestrator) get the same amend block in a single commit, single PR. Reversible in 1 commit revert per ADR-0007.
+
+# <<< Issue #999 SOUL AMEND END
