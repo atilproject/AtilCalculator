@@ -35,7 +35,7 @@
 # Sprint 23 v9.2 amend per Issue #785 INCIDENT-2 — RCA-19 uvicorn cold-start
 # readiness (PR #785 lane). Replaces the fragile fixed `sleep 2` after
 # `systemctl --user start` with `wait_for_uvicorn_ready()` — an HTTP-level
-# retry loop that polls /healthz for up to 15s (1s tick) and exits 7 on
+# retry loop that polls /healthz for up to 30s (1s tick) and exits 7 on
 # timeout. The `ss -tlnp` etime cross-user check (d017 T1-T8 backstop,
 # RCA-12 Issue #168 original) is intentionally KEPT as defense-in-depth
 # backstop, NOT removed; the two checks are ORTHOGONAL (HTTP readiness vs
@@ -425,7 +425,7 @@ fi
 # healthy (verified post-deploy via SSH at 18:52:48Z — see issue body).
 #
 # Design:
-#   - Polls $HEALTHZ_URL with a 1-second tick, budget = 15s (spec Option A).
+#   - Polls $HEALTHZ_URL with a 1-second tick, budget = 30s (spec Option A; RCA-19 followup bumped 15s→30s for cold runner venv).
 #   - On HTTP 200: logs "uvicorn ready after Ns" and returns 0.
 #   - On timeout: logs warning and returns 1; caller (restart_service) maps
 #     that to the existing exit-code taxonomy (7 = systemd integration
@@ -434,11 +434,11 @@ fi
 #   - The `ss -tlnp` + etime cross-user check immediately below (d017 T1-T8
 #     regression guard, RCA-12 original Issue #168) is intentionally KEPT
 #     as a defense-in-depth backstop. HTTP readiness + cross-user detection
-#     are ORTHOGONAL: HTTP=200 + etimes≤60s = green; HTTP fails after 15s
+#     are ORTHOGONAL: HTTP=200 + etimes≤60s = green; HTTP fails after 30s
 #     + etimes≤60s = service unhealthy (exit 7); HTTP fails + no PID bound
 #     = hard cold-start failure (exit 6 retained for backstop).
 wait_for_uvicorn_ready() {
-  local wait_max="${UVICORN_READY_TIMEOUT_SEC:-15}"  # AC2 floor ≥10s, 15s preferred
+  local wait_max="${UVICORN_READY_TIMEOUT_SEC:-30}"  # AC2 floor ≥10s, 30s default per RCA-19 (was 15s)
   local healthz_url="${HEALTHZ_URL:-http://127.0.0.1:${ATC_PORT:-8000}/healthz}"
   log "wait_for_uvicorn_ready: polling $healthz_url (budget=${wait_max}s, 1s tick; refs Issue #785 INCIDENT-2)"
   for i in $(seq 1 "$wait_max"); do
@@ -552,18 +552,18 @@ restart_service() {
     fi
     # systemd reports "active" within a few hundred ms; uvicorn import-time +
     # uvloop + pydantic 2.x cold init can take 5-8s. Instead of a fixed sleep,
-    # poll /healthz with a 15s budget (Issue #785 v9.2 fix, d123 TC2-TC4).
+    # poll /healthz with a 30s budget (Issue #785 v9.2 fix + RCA-19 followup, d123 TC2-TC4).
     # On timeout fall through to defense-in-depth `ss -tlnp` + etime cross-user
     # check (RCA-12 original, d017 T1-T8). The two checks are orthogonal:
     # HTTP readiness vs port-ownership.
-    wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-15}s after systemctl --user start (RCA-19 / Issue #785 INCIDENT-2). Common cause: pyproject.toml [web] extra missing on the prod venv, ExecStart path mismatch, or uvicorn import-time failure. Cross-check via 'systemctl --user status atilcalc-web.service' and 'journalctl --user -u atilcalc-web.service -n 50 --no-pager' on the prod host." 7
+    wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-30}s after systemctl --user start (RCA-19 / Issue #785 INCIDENT-2). Common cause: pyproject.toml [web] extra missing on the prod venv, ExecStart path mismatch, or uvicorn import-time failure. Cross-check via 'systemctl --user status atilcalc-web.service' and 'journalctl --user -u atilcalc-web.service -n 50 --no-pager' on the prod host." 7
   else
     log "<!-- adr-0010-supplement-silent-skip --> Branch B supplement start: spawning nohup+setsid uvicorn (D-Bus unavailable per ADR-0010 supplement §Supp-Y/Z; lifecycle caveats per §Supp-Z)"
     _nohup_setsid_uvicorn_spawn || fail "Branch B nohup+setsid uvicorn spawn failed (RCA-9 .venv/bin/uvicorn not executable, or nohup/setsid missing)" 7
     # Still poll /healthz — Branch B spawn is detached, may take time to bind.
-    # The 15s readiness budget (Issue #785 v9.2, d123 TC3) is sufficient for
+    # The 30s readiness budget (Issue #785 v9.2 + RCA-19 followup, d123 TC3) is sufficient for
     # the venv-installed uvicorn with uvloop + pydantic 2.x cold init.
-    wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-15}s after nohup+setsid spawn (Branch B supplement; RCA-19 / Issue #785 INCIDENT-2 readiness poll). Check /tmp/uvicorn-branch-b.log for spawn failures." 7
+    wait_for_uvicorn_ready || fail "uvicorn never became ready within ${UVICORN_READY_TIMEOUT_SEC:-30}s after nohup+setsid spawn (Branch B supplement; RCA-19 / Issue #785 INCIDENT-2 readiness poll). Check /tmp/uvicorn-branch-b.log for spawn failures." 7
   fi
 
   # --- RCA-12 post-restart: strict port-PID etimes check (REPLACES lenient ps grep) ---
