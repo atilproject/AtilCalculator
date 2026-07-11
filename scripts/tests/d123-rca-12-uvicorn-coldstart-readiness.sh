@@ -17,16 +17,16 @@
 #
 # v9.2 fix (proposed):
 #   - Replace strict `ss` bind check with HTTP-level readiness retry loop:
-#     `for i in {1..15}; do curl -fsS http://127.0.0.1:$ATC_PORT/healthz
+#     `for i in {1..30}; do curl -fsS http://127.0.0.1:$ATC_PORT/healthz
 #     2>/dev/null && break; sleep 1; done`. Waits for actual HTTP 200, not
 #     just port bind — distinguishes "uvicorn still importing" from
 #     "uvicorn serving".
 #   - Keep the `ss -tlnp` etimes cross-user check as defense-in-depth
 #     backstop (RCA-12's original purpose, Issue #168). The two checks
 #     are ORTHOGONAL: HTTP=200 + etimes≤60s = green; HTTP=200 + etimes>60s
-#     = cross-user conflict (RCA-12 still catches); HTTP fails after 15s
+#     = cross-user conflict (RCA-12 still catches); HTTP fails after 30s
 #     + etimes≤60s = service unhealthy (exit 7 per AC4 lineage); HTTP fails
-#     after 15s + no PID bound = hard failure (exit 6, original RCA-12).
+#     after 30s + no PID bound = hard failure (exit 6, original RCA-12).
 #   - New exit code surface unchanged (existing 5/6/7); the readiness
 #     retry is the new entry point into the existing failure taxonomy.
 #
@@ -49,7 +49,7 @@
 #
 # AC traceability:
 #   - TC2 ↔ AC1 — HTTP readiness retry loop literal in deploy-runner.sh
-#   - TC3 ↔ AC2 — ≥10s budget (15s preferred per Option A in spec)
+#   - TC3 ↔ AC2 — ≥10s floor (30s default per RCA-19 followup, was 15s)
 #   - TC4 ↔ AC2 — 1-second tick between retries
 #   - TC5 ↔ AC3 — simulated slow-bind test using mock curl + timing
 #   - TC6 ↔ AC5 — RCA-12 `ss`/etime cross-user check remains present
@@ -58,7 +58,7 @@
 #
 # Pre-impl RED state (current origin/main 1f2d29948, PR #785 OPEN):
 #   - TC2 FAIL — `wait_for_uvicorn_ready` function not yet in deploy-runner.sh
-#   - TC3 FAIL — no retry budget cap literal "15" present in readiness loop
+#   - TC3 FAIL — no retry budget cap literal "30" present in readiness loop
 #   - TC4 FAIL — no "sleep 1" within readiness retry loop
 #   - TC5 FAIL — function does not exist; cannot be sourced for mock test
 #   - TC6 PASS-by-coincidence — `ss` etime cross-user check still in deploy-runner.sh
@@ -123,7 +123,7 @@ printf "${B}d123 self-test (Issue #785 INCIDENT-2 — RCA-12 uvicorn cold-start 
 printf "${B}================================================================${D}\n"
 printf "  Deploy-runner: %s\n" "$DEPLOY_RUNNER"
 printf "  Sister slot:   d017 (RCA-12 cross-user port-8000, Issue #168) + d122 (RCA-20 run-server.sh, Issue #771) + d123 (RCA-19 uvicorn cold-start, Issue #785)\n"
-printf "  Fix design:    replace strict 'ss' bind check with curl /healthz retry loop (15s budget, Option A from spec)\n"
+printf "  Fix design:    replace strict 'ss' bind check with curl /healthz retry loop (30s budget, RCA-19 followup of 15s)\n"
 printf "  Backstop:      RCA-12 ss/etime cross-user check (d017 T1-T8 defense-in-depth) REMAINS present, NOT removed\n"
 printf "  RED-first:     pre-impl TC2+TC3+TC4+TC5 FAIL (PR #785 not yet merged); TC6+TC7 PASS-by-coincidence.\n\n"
 
@@ -157,13 +157,13 @@ else
 fi
 
 # ============================================================================
-# TC3 (AC2): retry budget ≥10s (15s preferred per Option A in spec)
+# TC3 (AC2): retry budget ≥10s (30s default per RCA-19 followup, was 15s)
 # ============================================================================
-section "TC3 (AC2): readiness retry budget ≥10s (15s preferred per spec Option A)"
+section "TC3 (AC2): readiness retry budget ≥10s (30s default per RCA-19 followup)"
 # Inspect the helper body: must contain a budget literal of ≥10s, expressed
 # either as brace-expansion '{1..N}' OR as 'seq 1 N' (variable-friendly form
 # for env-var-configurable budgets via UVICORN_READY_TIMEOUT_SEC). Both
-# patterns are acceptable per Option A intent — the spec calls out 15s but
+# patterns are acceptable per Option A intent — the spec originally called out 15s (RCA-19 followup bumped default to 30s, ≥10s floor unchanged) but
 # the architectural choice of config-driven budget is a feature, not a
 # regression. Heuristic: extract the largest integer in a 'seq' expression
 # OR the largest N in '{1..N}' brace expansion, then assert >= 10.
@@ -179,7 +179,7 @@ if [ -n "$HELPER_BRACE" ]; then
   fi
 fi
 if [ "$HELPER_BUDGET_OK" = "0" ] && [ -n "$HELPER_SEQ" ]; then
-  # Variable-friendly form: budget comes from ${UVICORN_READY_TIMEOUT_SEC:-15}
+  # Variable-friendly form: budget comes from ${UVICORN_READY_TIMEOUT_SEC:-30}
   # default. Verify the default value declared in the helper is >= 10.
   DEFAULT_FALLBACK=$(printf '%s\n' "$HELPER_BODY" | grep -oE 'UVICORN_READY_TIMEOUT_SEC:-[0-9]+|wait_max=["'"'"']?[0-9]+["'"'"']?' | head -1 || true)
   DEFAULT_N=$(printf '%s' "$DEFAULT_FALLBACK" | grep -oE '[0-9]+' | tail -1)
@@ -192,7 +192,7 @@ if [ "$HELPER_BUDGET_OK" = "1" ]; then
   pass "TC3 — retry budget $HELPER_BUDGET_REASON (≥ 10s floor, AC2 met)"
 else
   fail "TC3 — retry budget missing or too small" \
-    "expected '{1..10}' (minimal) or '{1..15}' (preferred per Option A) OR 'seq 1 \${UVICORN_READY_TIMEOUT_SEC:-15}' variable form with default >= 10. Helper body had: seq='$HELPER_SEQ' brace='$HELPER_BRACE'. Uvicorn cold-start per RCA-19 takes 5-8s on uvloop+fastapi 0.115; budget < 10s risks false-fail."
+    "expected '{1..10}' (minimal floor) or '{1..30}' (default per RCA-19) OR 'seq 1 \${UVICORN_READY_TIMEOUT_SEC:-30}' variable form with default >= 10. Helper body had: seq='$HELPER_SEQ' brace='$HELPER_BRACE'. Uvicorn cold-start per RCA-19 takes 5-8s on uvloop+fastapi 0.115; budget < 10s risks false-fail."
 fi
 
 # ============================================================================
@@ -204,7 +204,7 @@ if [ -n "$HELPER_HAS_SLEEP_1" ]; then
   pass "TC4 — retry tick = sleep 1 present in wait_for_uvicorn_ready body (AC2 met)"
 else
   fail "TC4 — sleep 1 tick MISSING" \
-    "expected 'sleep 1' (1-second tick) inside the for/while loop. Spec Option A: 'for i in {1..15}; do ... sleep 1; done'."
+    "expected 'sleep 1' (1-second tick) inside the for/while loop. Spec Option A: 'for i in {1..30}; do ... sleep 1; done'."
 fi
 
 # ============================================================================
@@ -249,7 +249,7 @@ set -uo pipefail
 log() { printf '[%s] %s\n' "\$(date -u +%Y-%m-%dT%H:%M:%SZ)" "\$*" >&2; }
 ATC_PORT=18000
 HEALTHZ_URL="http://127.0.0.1:\${ATC_PORT}/healthz"
-UVICORN_READY_TIMEOUT_SEC=15
+UVICORN_READY_TIMEOUT_SEC=30
 START_TS=\$(date +%s)
 ${HELPER_BODY}
 wait_for_uvicorn_ready
