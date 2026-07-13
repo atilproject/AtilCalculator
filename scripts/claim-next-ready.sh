@@ -469,7 +469,7 @@ verify_post_flip() {
       >/dev/null 2>&1 || true
     echo "$now_iso $ROLE ROLLBACK #$picked_num (flip-not-applied)" \
       >> "$audit_log" 2>/dev/null || true
-    return 1
+    return 6
   fi
 
   # (2) Re-query search-index with retry — eventual consistency window (typically <5s).
@@ -501,14 +501,16 @@ verify_post_flip() {
       >/dev/null 2>&1 || true
     echo "$now_iso $ROLE ROLLBACK #$picked_num (wip-over-cap-post-flip=$post_flip_count limit=$WIP_LIMIT)" \
       >> "$audit_log" 2>/dev/null || true
-    return 1
+    return 7
   fi
 
   return 0
 }
 
-if ! verify_post_flip "$picked_number"; then
-  exit 7
+verify_post_flip "$picked_number"
+verify_post_flip_rc=$?
+if [ "$verify_post_flip_rc" -ne 0 ]; then
+  exit "$verify_post_flip_rc"
 fi
 
 # Comment is best-effort (warn on failure but still exit 0 since the flip succeeded).

@@ -417,6 +417,37 @@ fi
 unset WIP_LIMIT FAKE_LAG_MODE FAKE_LAG_STALE FAKE_LAG_FRESH
 
 # ============================================================================
+section "TC12: flip-not-applied → exit 6 rollback (Issue #1041 AC1 arch S1)"
+# Per arch 🟢 verdict (cmt 4960124189, S1 critical): TC11 covers exit-7 (search-index
+# over-cap) but NOT exit-6 (flip-not-applied via per-issue view). This TC simulates
+# the rare case where gh issue edit claims success but the per-issue strongly-consistent
+# view still shows status:ready (e.g., another actor undid it, label-cache stale, or
+# GitHub internal race). Verify: script rolls back + exits 6 + writes audit log entry.
+#
+# Setup:
+#   FAKE_FLIP_APPLIED=0 — fake-gh's "issue view --json labels" returns "status:ready"
+#     instead of "status:in-progress", simulating flip-didn't-take
+#   No lag simulation needed (FAKE_LAG_MODE=0 → standard search-index returns)
+#   WIP_LIMIT=2, pre-flip WIP=0 → script proceeds, flips
+#   Per-issue view check fails → rollback + exit 6
+WIP_LIMIT=2 FAKE_FLIP_APPLIED=0
+ready='[
+  {"number":500,"title":"flip-not-applied test","createdAt":"2026-06-22T10:00:00Z","labels":[{"name":"priority:P0"},{"name":"status:ready"},{"name":"agent:developer"}],"body":""}
+]'
+run_claim developer 0 "$ready" ""
+if [ "$CLAIM_RC" = "6" ] && echo "$CLAIM_OUT" | grep -q "flip did not apply"; then
+  audit_log_full="$TEST_TMPDIR/logs/auto-claim.log"
+  if [ -f "$audit_log_full" ] && grep -q "ROLLBACK #500 (flip-not-applied)" "$audit_log_full"; then
+    pass "flip-not-applied detected via per-issue view (rollback, exit 6, audit log structured entry)"
+  else
+    fail "rollback message printed but audit log entry missing" "audit_log content=$(cat "$audit_log_full" 2>/dev/null | tail -3)"
+  fi
+else
+  fail "flip-not-applied path not handled correctly" "expected exit 6 + 'flip did not apply' message; got rc=$CLAIM_RC out=$(echo "$CLAIM_OUT" | tail -3)"
+fi
+unset WIP_LIMIT FAKE_FLIP_APPLIED
+
+# ============================================================================
 printf "\n${B}==== SUMMARY ====${D}\n"
 printf "  ${G}PASS${D}: %d\n" "$PASS"
 printf "  ${R}FAIL${D}: %d\n" "$FAIL"
@@ -428,5 +459,5 @@ if [ "$FAIL" -gt 0 ]; then
   exit 1
 fi
 echo
-echo "d031 REGRESSION PASS — claim-next-ready.sh (ADR-0038 §Layer 2) contract honored. 11/11 TCs green (10 baseline + TC11 Issue #1041)."
+echo "d031 REGRESSION PASS — claim-next-ready.sh (ADR-0038 §Layer 2) contract honored. 12/12 TCs green (10 baseline + TC11/TC12 Issue #1041)."
 exit 0
