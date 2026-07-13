@@ -38,7 +38,7 @@ AtilCalculator (sister repo) has **11/11 workflows on `runs-on: [self-hosted, Li
 ## High-level diagram
 
 ```mermaid
-graph LR
+flowchart LR
   Template[atilproject/dev-studio-template<br/>.github/workflows/*.yml] -->|runs-on: line| Runner[Self-hosted runner<br/>4-tuple label match]
   Runner -->|if: ubuntu-latest| Actions[GH Actions<br/>burns minutes]
   Runner -->|if: 4-tuple| LAN[atilproject LAN<br/>zero-minutes]
