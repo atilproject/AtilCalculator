@@ -105,6 +105,7 @@ N/A — declarative trigger-based execution. d-test is the verification layer (s
 
 The d-test must actually fire on self-hosted runner. If the d-test is written but never wired into a workflow's `on: paths:` trigger, it silently REDs (test exists but never runs). Mitigation:
 - d-test MUST be wired into `.github/workflows/d-test.yml` (existing workflow) with `paths:` trigger covering `scripts/tests/s29-001-**` AND `.github/workflows/*.yml`
+- **TC0 (preflight, dev-lane S-2 suggestion, cycle #1181j)** — verifies `.github/workflows/d-test.yml` existence AND `paths:` trigger coverage pre-run; if missing, d-test skips with explicit `info` log instead of false-pass. (~5 lines bash addition inside the d-test itself; sister-pattern to TD-075 silent-RED defense-in-depth)
 - TC1 must use `gh api repos/atilproject/dev-studio-template/contents/.github/workflows/ai-pr-review.yml?ref=main` to verify live-state post-merge (not just local file check)
 - Sister-pattern: F-08 (PR #1008 audit-of-audit), F-10 (PR #1010 d114 scope gap), TD-075 (defense-test silent-RED family)
 
