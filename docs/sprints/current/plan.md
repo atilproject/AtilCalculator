@@ -1,88 +1,86 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 28 — LIVE on main (cycle ~783, 2026-07-10T22:30+03:00, post-4×squash-merge + W1 launch, owner triage pending on 3 items)**
+> **Active sprint:** **Sprint 29 — gap-closing only** (cycle ~#1245, 2026-07-13T13:45+03:00, scope-locked per owner directive "Sprint 29 ve gap closinge odaklanacağım, başka işlere dokunmuyoruz bitne kadar")
 >
-> 📄 **Sprint 28 kickoff issue:** [Issue #974](https://github.com/atilcan65/AtilCalculator/issues/974) — full 3-wave plan inline, in-progress
-> 📄 **Sprint 28 audit-baseline (MERGED):** [PR #967](https://github.com/atilcan65/AtilCalculator/pull/967) — squash-merged @ 18:57:07Z, commit `a02110c6`
-> 📄 **Sprint 28 plan source:** [`docs/sprints/sprint-28/00-audit-baseline.md`](../sprint-28/00-audit-baseline.md) (the plan.md file does not exist; source-of-truth is the audit-baseline.md)
-> 📄 **Sprint 27 closeout:** [`docs/sprints/sprint-27/close.md`](../sprint-27/close.md) — 3/3 work items shipped
-> 📄 **Sprint 27 retro (RETRO-019):** [`docs/sprints/sprint-27/RETRO-019.md`](../sprint-27/RETRO-019.md) — W1 (premature closure) + W7 (events API scan) doctrine candidates
->
-> **Mode:** 🟢 **SPRINT 28 LIVE ON MAIN + W1 LAUNCHED** — HEAD `ff9eacc`, 14 STORY files in `docs/backlog/`, 6 W1 STORY issues opened (#981-#986), 3/6 already in-progress (architect + dev auto-claimed)
->
-> **Sprint board status:**
-> - 🟢 Sprint 18, 20, 22, 23, 24, 25+, 26, 27 all CLOSED
-> - 🟡 Sprint 21 STALLED (Q6 default carry-over per Issue #708, in D-OD2 mass-close scope)
-> - 🟢 **Sprint 28 LIVE** — Issue #974 tracking; 4×PRs squash-merged; 1×PR awaiting owner merge
->
-> **Active backlog (14 items, post-W1 launch):**
->
-> | # | State | Title | Owner |
-> |---|---|---|---|
-> | #974 | open, status:in-progress, agent:orchestrator | [Sprint 28] Kickoff | @orchestrator (this cycle) |
-> | #981 | open, status:in-progress, agent:architect | STORY-S28-001 (PORT RETRO-018 W6) | @architect (auto-claimed) |
-> | #982 | open, status:ready, agent:architect | STORY-S28-002 (PORT Issue #389) | @architect (W1 next-up) |
-> | #983 | open, status:in-progress, agent:developer | STORY-S28-003 (forward-port scripts) | @developer (auto-claimed) |
-> | #984 | open, status:ready, agent:architect | STORY-S28-004 (PORT Issue #414) | @architect (W1 next-up) |
-> | #985 | open, status:in-progress, agent:developer | STORY-S28-005 (RE-RENDER .claude/agents) | @developer (auto-claimed) |
-> | #986 | open, status:ready, agent:architect | STORY-S28-006 (Append 28th ADR) | @architect (W1 next-up) |
-> | #979 | open, draft, agent:architect | Path-Verify Doctrine SOUL AMEND (W3) | @architect (awaiting owner squash) |
-> | #978 | open, status:backlog, agent:product-manager | PM-A-DELTA-CL-19 naming-scheme triage | @PM (awaiting owner a/b/c) |
-> | #972 | open, status:in-progress, agent:architect | Path-Verify Doctrine codification | @architect (closes on #979 squash) |
-> | #971 | open, status:backlog, agent:architect | per-soul amend-block diff plan | @architect (PM-A-DELTA-13) |
-> | #970 | open, status:backlog, agent:architect | docs/designs/ file enumeration missing | @architect (PM-A-DELTA-10) |
-> | #969 | open, status:backlog, agent:architect | docs/ops/vm-hardening.md portability | @architect (PM-A-DELTA-09) |
-> | #968 | open, status:backlog, agent:architect | tmpl docs/templates/ parity check | @architect (PM-A-DELTA-08) |
->
-> **W1 STORY launch summary (6 stories opened cycle ~846, 19:14:35Z by PM):**
->
-> | Lane | Stories | Status |
-> |---|---|---|
-> | architect-owned (4) | #981, #982, #984, #986 | #981 in-progress (auto-claimed); #982/#984/#986 ready |
-> | developer-owned (2) | #983, #985 | both in-progress (auto-claimed via ADR-0038, WIP=2/2) |
->
-> **Open PRs (2):**
->
-> | PR | Author | Lane | State | Action |
-> |---|---|---|---|---|
-> | #979 | architect | .claude/agents + scripts/tests | draft, MERGEABLE, d972 GREEN 5/5 | **owner squash-merge** (Closes #972) |
-> | #980 | orchestrator | docs/sprints/current/plan.md | draft, MERGEABLE, architect 🟢 OK 9-Lens (awaiting PM + owner squash) | **PM cross-watchdog + owner squash** |
->
-> **Squash-merged today (4×PRs, 41s window 18:57:07Z → 18:57:48Z):**
->
-> | PR | Title | Commit |
-> |---|---|---|
-> | #967 | Sprint 28 audit baseline + new-projectsteps runbook | `a02110c6` |
-> | #975 | refresh current/plan.md post-Sprint 28 KICKOFF | `7e81cf1d` |
-> | #976 | S-08a Auto-Verdict-By hook port design (W2) | `18c576a5` |
-> | #977 | Sprint 28 PM grooming — 14 STORY files (S28-001..014, 12sp) | `ff9eacc6` |
->
-> **Sprint 28 wave plan** (per Issue #974 + PR #967 §20):
->
-> - **W1 Foundation** (4.5sp): SL-01, SL-01a, SL-02, SL-02a, SL-03, SL-04 — *W1 LAUNCHED (6 STORY issues #981-#986 opened by PM cycle ~846), 3 in-progress (auto-claimed), 3 ready*
-> - **W2 Feature port** (4sp): S-08a (atomic dep — design merged via #976), S-08, Sprint-22-Q mass-close, CLAUDE.md reconcile
-> - **W3 Polish** (3.5sp): TD-029, TD-028, d-test regression, Path-Verify doc (closes via PR #979 squash)
-> - **Total**: 12sp, **8sp buffer**
->
-> **Owner bottleneck (3 items awaiting triage):**
->
-> 1. **Deploy run #29116380182** — step 3 "Deploy + smoke test + auto-rollback" FAILED at 19:00:47Z on `ff9eacc`. Auto-rollback within failing step (designed pattern). Owner decision on retry / post-mortem / prod-rollback needed.
-> 2. **PR #979 squash-merge** — architect SOUL AMEND (3×.claude/agents/*.md.tmpl + d972 d-test 250 LOC), d972 GREEN 5/5, Closes #972 on squash. Owner merge gate per ADR-0031.
-> 3. **PM-A-DELTA-CL-19 naming-scheme** (Issue #978 + cmt 4938295585 on #974) — owner a/b/c option: (a) keep existing sprint-prefix (PR #977 path), (b) migrate to SL-/S-/TD- prefix, (c) defer to retro.
->
-> **Lane gap (PM acted, ~closed):**
-> W1 dev lane: PM opened 6 STORY issues #981-#986 in cycle ~783, closing the gap surfaced at 22:18+03:00. Architect auto-claimed #981, developer auto-claimed #983 + #985 via ADR-0038 (WIP cap 2/2 reached for dev lane). 3/6 W1 stories in-progress; 3/6 in ready queue.
->
-> **Fired actions (cycle ~769-~781):**
-> - cmt 4938164239 (orchestrator synthesis, 6 D-OD matrix)
-> - cmt 4938190859 (orchestrator clarifier, 11 owner-asks inventory)
-> - Issue #974 opened (Sprint 28 kickoff, 9 labels per ADR-0012 4-cat invariant + cross-lane visibility)
-> - Peer pings: PM (grooming), architect (W2/W3 + bucket-B), developer (W1/W2 lane), tester (W3 lane), human (squash-merge)
-> - cmt 4938693081 (orchestrator spot-check on PR #979, d972 GREEN 5/5 ✅)
-> - cmt 4938703997 (orchestrator STATUS on Issue #974, carry queue snapshot)
-> - PM ping 22:18+03:00 (W1 dev-lane gap surfaced, lane = `docs/backlog/**`)
-> - 4×PRs squash-merged (PRs #967/#975/#976/#977, cycle ~777, 41s window)
->
-> **Dormant carry (Sprint 22/24/27):** 24 items, no action needed (owner-dormant per "yeni direktif için hazır olunca söyle")
+> 📄 **Sprint 29 plan source:** [`docs/sprints/sprint-29/00-plan.md`](../sprint-29/00-plan.md) (full 19-story plan, 3 waves + final)
+> 📄 **Sprint 29 prereq:** [`docs/sprints/sprint-28/02-template-launcher-audit-2026-07-13.md`](../sprint-28/02-template-launcher-audit-2026-07-13.md) — PR #1008, status:ready awaiting owner squash-merge per ADR-0031
+> 📄 **Sprint 28 closeout (pending):** [`docs/sprints/sprint-28/close.md`](../sprint-28/close.md) — drafts via Issue #1018 (orchestrator, lightweight mode)
+> 📄 **Sprint 28 retro (RETRO-018 W6):** captured via [PR #995 squash (1ea16cb)](https://github.com/atilcan65/AtilCalculator/pull/995) — orchestrator.md.tmpl SOUL AMEND codification (branch-ownership matrix cross-check)
 
-— @orchestrator, 2026-07-10T22:30+03:00 (cycle ~783, post-4×squash-merge, post-PR #979 spot-check, post-W1 launch)
+---
+
+## Mode
+
+🟢 **SPRINT 29 LIVE ON MAIN — SCOPE-LOCKED (gap-closing only, no template drift)**
+
+- **Owner-ratified**: 2026-07-13 (Phase 1 cycle ~#1159 + Phase 2 cycle ~#1180, 9 owner-decisions total)
+- **Capacity cap**: NONE (owner directive #3 — completion, not velocity, is the metric)
+- **Scope boundary**: Category C gap-closing items only (C-08 ISSUE_TEMPLATE, C-09 docs skeleton, C-01/02 board bootstrap); C-03..07/10 deferred to Sprint 30+
+- **Sister-repo workstreams** (RETRO-023 cluster): launcher PRs (`atilcan65/dev-studio-launcher`), template PRs (`atilcan65/dev-studio-template`)
+- **v1.0.1 tag discipline** (owner directive #1): move v1.0.1 → template HEAD `43592c24`; new v0.3.0 tag on launcher HEAD `b0d820da`
+
+---
+
+## Story inventory (19 stories, 3L + 7M + 9S)
+
+| Wave | Scope | Stories | Status |
+|---|---|---|---|
+| **Wave 1 — hygiene** | self-hosted runner migration, tag move, governance files | S29-001..005 | S29-001 load-bearing critical, S29-002 in-progress, S29-003 + S29-005 work-done via sister PRs, S29-004 in arch-design branch |
+| **Wave 2 — portage** | ADR port (universal IDs + amendments), d-test port, ISSUE_TEMPLATE content-parity | S29-006..011 | S29-006 ADR-first per owner #2, AC7 expanded per owner #8 (10-12 amendments) |
+| **Wave 2B — gap-closing** | pyproject.toml.tmpl + LICENSE.tmpl + .template-version render path, soul .md.tmpl re-author | S29-012..017 | NEW stories (S29-016, S29-017), S29-011 reframed XS per owner #7 |
+| **Wave 3 — verification** | docs sub-dir skeletons (8) + top-level docs files (6) | S29-018, S29-019 | NEW stories per owner Phase 2 |
+
+---
+
+## Owner merge gate queue (TIER 1 — ADR-0031 blocking)
+
+| PR | Repo | Story | State | Test status | Action |
+|---|---|---|---|---|---|
+| **#4** | atilcan65/dev-studio-launcher | S29-003 | draft, status:ready + cc:human | 6/6 d-test TCs GREEN | **owner squash-merge** |
+| **#71** | atilcan65/dev-studio-template | S29-005 | draft, status:ready + cc:human | 8/8 d-test TCs GREEN | **owner squash-merge** |
+| **#1008** | atilcan65/AtilCalculator | Sprint 28 audit-baseline | squash-merged @ 18:57:07Z (commit `a02110c6`) | n/a (docs) | ✅ already merged (Sprint 29 prereq) |
+| **#1019** (this) | atilcan65/AtilCalculator | plan.md refresh | draft, status:in-review + cc:human | n/a (docs pointer) | **owner squash-merge** (after push) |
+
+---
+
+## Sister-repo work-done evidence (cycle #1206 → #1245)
+
+- **Issue #1015** (S29-003) → terminal state `type:feature + status:ready + cc:human` (no `agent:*`); cross-links to PR #4 + PR #71
+- **Issue #1017** (S29-005) → terminal state `type:feature + status:ready + cc:human` (no `agent:*`); cross-links to PR #71
+- Cycle #1245 Option A executed (RETRO-024 live instance): restored cycle #1206 terminal state after orchestrator cycle #1223 reflexive 4-cat fix re-enabled auto-claim on work-done items
+
+---
+
+## Orchestrator pickup queue (TIER 2 — agent:orchestrator, no owner gate)
+
+| # | Title | Lane | Next action |
+|---|---|---|---|
+| **#1018** | Sprint 28 closeout ceremony — lightweight mode | `docs/sprints/**` | draft `close.md` + RETRO-024 inline link |
+| **#1014** | STORY-S29-002 (tag move v1.0.1 + v0.3.0) | `scripts/` (cross-repo release) | tag move after PR #1008 squash |
+
+---
+
+## Parked until Sprint 30 (TIER 3 — doctrine gaps, scope-locked out)
+
+| # | Title | Status |
+|---|---|---|
+| **#1024** | RETRO-023 — Cross-repo workstream doctrine codification | parked |
+| **#1022** | RETRO-021 — ADR-0038 §Auto-Claim WIP cap definition refinement | parked |
+| **#1027** | RETRO-024 (just filed cycle #1245) | filed + arch peer-poked; arch picks up Sprint 30+ |
+
+---
+
+## Doctrine reference
+
+- **ADR-0031** — Owner merge gate (only human squash-merges)
+- **ADR-0038** — Auto-Claim WIP cap (2/2 per role)
+- **ADR-0049** — d-test framework (≥5 TCs behavioral, ≥3 TCs hygiene/docs)
+- **ADR-0055** — Cadence Rule 1 atomic (sister-pattern d-test commits with impl)
+- **ADR-0057** — Closes anchor strict format (`Closes #N` vs `Refs #N`)
+- **RETRO-018 W6** — branch-ownership matrix (cross-agent push authority NOT in doctrine)
+- **RETRO-022** — auto-claim on work-done items = failure mode
+- **RETRO-023** (in flight) — cross-repo workstream doctrine
+
+---
+
+— @orchestrator, 2026-07-13T13:45+03:00 (cycle ~#1245, post-Option A execution, pre-PR #1019 push)
