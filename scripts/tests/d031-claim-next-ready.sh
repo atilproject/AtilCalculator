@@ -85,14 +85,41 @@ case "$*" in
     echo '{"nameWithOwner":"test-owner/test-repo"}'
     ;;
   *"status:in-progress"*)
-    # Return JSON array (matches `gh issue list --json number` output).
-    case "${FAKE_WIP_COUNT:-0}" in
-      0) echo '[]' ;;
-      1) echo '[{"number":900}]' ;;
-      2) echo '[{"number":900},{"number":901}]' ;;
-      3) echo '[{"number":900},{"number":901},{"number":902}]' ;;
-      *) echo '[]' ;;
-    esac
+    # Issue #1041: simulate eventual consistency between pre-flip WIP query and
+    # post-flip verification. When FAKE_LAG_MODE=1, first call returns FAKE_LAG_STALE
+    # (simulating pre-flip search-index missing recent items), subsequent calls
+    # return FAKE_LAG_FRESH (simulating authoritative post-flip count).
+    # Tracks call count in FAKE_CALL_COUNT_FILE so retries during verification work.
+    if [ "${FAKE_LAG_MODE:-0}" = "1" ]; then
+      call_count_file="${FAKE_CALL_COUNT_FILE:-/dev/null}"
+      call_count=0
+      if [ -f "$call_count_file" ]; then
+        call_count=$(cat "$call_count_file")
+      fi
+      call_count=$((call_count + 1))
+      echo "$call_count" > "$call_count_file"
+      if [ "$call_count" = "1" ]; then
+        target_count="${FAKE_LAG_STALE:-0}"
+      else
+        target_count="${FAKE_LAG_FRESH:-0}"
+      fi
+      case "$target_count" in
+        0) echo '[]' ;;
+        1) echo '[{"number":900}]' ;;
+        2) echo '[{"number":900},{"number":901}]' ;;
+        3) echo '[{"number":900},{"number":901},{"number":902}]' ;;
+        *) echo '[]' ;;
+      esac
+    else
+      # Standard mode (no lag): return FAKE_WIP_COUNT directly
+      case "${FAKE_WIP_COUNT:-0}" in
+        0) echo '[]' ;;
+        1) echo '[{"number":900}]' ;;
+        2) echo '[{"number":900},{"number":901}]' ;;
+        3) echo '[{"number":900},{"number":901},{"number":902}]' ;;
+        *) echo '[]' ;;
+      esac
+    fi
     ;;
   *"status:ready"*)
     if [ -s "${FAKE_READY_FILE:-/dev/null}" ]; then
@@ -104,10 +131,22 @@ case "$*" in
   *"issue view "*)
     # Return just the state value (matches what the script's `gh -q .state` would extract).
     n=$(echo "$*" | awk '{for(i=1;i<=NF;i++) if($i=="view") {print $(i+1); exit}}')
-    if [ "$n" = "${FAKE_DEP_OPEN_N:-}" ]; then
-      echo "open"
+    # Issue #1041 (post-flip verification): `gh issue view N --json labels --jq '.labels[].name'`
+    # uses the strongly-consistent endpoint — fake should return label names including
+    # status:in-progress for the just-flipped item. Default to "rolled-back" set when
+    # FAKE_FLIP_APPLIED != 1 (lets TC11 simulate flip-not-applied path).
+    if echo "$*" | grep -q -- "--json labels"; then
+      if [ "${FAKE_FLIP_APPLIED:-1}" = "1" ]; then
+        echo "status:in-progress"
+      else
+        echo "status:ready"
+      fi
     else
-      echo "closed"
+      if [ "$n" = "${FAKE_DEP_OPEN_N:-}" ]; then
+        echo "open"
+      else
+        echo "closed"
+      fi
     fi
     ;;
   *"pr list"*"Closes"*)
@@ -158,6 +197,11 @@ run_claim() {
   make_fake_gh "$gh_path" "$wip_count" "$ready_json" "$dep_open_n" "$log_path" "$pr_clusters"
 
   CLAIM_LOG="$log_path"
+  # Call-count file for Issue #1041 lag simulation (FAKE_LAG_MODE=1).
+  # Each invocation gets a fresh file so retries track correctly.
+  local call_count_file="$fake_bin/call-count"
+  : > "$call_count_file"
+
   # Use `env` explicitly to pass all required env vars to the subshell.
   # (Plain `VAR=val cmd` assignments don't survive `$(...)` command substitution
   # reliably with line continuations; `env` makes this explicit and correct.)
@@ -167,9 +211,15 @@ run_claim() {
     FAKE_CLUSTERS_FILE="$gh_path.clusters.json" \
     FAKE_DEP_OPEN_N="$dep_open_n" \
     FAKE_LOG_PATH="$log_path" \
+    FAKE_CALL_COUNT_FILE="$call_count_file" \
+    FAKE_LAG_MODE="${FAKE_LAG_MODE:-0}" \
+    FAKE_LAG_STALE="${FAKE_LAG_STALE:-}" \
+    FAKE_LAG_FRESH="${FAKE_LAG_FRESH:-}" \
+    FAKE_FLIP_APPLIED="${FAKE_FLIP_APPLIED:-1}" \
     PATH="$fake_bin:$PATH" \
     GITHUB_REPO="test-owner/test-repo" \
     AUTO_CLAIM_LOG_DIR="$TEST_TMPDIR/logs" \
+    WIP_LIMIT="${WIP_LIMIT:-2}" \
     bash "$CLAIM_SH" "$role" 2>&1)"
   CLAIM_RC=$?
 }
@@ -338,6 +388,66 @@ else
 fi
 
 # ============================================================================
+section "TC11: search-index lag → post-flip rollback (Issue #1041 AC1+AC5)"
+# Live incident: 3 claims in 36s while WIP_LIMIT=2; only 2 were pre-flip-visible
+# (search-index eventually-consistent). Bug: script allowed claim #3 because
+# pre-flip query returned stale count. Fix: post-flip verification re-queries +
+# rolls back if WIP > WIP_LIMIT.
+#
+# Setup:
+#   WIP_LIMIT=1, FAKE_LAG_STALE=0 (pre-flip search-index returns 0)
+#   FAKE_LAG_FRESH=2 (post-flip search-index returns 2 — including just-flipped)
+#   Pre-flip: 0 < 1 → script proceeds, flips ready → in-progress
+#   Post-flip verification: 2 > WIP_LIMIT=1 → ROLLBACK (exit 7, structured log)
+WIP_LIMIT=1 FAKE_LAG_MODE=1 FAKE_LAG_STALE=0 FAKE_LAG_FRESH=2
+ready='[
+  {"number":400,"title":"lag test","createdAt":"2026-06-22T10:00:00Z","labels":[{"name":"priority:P0"},{"name":"status:ready"},{"name":"agent:developer"}],"body":""}
+]'
+run_claim developer 0 "$ready" ""
+if [ "$CLAIM_RC" = "7" ] && echo "$CLAIM_OUT" | grep -q "ROLLBACK"; then
+  audit_log_full="$TEST_TMPDIR/logs/auto-claim.log"
+  if [ -f "$audit_log_full" ] && grep -q "ROLLBACK #400 (wip-over-cap-post-flip=2 limit=1)" "$audit_log_full"; then
+    pass "search-index lag caught by post-flip verification (rollback, exit 7, audit log structured entry)"
+  else
+    fail "rollback message printed but audit log entry missing or malformed" "audit_log=$audit_log_full content=$(cat "$audit_log_full" 2>/dev/null | tail -3)"
+  fi
+else
+  fail "post-flip verification did not rollback" "expected exit 7 + ROLLBACK message; got rc=$CLAIM_RC out=$(echo "$CLAIM_OUT" | tail -3)"
+fi
+unset WIP_LIMIT FAKE_LAG_MODE FAKE_LAG_STALE FAKE_LAG_FRESH
+
+# ============================================================================
+section "TC12: flip-not-applied → exit 6 rollback (Issue #1041 AC1 arch S1)"
+# Per arch 🟢 verdict (cmt 4960124189, S1 critical): TC11 covers exit-7 (search-index
+# over-cap) but NOT exit-6 (flip-not-applied via per-issue view). This TC simulates
+# the rare case where gh issue edit claims success but the per-issue strongly-consistent
+# view still shows status:ready (e.g., another actor undid it, label-cache stale, or
+# GitHub internal race). Verify: script rolls back + exits 6 + writes audit log entry.
+#
+# Setup:
+#   FAKE_FLIP_APPLIED=0 — fake-gh's "issue view --json labels" returns "status:ready"
+#     instead of "status:in-progress", simulating flip-didn't-take
+#   No lag simulation needed (FAKE_LAG_MODE=0 → standard search-index returns)
+#   WIP_LIMIT=2, pre-flip WIP=0 → script proceeds, flips
+#   Per-issue view check fails → rollback + exit 6
+WIP_LIMIT=2 FAKE_FLIP_APPLIED=0
+ready='[
+  {"number":500,"title":"flip-not-applied test","createdAt":"2026-06-22T10:00:00Z","labels":[{"name":"priority:P0"},{"name":"status:ready"},{"name":"agent:developer"}],"body":""}
+]'
+run_claim developer 0 "$ready" ""
+if [ "$CLAIM_RC" = "6" ] && echo "$CLAIM_OUT" | grep -q "flip did not apply"; then
+  audit_log_full="$TEST_TMPDIR/logs/auto-claim.log"
+  if [ -f "$audit_log_full" ] && grep -q "ROLLBACK #500 (flip-not-applied)" "$audit_log_full"; then
+    pass "flip-not-applied detected via per-issue view (rollback, exit 6, audit log structured entry)"
+  else
+    fail "rollback message printed but audit log entry missing" "audit_log content=$(cat "$audit_log_full" 2>/dev/null | tail -3)"
+  fi
+else
+  fail "flip-not-applied path not handled correctly" "expected exit 6 + 'flip did not apply' message; got rc=$CLAIM_RC out=$(echo "$CLAIM_OUT" | tail -3)"
+fi
+unset WIP_LIMIT FAKE_FLIP_APPLIED
+
+# ============================================================================
 printf "\n${B}==== SUMMARY ====${D}\n"
 printf "  ${G}PASS${D}: %d\n" "$PASS"
 printf "  ${R}FAIL${D}: %d\n" "$FAIL"
@@ -349,5 +459,5 @@ if [ "$FAIL" -gt 0 ]; then
   exit 1
 fi
 echo
-echo "d031 REGRESSION PASS — claim-next-ready.sh (ADR-0038 §Layer 2) contract honored. 10/10 TCs green."
+echo "d031 REGRESSION PASS — claim-next-ready.sh (ADR-0038 §Layer 2) contract honored. 12/12 TCs green (10 baseline + TC11/TC12 Issue #1041)."
 exit 0
