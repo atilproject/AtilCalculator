@@ -3,9 +3,11 @@
 > **Audience:** atil can (@atilcan65) and any future collaborator spinning up a new
 > project from the dev-studio-template + dev-studio-launcher combo.
 >
-> **Prereq state (as of 2026-07-10 cycle ~743):** Template HEAD = `81ec0b1` (tag
-> `v1.0.1`). Launcher HEAD = `b0d820d` (no v0.3.0 tag yet — see
-> `docs/sprints/sprint-28/00-audit-baseline.md` Q5/Q7).
+> **Prereq state (as of 2026-07-13 cycle ~1153):** Template HEAD = `43592c2`
+> (tag `v1.0.1` still at legacy SHA `81ec0b1`; no v1.0.2 tag). Launcher HEAD =
+> `b0d820d` (no v0.3.0 tag yet — see `docs/sprints/sprint-28/01-status-check-2026-07-13.md`).
+> Org-level: 8 self-hosted runners online + idle (verified 2026-07-13).
+> See [sprint-28 status check](sprints/sprint-28/01-status-check-2026-07-13.md) for full Q1-Q7 answers.
 >
 > **Output of this runbook:** A new GitHub repo at
 > `github.com/atilproject/<project-name>` with the dev-studio scaffold rendered,
@@ -392,8 +394,10 @@ scripts/peer-poke.sh developer "[ORCH→DEV] sprint N ready for pickup"
 
 ## Cross-references
 
-- **dev-studio-template**: https://github.com/atilproject/dev-studio-template (HEAD 81ec0b1, v1.0.1)
-- **dev-studio-launcher**: https://github.com/atilcan65/dev-studio-launcher (HEAD b0d820d, no v0.3 tag yet)
+- **dev-studio-template**: https://github.com/atilproject/dev-studio-template (HEAD `43592c2` 2026-07-11, tag `v1.0.1` at legacy SHA `81ec0b1`)
+- **dev-studio-launcher**: https://github.com/atilproject/dev-studio-launcher (HEAD `b0d820d` 2026-06-17, only `v0.2.0` tag; commit message says "v0.3" but no tag — L-01 pending)
+- **Audit baseline**: [`docs/sprints/sprint-28/00-audit-baseline.md`](sprints/sprint-28/00-audit-baseline.md) (comprehensive Sprint 28 audit, merged 2026-07-10)
+- **Status check 2026-07-13**: [`docs/sprints/sprint-28/01-status-check-2026-07-13.md`](sprints/sprint-28/01-status-check-2026-07-13.md) (delta check, owner-directive 2026-07-13)
 - **Audit baseline (Sprint 28 doc):** [`docs/sprints/sprint-28/00-audit-baseline.md`](sprints/sprint-28/00-audit-baseline.md)
 - **Related ADRs in template:** ADR-0012 (4-cat invariant), ADR-0013 (board sync), ADR-0014 (PROJECT_TOKEN), ADR-0016 (public-by-default)
 - **CLAUDE.md** (rendered from .tmpl): see your new project's `.claude/CLAUDE.md` after Step 5
