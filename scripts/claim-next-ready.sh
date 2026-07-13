@@ -392,9 +392,20 @@ sorted_json="$(printf '%s' "$ready_raw" | jq '
 # Conservative regex: (?i)(depends on|blocked by) #<digits>. "Refs #N" is
 # informational only (does NOT trigger skip). The regex bounds captured groups
 # to digits, so no shell eval of arbitrary text (T3 mitigation in design).
+#
+# RETRO-022 (Issue #1023) refinement: add deferral-marker pre-checks alongside
+# the existing open_dep check. 5 new marker classes signal "skip + log":
+#   1. soft-deferral: "deferred behind #N" — wait on upstream deliverable
+#   2. cross-block:   "blocks #N" — this work is downstream of #N
+#   3. decision-landed: "decision landed in #N" — upstream decision already made
+#   4. work-done:    "work done via PR #N" — implementation already shipped
+#   5. lane-active:  "deferred to #N (currently in-progress)" — peer owns active work
+# LIVE instances per RETRO-022 §1: #1012 (work-done), #1016 (soft-deferral).
+# d-test: scripts/tests/d1023-retro-022-auto-claim-soft-deferral.sh (5 TCs).
 picked_number=""
 picked_priority_label=""
 skipped_dep_summary=""
+skipped_deferral_summary=""
 total_candidates="$(printf '%s' "$sorted_json" | jq 'length')"
 i=0
 while [ "$i" -lt "$total_candidates" ]; do
@@ -414,12 +425,62 @@ while [ "$i" -lt "$total_candidates" ]; do
     fi
   done
 
-  if [ -z "$open_dep" ]; then
+  # RETRO-022 deferral-marker pre-checks: parse body for 4 new marker classes.
+  # Each marker produces a (reason, ref_n) pair. If any match, skip candidate.
+  deferral_reason=""
+  deferral_ref=""
+  # Marker 1: "deferred behind #N" (soft-deferral, ADR-0015 cross-issue-ref)
+  mf1_ref="$(printf '%s' "$cbody" | grep -oiE 'deferred behind #[0-9]+' | grep -oE '[0-9]+' | head -1 || true)"
+  if [ -n "$mf1_ref" ]; then
+    deferral_reason="deferred behind"
+    deferral_ref="$mf1_ref"
+  fi
+  # Marker 2: "blocks #N" (cross-issue-block, this work is downstream of #N)
+  if [ -z "$deferral_reason" ]; then
+    mf2_ref="$(printf '%s' "$cbody" | grep -oiE 'blocks #[0-9]+' | grep -oE '[0-9]+' | head -1 || true)"
+    if [ -n "$mf2_ref" ]; then
+      deferral_reason="blocks"
+      deferral_ref="$mf2_ref"
+    fi
+  fi
+  # Marker 3: "decision landed in #N" (upstream decision already made; close-as-done)
+  if [ -z "$deferral_reason" ]; then
+    mf3_ref="$(printf '%s' "$cbody" | grep -oiE 'decision landed in #[0-9]+' | grep -oE '[0-9]+' | head -1 || true)"
+    if [ -n "$mf3_ref" ]; then
+      deferral_reason="decision landed in"
+      deferral_ref="$mf3_ref"
+    fi
+  fi
+  # Marker 4: "work done via PR #N" (implementation already shipped)
+  if [ -z "$deferral_reason" ]; then
+    mf4_ref="$(printf '%s' "$cbody" | grep -oiE 'work done via PR #[0-9]+' | grep -oE '[0-9]+' | head -1 || true)"
+    if [ -n "$mf4_ref" ]; then
+      deferral_reason="work done via PR"
+      deferral_ref="$mf4_ref"
+    fi
+  fi
+  # Marker 5: "deferred to #N (currently in-progress)" (lane-active-claim priority)
+  if [ -z "$deferral_reason" ]; then
+    mf5_ref="$(printf '%s' "$cbody" | grep -oiE 'deferred to #[0-9]+ \([^)]*in-progress[^)]*\)' | grep -oE '[0-9]+' | head -1 || true)"
+    if [ -n "$mf5_ref" ]; then
+      deferral_reason="deferred to lane-active"
+      deferral_ref="$mf5_ref"
+    fi
+  fi
+
+  if [ -z "$open_dep" ] && [ -z "$deferral_reason" ]; then
     picked_number="$cnum"
     picked_priority_label="$cprio"
     break
   fi
-  skipped_dep_summary="${skipped_dep_summary}#$cnum(dep=#$open_dep) "
+  if [ -n "$open_dep" ]; then
+    skipped_dep_summary="${skipped_dep_summary}#$cnum(dep=#$open_dep) "
+    echo "[claim-next-ready.sh] skip #$cnum: dep=#$open_dep (open)" >&2
+  fi
+  if [ -n "$deferral_reason" ]; then
+    skipped_deferral_summary="${skipped_deferral_summary}#$cnum($deferral_reason=#$deferral_ref) "
+    echo "[claim-next-ready.sh] skip #$cnum: $deferral_reason #$deferral_ref" >&2
+  fi
   i=$((i + 1))
 done
 
