@@ -7,7 +7,7 @@
 - **Vision**: <one paragraph from `docs/product/vision.md` — Product Manager fills this on first run via the `agent:product-manager` kickoff issue>
 - **Current sprint**: see `docs/sprints/current/plan.md`
 - **Source of truth for backlog**: GitHub Project board (Projects v2)
-- **Repository**: https://github.com/atilcan65/AtilCalculator
+- **Repository**: https://github.com/atilproject/AtilCalculator
 
 ## Team (5 agents + 1 human)
 | Role | Who | Soul file | Lane (cc'd on / NOT cc'd on) |
@@ -84,7 +84,7 @@ A story is "Done" only if ALL of these hold:
 Örnek:
 ```
 scripts/ping.sh architect "[DEV→ARCH] PR #20 ready for design-alignment review
-https://github.com/atilcan65/AtilCalculator/pull/20
+https://github.com/atilproject/AtilCalculator/pull/20
 Check: import path, bind string, sync handler"
 ```
 
