@@ -1593,7 +1593,7 @@
     {
       "id": "STORY-S29-001",
       "title": "Migrate 7 template stock workflows to self-hosted 4-tuple",
-      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-001",
+      "issue": 1013,
       "priority": "P0",
       "status": "ready",
       "agent": "architect",
@@ -1620,7 +1620,7 @@
     {
       "id": "STORY-S29-002",
       "title": "Move v1.0.1 tag to current template HEAD + add v0.3.0 tag to launcher HEAD",
-      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-002",
+      "issue": 1014,
       "priority": "P1",
       "status": "ready",
       "agent": "orchestrator",
@@ -1645,7 +1645,7 @@
     {
       "id": "STORY-S29-003",
       "title": "Update launcher + README URLs (atilcan65 → atilproject)",
-      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-003",
+      "issue": 1015,
       "priority": "P2",
       "status": "ready",
       "agent": "developer",
@@ -1668,7 +1668,7 @@
     {
       "id": "STORY-S29-004",
       "title": "Fix status-label-to-board.yml (disable OR create Projects v2 board)",
-      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-004",
+      "issue": 1016,
       "priority": "P1",
       "status": "ready",
       "agent": "architect",
@@ -1690,7 +1690,7 @@
     {
       "id": "STORY-S29-005",
       "title": "scripts/verify-portage.sh — concrete portage-gap detection recipe",
-      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-005",
+      "issue": 1017,
       "priority": "P1",
       "status": "ready",
       "agent": "developer",
@@ -1713,7 +1713,7 @@
       "issue_status": "ready"
     }
   ],
-  "last_id": 1011,
+  "last_id": 1017,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
