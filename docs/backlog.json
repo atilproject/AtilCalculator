@@ -1589,9 +1589,131 @@
       "notes": "Issue #994 ID=TD-XXX. PM grooming cycle ~1729 per [ORCH→PM] dual-channel wake at 09:02Z. Architect lane WIP=0/2 post-W2 cluster ship at cycle ~819. T-shirt S (~20-40 LOC YAML regex). Supersedes TD-068 + TD-069 sister-tickets. Manual-close counter = 4 since #785 family (live instance: tmpl#67 parenthetical-without-owner). Sister-pattern: scripts/tests/ d-test framework (≥5 TCs for regex coverage). AC REVISION cycle ~1738 per architect 🟡 SUGGESTIONS on PR #996 (cmt 4944240668): AC1 SHA-pin clarified per TD-028 + ADR-0027 §Threat model; NEW AC5 added per ADR-0043 / TD-029 8-sub-category compliance; priority bumped P3→P2 (manual-close counter bleeding, tmpl#67 live instance, W3 ship priority).",
       "v1_0_0_scope": "TEMPLATE",
       "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-001",
+      "title": "Migrate 7 template stock workflows to self-hosted 4-tuple",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-001",
+      "priority": "P0",
+      "status": "ready",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "tester",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [],
+      "blocks": [
+        "S29-007 (d-test ports cite self-hosted runner reference)",
+        "S29-013 (launcher auto-applies 4-tuple)",
+        "S29-010 (new workflows inherit 4-tuple)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-001.md",
+      "vision_metrics": [],
+      "notes": "Issue #1011 ID=S29-001. PM grooming cycle ~#1193 per [ORCH→PM] dual-channel wake 2026-07-13T11:31:41+03:00. Load-bearing CRITICAL per owner directive #5 (self-hosted-only deployment). 7 ACs (AC1-4 workflow runs-on change, AC5 d-test ≥5 TCs per ADR-0049, AC6 no-regression, AC7 README backward-compat note). Sister-pattern: AtilCalculator .github/workflows/ (all 11 self-hosted via Sprint 27 migration). Source-of-truth: docs/sprints/sprint-29/00-plan.md §3.S29-001. Blocks Wave 2 verification (S29-014 needs self-hosted-only template to be meaningful).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "ready"
+    },
+    {
+      "id": "STORY-S29-002",
+      "title": "Move v1.0.1 tag to current template HEAD + add v0.3.0 tag to launcher HEAD",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-002",
+      "priority": "P1",
+      "status": "ready",
+      "agent": "orchestrator",
+      "cc": [
+        "orchestrator",
+        "architect",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [],
+      "blocks": [
+        "S29-014 (verification report cites tag discipline restored)",
+        "S29-015 (new-projectsteps.md tag discipline section update)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-002.md",
+      "vision_metrics": [],
+      "notes": "Issue #1011 ID=S29-002. PM grooming cycle ~#1193 per [ORCH→PM] dual-channel wake. Trivial (2 commands) but owner-merge-gated per ADR-0031 (destructive git ops). 5 ACs (AC1-2 tag moves verified, AC3 legacy tags preserved as historical anchors, AC4 force-push authorized in PR description, AC5 cross-traceability to 00-plan.md §S29-002). Owner directive #1 ('v1.0.1 ile devam') ratified cycle ~#1159. Sister-pattern: AtilCalculator tag discipline precedent (PRs #63 + #967).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "ready"
+    },
+    {
+      "id": "STORY-S29-003",
+      "title": "Update launcher + README URLs (atilcan65 → atilproject)",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-003",
+      "priority": "P2",
+      "status": "ready",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect",
+        "product-manager"
+      ],
+      "story_points_proposed": 0.25,
+      "depends_on": [],
+      "blocks": [],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-003.md",
+      "vision_metrics": [],
+      "notes": "Issue #1011 ID=S29-003. PM grooming cycle ~#1193. XS effort (5 line changes). 5 ACs (AC1 new-project.sh URL, AC2 --help output, AC3 README URL, AC4 ADR-0016 link resolves, AC5 d-test ≥3 TCs URL-hygiene). Sister-pattern: d095 post-org-migration-clone-urls.sh. Cosmetic/hygiene, no behavior change.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "ready"
+    },
+    {
+      "id": "STORY-S29-004",
+      "title": "Fix status-label-to-board.yml (disable OR create Projects v2 board)",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-004",
+      "priority": "P1",
+      "status": "ready",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "human"
+      ],
+      "story_points_proposed": 0.5,
+      "depends_on": [],
+      "blocks": [],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-004.md",
+      "vision_metrics": [],
+      "notes": "Issue #1011 ID=S29-004. PM grooming cycle ~#1193. 5 ACs (AC1 decision documented, AC2 disable workflow if option a, AC3 create board if option b, AC4 d-test ≥3 TCs, AC5 decision rationale captured). Sprint 28 audit §3.1 evidence: template's own status-label-to-board.yml has been failing (2026-07-11 13:48:41Z, 13:48:40Z). Root cause: workflow tries to mutate non-existent Projects v2 board on template. Decision (a) vs (b) owner-routed.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "ready"
+    },
+    {
+      "id": "STORY-S29-005",
+      "title": "scripts/verify-portage.sh — concrete portage-gap detection recipe",
+      "issue_pending": "https://github.com/atilproject/AtilCalculator/issues/1011#S29-005",
+      "priority": "P1",
+      "status": "ready",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect",
+        "orchestrator"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [],
+      "blocks": [
+        "S29-014 (orchestrator runs script at sprint-end to verify ≤ 5% residual gap)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-005.md",
+      "vision_metrics": [],
+      "notes": "Issue #1011 ID=S29-005. PM grooming cycle ~#1193. 6 ACs (AC1 script 5 steps render/diff/cleanup, AC2 idempotent, AC3 --dry-run mode, AC4 machine-readable JSON output, AC5 d-test ≥5 TCs per ADR-0049, AC6 inline README). Source: Sprint 28 audit §4.6 (proposed recipe, not yet executed). Script authoring is uncontroversial; EXECUTION creates + deletes real repo (owner-ratification needed at S29-014).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "ready"
     }
   ],
-  "last_id": 994,
+  "last_id": 1011,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
@@ -1629,6 +1751,9 @@
   "sprint_26_retro_doc": "docs/sprints/sprint-26/RETRO-018.md",
   "sprint_28_groomed_at": "2026-07-10T18:13:00Z",
   "sprint_28_source": "Issue #974 (Sprint 28 Kickoff, owner picked a hepsi default) + PR #967 audit-baseline.md",
-  "updated_at": "2026-07-11T12:18:00Z",
-  "last_modified_by": "product-manager (AC revision cycle ~1738, architect 🟡 SUGGESTIONS on PR #996 cmt 4944240668 — AC1 SHA-pin + AC5 ADR-0043 + P3→P2 bump)"
+  "updated_at": "2026-07-13T08:35:00Z",
+  "last_modified_by": "product-manager (Sprint 29 W1 grooming cycle ~#1193, Issue #1011 kickoff, 5 STORY entries S29-001..005 added per [ORCH→PM] dual-channel wake 2026-07-13T11:31:41+03:00)",
+  "sprint_29_groomed_at": "2026-07-13T08:35:00Z",
+  "sprint_29_source": "Issue #1011 (Sprint 29 KICKOFF, owner ratified 9 decisions Phase 1 + Phase 2)",
+  "sprint_29_w1_groomed": "5 stories (S29-001..005) per orchestrator wake. W2/W2B/W2C/W3 stories deferred to wave-gated grooming per plan §4."
 }
