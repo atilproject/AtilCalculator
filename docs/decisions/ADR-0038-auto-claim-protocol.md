@@ -168,6 +168,51 @@ Plus negative test: agent with 0 ready items → exit 1, no flip. **Total: 4 man
 - **PM (Phase 2)**: port claim-next-ready.sh to template repo post-AtilCalc merge
 - **Architect (next sprint)**: address TD-011 (PM issue-level events) — separate gap, not fixed by this ADR
 
+## §Eventual Consistency (amendment — Issue #1041, Sprint 29)
+
+> **Origin:** Issue #1041 P1 (INCIDENT — claim-next-ready.sh WIP cap bypass via GitHub search-index eventual consistency). Live instance: 3 claims in 36s while WIP_LIMIT=2; pre-flip search-index returned stale count, allowing cap bypass.
+
+### Data-source contract
+
+The `gh api repos/<repo>/issues?labels=<labels>&state=open` endpoint that drives the WIP cap check uses GitHub's **search-index** (the same backend as `gh issue list --label`). Search-index is **eventually consistent** — a `gh issue edit` that adds `status:in-progress` may not appear in subsequent search-index queries for several seconds (typical window: 1-5s, occasional 30s+).
+
+### Consequence for §Auto-Claim Protocol
+
+The pre-flip WIP cap check (`if [ "$wip_count" -ge "$WIP_LIMIT" ]`) is **necessary but not sufficient** to enforce the cap. Concurrent invocations across multiple agents (or rapid sequential invocations on the same agent) can each see a stale count, all pass the cap check, and collectively exceed the cap.
+
+### Required invariant (amendment)
+
+Every successful claim **MUST** be followed by a post-flip verification before the `audit_log` line is written and the script exits 0. The verification:
+
+1. **Strongly-consistent per-issue view** — `gh issue view N --json labels` hits the strongly-consistent endpoint (not search-index). If `status:in-progress` is not in the labels, the flip did not actually apply (rare; possible if another actor undid it).
+2. **Search-index retry with eventual-consistency window** — re-query `gh api repos/<repo>/issues?labels=agent:<role>,status:in-progress&state=open&per_page=100` up to 3× with 1s sleep between attempts. If after retries the count still shows pre-flip value, log a warning but trust the per-issue view (which is authoritative).
+3. **Cap re-check** — if post-flip count > WIP_LIMIT, **rollback** (revert label + structured audit log entry) and exit 7. If per-issue view shows flip didn't apply, **rollback** and exit 6.
+
+### Audit log format (AC5)
+
+`auto-claim.log` (append-only, ISO-8601 + role + structured payload) MUST record rollback entries:
+
+```
+<ISO-timestamp> <role> ROLLBACK #<issue> (flip-not-applied)
+<ISO-timestamp> <role> ROLLBACK #<issue> (wip-over-cap-post-flip=<fresh_count> limit=<WIP_LIMIT>)
+```
+
+These entries let the orchestrator's stale-verdict watchdog (ADR-0024) and the post-incident RCA distinguish "claim succeeded, audit silent" (normal) from "claim rolled back, audit recorded" (anomaly → page-on-call).
+
+### Testing requirement
+
+`scripts/tests/d031-claim-next-ready.sh` MUST include at least one TC covering the search-index lag scenario (TC11 added in this amendment). The TC simulates lag via `FAKE_LAG_MODE=1` + `FAKE_LAG_STALE=<pre-flip-count>` + `FAKE_LAG_FRESH=<post-flip-count>` env vars and asserts both `exit 7` AND the structured audit log entry.
+
+### Migration / backward-compat
+
+- Existing d031 TCs TC1-TC10 unchanged (backward-compat verified: 10/10 still green after this amendment lands).
+- The fix adds a post-flip verification block; in the happy-path (no lag) the verification succeeds within 1 retry (typically <1s overhead). No new env vars required; existing callers (agent-watch.sh `poll_once`, manual invocations) are unaffected.
+- Per ADR-0012 4-cat invariant: rollback flips `status:in-progress` → `status:ready` atomically (no intermediate state visible to other watchers).
+
+### Status
+
+**Proposed** (Sprint 29 W2). Awaiting architect ratification + Issue #1041 owner squash-gate.
+
 ## Sprint 4 commitment
 
 | Role | SP | Scope |

@@ -15,6 +15,8 @@
 #   2  usage error (missing/invalid role argument)
 #   3  WIP limit reached (>= WIP_LIMIT status:in-progress items already)
 #   4  gh API error (network/auth/repo detection/jq failure)
+#   6  ROLLBACK flip-not-applied (Issue #1041: per-issue view missing status:in-progress)
+#   7  ROLLBACK wip-over-cap-post-flip (Issue #1041: search-index caught up > cap)
 #
 # Env:
 #   WIP_LIMIT              per-role WIP cap (default: 2, ADR-0002 §polling cadence)
@@ -432,11 +434,81 @@ fi
 now_iso="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 wip_after=$((wip_count + 1))
 
+# Audit log path hoisted before flip so verify_post_flip can write ROLLBACK entries.
+repo_name="${REPO##*/}"
+log_dir="${AUTO_CLAIM_LOG_DIR:-/var/log/dev-studio/${repo_name}}"
+mkdir -p "$log_dir" 2>/dev/null || true
+audit_log="$log_dir/auto-claim.log"
+
 if ! gh issue edit "$picked_number" --repo "$REPO" \
     --remove-label "status:ready" \
     --add-label "status:in-progress" >/dev/null 2>&1; then
   echo "ERROR: gh issue edit failed for #$picked_number" >&2
   exit 4
+fi
+
+# --- post-flip verification (Issue #1041 AC1) ---
+# GitHub's `gh api repos/.../issues?labels=...` search-index is eventually consistent.
+# Between the pre-flip WIP query (line ~213) and this verification, concurrent claims
+# may have flipped items not yet indexed. Without verification, the cap can be bypassed
+# (live incident: 3 claims in 36s while WIP_LIMIT=2 — only 2 were pre-flip-visible).
+# Two-step check: (1) per-issue strongly-consistent view confirms flip applied,
+# (2) retry search-index up to 3× for eventual-consistency window (~1-3s typically).
+verify_post_flip() {
+  local picked_num="$1"
+  local max_retries=3
+  local retry=0
+
+  # (1) Per-issue view — strongly consistent. If status:in-progress missing, flip
+  #     didn't actually apply (rare; can happen if another actor undid it).
+  if ! gh issue view "$picked_num" --repo "$REPO" --json labels \
+       --jq '.labels[].name' 2>/dev/null | grep -q "^status:in-progress$"; then
+    echo "ROLLBACK: #$picked_num flip did not apply (per-issue view missing status:in-progress)" >&2
+    gh issue edit "$picked_num" --repo "$REPO" \
+      --remove-label "status:in-progress" --add-label "status:ready" \
+      >/dev/null 2>&1 || true
+    echo "$now_iso $ROLE ROLLBACK #$picked_num (flip-not-applied)" \
+      >> "$audit_log" 2>/dev/null || true
+    return 1
+  fi
+
+  # (2) Re-query search-index with retry — eventual consistency window (typically <5s).
+  local post_flip_count=0
+  while [ "$retry" -lt "$max_retries" ]; do
+    sleep 1
+    local post_json
+    # gh api returns raw JSON array; use external jq for length (matches line 207/213
+    # pattern). gh CLI's --jq flag is NOT applied in test mode (fake-gh on PATH),
+    # so we rely on external jq to parse the JSON consistently across prod + test.
+    post_json="$(gh api \
+      "repos/${REPO}/issues?labels=agent:${ROLE},status:in-progress&state=open&per_page=100" \
+      2>/dev/null || echo '[]')"
+    post_flip_count="$(printf '%s' "$post_json" | jq 'length' 2>/dev/null || echo 0)"
+    if ! [[ "$post_flip_count" =~ ^[0-9]+$ ]]; then
+      post_flip_count=0
+    fi
+    # Search-index caught up to at least pre-flip+1 (the just-flipped item) — trust it.
+    if [ "$post_flip_count" -gt "$wip_count" ]; then
+      break
+    fi
+    retry=$((retry + 1))
+  done
+
+  if [ "$post_flip_count" -gt "$WIP_LIMIT" ]; then
+    echo "ROLLBACK: #$picked_num WIP over cap post-flip (search-index=$post_flip_count > WIP_LIMIT=$WIP_LIMIT)" >&2
+    gh issue edit "$picked_num" --repo "$REPO" \
+      --remove-label "status:in-progress" --add-label "status:ready" \
+      >/dev/null 2>&1 || true
+    echo "$now_iso $ROLE ROLLBACK #$picked_num (wip-over-cap-post-flip=$post_flip_count limit=$WIP_LIMIT)" \
+      >> "$audit_log" 2>/dev/null || true
+    return 1
+  fi
+
+  return 0
+}
+
+if ! verify_post_flip "$picked_number"; then
+  exit 7
 fi
 
 # Comment is best-effort (warn on failure but still exit 0 since the flip succeeded).
@@ -447,10 +519,7 @@ Per ADR-0038 §Auto-Claim Protocol. Priority=$picked_priority_label." >/dev/null
 fi
 
 # Audit log: append-only, ISO-8601 + role + issue + wip + priority (ADR-0036 pattern).
-repo_name="${REPO##*/}"
-log_dir="${AUTO_CLAIM_LOG_DIR:-/var/log/dev-studio/${repo_name}}"
-mkdir -p "$log_dir" 2>/dev/null || true
-audit_log="$log_dir/auto-claim.log"
+# log_dir / audit_log hoisted to pre-flip block so verify_post_flip can write ROLLBACK entries.
 echo "$now_iso $ROLE claimed #$picked_number (WIP=$wip_after/$WIP_LIMIT, $picked_priority_label)" \
   >> "$audit_log" 2>/dev/null || echo "WARN: audit log write failed at $audit_log" >&2
 
