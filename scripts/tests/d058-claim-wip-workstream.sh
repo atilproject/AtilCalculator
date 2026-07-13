@@ -235,6 +235,26 @@ case "$cmd" in
       echo '{"state":"closed"}'
     fi
     ;;
+  *"issue view"*"--json labels"*)
+    # Issue #1041 fix: claim-next-ready.sh verify_post_flip calls
+    # `gh issue view N --json labels --jq '.labels[].name'` (line ~464) to
+    # strongly-consistently confirm the flip applied. Fake-gh must return
+    # label names one per line (mimicking production post-`--jq` output).
+    # If this issue was just flipped via `issue edit ... --add-label status:in-progress`,
+    # include `status:in-progress`; otherwise it's still `status:ready`.
+    arg_n="$(echo "$cmd" | grep -oE 'issue view [0-9]+' | grep -oE '[0-9]+' | head -1)"
+    flipped=""
+    if [ -n "$arg_n" ] && [ -n "${FAKE_FLIPPED_FILE:-}" ] \
+       && [ -f "${FAKE_FLIPPED_FILE}" ] \
+       && grep -qx "${arg_n}" "${FAKE_FLIPPED_FILE}" 2>/dev/null; then
+      flipped=1
+    fi
+    if [ -n "$flipped" ]; then
+      printf 'status:in-progress\nagent:developer\n'
+    else
+      printf 'status:ready\nagent:developer\n'
+    fi
+    ;;
   *"pr list"*"Closes"*)
     # Look for #N in the --search arg to determine which issue's cluster to return.
     search_n="$(echo "$cmd" | grep -oE '#[0-9]+' | head -1 | tr -d '#')"
@@ -252,7 +272,13 @@ case "$cmd" in
     fi
     ;;
   *"issue edit"*|*"issue comment"*)
-    # Log the call for inspection but don't fail.
+    # Issue #1041 fix: track which issues were flipped (status:ready → status:in-progress)
+    # via FAKE_FLIPPED_FILE so verify_post_flip's per-issue view returns the correct
+    # post-flip labels (matching production semantics).
+    arg_n="$(echo "$cmd" | grep -oE 'issue edit [0-9]+' | grep -oE '[0-9]+' | head -1)"
+    if [ -n "$arg_n" ] && [ -n "${FAKE_FLIPPED_FILE:-}" ]; then
+      echo "$arg_n" >> "${FAKE_FLIPPED_FILE}"
+    fi
     echo "EDIT_OR_COMMENT $*" >> "${FAKE_LOG_PATH:-/tmp/fake-gh.log}"
     echo '{"number":999}'
     ;;
@@ -287,8 +313,10 @@ run_claim() {
 
   local fake_bin
   fake_bin="$(mktemp -d "$TEST_TMPDIR/fakebin-XXXXXX")"
-  local gh_path log_path
+  local gh_path log_path flipped_file
   log_path="$fake_bin/gh-log"
+  flipped_file="$fake_bin/gh.flipped"
+  : > "$flipped_file"  # truncate so each run_claim invocation starts clean
   make_fake_gh "$fake_bin/gh" "$wip_data" "$pr_clusters" "$dep_open_n" "$log_path" >/dev/null
 
   CLAIM_LOG="$log_path"
@@ -299,6 +327,7 @@ run_claim() {
     PATH="$fake_bin:$PATH" \
     FAKE_WIP_FILE="$fake_bin/gh.wip.json" \
     FAKE_CLUSTERS_FILE="$fake_bin/gh.clusters.json" \
+    FAKE_FLIPPED_FILE="$flipped_file" \
     FAKE_DEP_OPEN_N="$dep_open_n" \
     FAKE_LOG_PATH="$log_path" \
     READY_JSON="$ready_json" \
