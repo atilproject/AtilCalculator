@@ -2,7 +2,7 @@
 
 > **Status**: RED (Sprint 29 W2, d-test authored RED-first per ADR-0044)
 > **Story**: [#1035](https://github.com/atilproject/AtilCalculator/issues/1035) — agent:architect, status:done (design phase per PR #1047 squash-merged 2026-07-13T19:58:36Z commit d0cf929)
-> **Author**: @tester, 2026-07-13T20:18Z (cycle ~#1417)
+> **Author**: @tester, 2026-07-13T20:18Z (cycle ~#1417) + TC4 added cycle ~#1427 per arch verdict on Issue #1050
 > **Sister-pattern**: d1018 (S29-006 ADR-port parity — same cross-repo `gh api repos/.../contents/...` shape + 404 envelope detection) + d1014 (S29-002 tag-move — same Sprint 29 d-test cadence) + d058 (CI integration d-test family — d1020 NOT yet CI-integrated per ADR-0059)
 
 ## Scope
@@ -30,8 +30,9 @@ Cite home per **PR #1040 advisory note a** + **PR #1047 S1 advisory**: `docs/spr
 | TC1 | AC4 | yaml-syntax per workflow (4 sub-checks; python3+pyyaml.safe_load_all) | RED 0/4 | GREEN 4/4 |
 | TC2 | AC3+AC4 | 4-tuple-presence per workflow (4 sub-checks; `runs-on: [self-hosted, Linux, X64, atilproject]`) | RED 0/4 | GREEN 4/4 |
 | TC3 | AC4 | SHA-pin-presence per workflow (4 sub-checks; `uses: actions/<name>@<40-char-SHA>` per TD-028) | RED 0/4 | GREEN 4/4 |
+| TC4 | AC4 | env.PROJECT_NAME parameterization per workflow (4 sub-checks; arch verdict #1050 Option B: post-squash.yml has R-1 — `env.PROJECT_NAME` from `github.event.repository.name` + referenced via `${{ env.PROJECT_NAME }}`; other 3 verbatim ports vacuously pass) | RED 0/4 | GREEN 4/4 (1 active + 3 vacuous) |
 
-12 sub-checks total. Local run verified RED-first (TC0 PASS, TC1/TC2/TC3 0/4 each).
+16 sub-checks total (4 workflows × 4 main TCs). Local run verified RED-first (TC0 PASS, TC1/TC2/TC3/TC4 0/4 each). TC4 added cycle ~#1427 per arch verdict on Issue #1050 Option B (verbatim port + R-1 parameterization); 3/4 sub-checks vacuous (d050b-dispatch, lint-and-test, deploy.yml don't have R-1 — verbatim ports per sister-pattern discipline).
 
 ## Test Cases
 
@@ -64,6 +65,17 @@ Cite home per **PR #1040 advisory note a** + **PR #1047 S1 advisory**: `docs/spr
   4. If pinable lines exist without SHA → FAIL; if no pinable lines → vacuously PASS
 - **Expected**: 4/4 GREEN post-impl; 0/4 pre-impl
 - **Adversarial finding surfaced**: AtilCalculator source `d050b-dispatch.yml` line 45 uses `uses: actions/checkout@v4` (NOT 40-char SHA). DEV impl PR for d050b-dispatch.yml port MUST apply SHA-pin during port (`34e114876b0b11c390a56381ad16ebd13914f8d5`) OR escalate exception in PR with rationale. **Test will FAIL on impl PR if not addressed.**
+
+### TC4: env.PROJECT_NAME parameterization per workflow (AC4, arch verdict #1050 Option B)
+
+- **Setup**: Same fetch; check for `PROJECT_NAME: ${{ ... }}` line in workflow `env:` block, verify derivation from GitHub context + reference via `${{ env.PROJECT_NAME }}`.
+- **Steps**:
+  1. For each workflow, check if `^\s*PROJECT_NAME\s*:\s*\${{` line exists in env block
+  2. **If NO** (no PROJECT_NAME in env) → vacuously PASS (verbatim port, no R-1 expected)
+  3. **If YES** (PROJECT_NAME present) → verify derivation: `github.(event.repository.name|repository|repository_owner)` allowed
+  4. **If YES** → also verify `${{ env.PROJECT_NAME }}` referenced at least once
+- **Expected**: 4/4 GREEN post-impl (1 active for post-squash.yml + 3 vacuous for d050b-dispatch, lint-and-test, deploy.yml)
+- **R-1 parameterization doctrine**: per arch verdict on Issue #1050 Option B, post-squash.yml port adds `env.PROJECT_NAME` derived from `github.event.repository.name` so downstream projects get auto-derived `CLUSTER_LAG_LOG` path (`/var/log/dev-studio/${{ env.PROJECT_NAME }}/cluster-lag.log`). The other 3 workflows are verbatim ports WITHOUT R-1 → vacuously OK (sister-pattern discipline preserved per AtilCalculator source).
 
 ## Adversarial Probes
 

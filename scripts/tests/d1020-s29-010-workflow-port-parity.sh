@@ -10,6 +10,17 @@
 #   TC3: AC4 — SHA-pin-presence per workflow (4 sub-checks;
 #                    TD-028 generalized via R-3 mitigation: every `uses: actions/<name>@<ref>`
 #                    MUST use a 40-char SHA, not moving tag `@v4` / `@main` / `@latest`)
+#   TC4: AC4 — env.PROJECT_NAME parameterization per workflow (4 sub-checks;
+#                    arch verdict on Issue #1050 Option B: post-squash.yml has R-1
+#                    parameterization (`env.PROJECT_NAME` derived from
+#                    `github.event.repository.name`); other 3 workflows are verbatim
+#                    ports WITHOUT parameterization → vacuously pass.
+#                    Sub-check 1: PROJECT_NAME block present + derived from GitHub
+#                      context (github.event.repository.name | github.repository |
+#                      github.repository_owner)
+#                    Sub-check 2: PROJECT_NAME referenced at least once via
+#                      `${{ env.PROJECT_NAME }}`
+#                    Vacuous (3/4 sub-checks for d050b-dispatch, lint-and-test, deploy.yml).)
 #
 # Scope (4 workflows per design AC1 forward-port + AC2 render, Issue #1035):
 #   - d050b-dispatch.yml (port, Issue #440 / ADR-0049 d050b runtime validator)
@@ -193,6 +204,52 @@ if [ "$sha_ok" -eq "$sha_total" ] && [ "$sha_total" -gt 0 ]; then
     check "TC3 (SHA-pin in $sha_total workflows)" "PASS"
 else
     check "TC3 (SHA-pin)" "ok=$sha_ok total=$sha_total (TD-028: actions/* must use 40-char SHA)"
+fi
+
+# --- TC4: AC4 — env.PROJECT_NAME parameterization per workflow (4 sub-checks) ---
+# Per arch verdict on Issue #1050 Option B, post-squash.yml has R-1
+# parameterization (env.PROJECT_NAME derived from github.event.repository.name).
+# Other 3 workflows are verbatim ports WITHOUT parameterization → vacuously pass.
+#
+# For each workflow:
+#   - If `PROJECT_NAME: ${{ ... }}` line exists in env: block:
+#     1. PROJECT_NAME value must derive from GitHub context
+#        (github.event.repository.name | github.repository | github.repository_owner)
+#     2. PROJECT_NAME must be referenced at least once via `${{ env.PROJECT_NAME }}`
+#   - Else: vacuously pass (verbatim port, no R-1 expected)
+#
+# Pre-impl: 0/4 (all 4 missing). Post-impl: 4/4 (1 active for post-squash.yml
+# + 3 vacuous for the other 3 verbatim ports).
+param_ok=0
+param_total=0
+for wf in "${EXPECTED_WORKFLOWS[@]}"; do
+    param_total=$((param_total+1))
+    if ! content=$(fetch_workflow "$wf"); then
+        continue
+    fi
+    # Check if PROJECT_NAME block exists in env (any indentation)
+    if ! printf '%s\n' "$content" | grep -qE '^\s*PROJECT_NAME[[:space:]]*:[[:space:]]*\$\{\{'; then
+        # No PROJECT_NAME in env block → vacuously pass (verbatim port, no R-1)
+        param_ok=$((param_ok+1))
+        continue
+    fi
+    # PROJECT_NAME present → verify derivation from GitHub context
+    # Allowed: github.event.repository.name | github.repository | github.repository_owner
+    if ! printf '%s\n' "$content" | grep -E '^\s*PROJECT_NAME[[:space:]]*:[[:space:]]*\$\{\{' | \
+        grep -qE 'github\.(event\.repository\.name|repository|repository_owner)'; then
+        continue
+    fi
+    # Verify PROJECT_NAME is referenced at least once via ${{ env.PROJECT_NAME }}
+    if ! printf '%s\n' "$content" | grep -qE '\$\{\{[[:space:]]*env\.PROJECT_NAME[[:space:]]*\}\}'; then
+        continue
+    fi
+    param_ok=$((param_ok+1))
+done
+
+if [ "$param_ok" -eq "$param_total" ] && [ "$param_total" -gt 0 ]; then
+    check "TC4 (env.PROJECT_NAME parameterization in $param_total workflows)" "PASS"
+else
+    check "TC4 (parameterization)" "ok=$param_ok total=$param_total (arch verdict #1050 Option B: PROJECT_NAME from github.context + referenced via env.PROJECT_NAME)"
 fi
 
 echo ""
