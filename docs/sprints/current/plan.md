@@ -36,10 +36,14 @@
 
 | PR | Repo | Story | State | Test status | Action |
 |---|---|---|---|---|---|
-| **#4** | atilcan65/dev-studio-launcher | S29-003 | draft, status:ready + cc:human | 6/6 d-test TCs GREEN | **owner squash-merge** |
-| **#71** | atilcan65/dev-studio-template | S29-005 | draft, status:ready + cc:human | 8/8 d-test TCs GREEN | **owner squash-merge** |
-| **#1008** | atilcan65/AtilCalculator | Sprint 28 audit-baseline | squash-merged @ 18:57:07Z (commit `a02110c6`) | n/a (docs) | ✅ already merged (Sprint 29 prereq) |
-| **#1019** (this) | atilcan65/AtilCalculator | plan.md refresh | draft, status:in-review + cc:human | n/a (docs pointer) | **owner squash-merge** (after push) |
+| **#4** | atilcan65/dev-studio-launcher | S29-003 | ✅ squash-merged @ 10:56:37Z | 6/6 d-test GREEN | ✅ done |
+| **#71** | atilcan65/dev-studio-template | S29-005 | ✅ squash-merged @ 10:56:47Z | 8/8 d-test GREEN | ✅ done |
+| **#1008** | atilcan65/AtilCalculator | Sprint 28 audit-baseline | ✅ squash-merged @ 08:10:31Z (commit `a02110c6`) | n/a (docs) | ✅ done |
+| **#1019** | atilcan65/AtilCalculator | plan.md refresh | ✅ squash-merged @ 10:57:10Z | n/a (docs pointer) | ✅ done |
+| **#1029** | atilcan65/AtilCalculator | S29-002 tag-move verification | ✅ squash-merged @ 13:47:43Z (commit `96205ec6`) | n/a (scripts) | ✅ done |
+| **#72** | atilcan65/dev-studio-template | S29-004 disable status-label-to-board.yml | ✅ squash-merged @ 14:20:32Z (commit `6d9d3f84`) | 7/7 d-test GREEN | ✅ done — board sync freeze ACTIVE |
+| **#1037** | atilcan65/AtilCalculator | Wave 2 PM grooming — 6 STORY files + backlog.json | ✅ squash-merged @ 14:20:41Z (commit `13c2675c`) | n/a (docs/backlog) | ✅ done — Wave 2 files main-resident |
+| **#73** | atilcan65/dev-studio-template | S29-001 self-hosted 4-tuple migrate | draft, status:ready + cc:human | 8/8 d-test GREEN + arch 🟢 (14:18:41Z) + tester 🟢 (13:22:27Z) | **owner squash-merge** (next) |
 
 ---
 
