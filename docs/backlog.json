@@ -1711,9 +1711,158 @@
       "notes": "Issue #1011 ID=S29-005. PM grooming cycle ~#1193. 6 ACs (AC1 script 5 steps render/diff/cleanup, AC2 idempotent, AC3 --dry-run mode, AC4 machine-readable JSON output, AC5 d-test ≥5 TCs per ADR-0049, AC6 inline README). Source: Sprint 28 audit §4.6 (proposed recipe, not yet executed). Script authoring is uncontroversial; EXECUTION creates + deletes real repo (owner-ratification needed at S29-014).",
       "v1_0_0_scope": "OUT",
       "issue_status": "ready"
+    },
+    {
+      "id": "STORY-S29-006",
+      "title": "Forward-port 40+ universal ADRs + 10-12 amendments in 6 families",
+      "issue": 1031,
+      "priority": "P0",
+      "status": "ready",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "developer",
+        "tester"
+      ],
+      "story_points_proposed": 3.0,
+      "depends_on": [],
+      "blocks": [
+        "S29-007 (d-test ports cite ADR-anchored refs)",
+        "S29-014 (verify-portage)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-006.md",
+      "vision_metrics": [],
+      "notes": "Issue #1031 ID=S29-006. PM grooming cycle ~#1307 per Issue #1030 Wave 2 dispatch at 13:50Z. 8 ACs (AC1-6 ADR port + AC7 Phase 2 expansion 10-12 amendments in 6 ID families per owner directive #8 + AC8 d986 sister-pattern post-mortem). Load-bearing critical (Sprint 29 close depends on this per §6 sprint DoD #5). ADR FIRST per owner directive #2 — must land BEFORE S29-007 (d-test ADR references per ADR-0055 §Cadence Rule 1). Source-of-truth: docs/sprints/sprint-29/00-plan.md §3.S29-006. Count reconciliation: arch v3 audit said '12 amendments'; PM cross-check shows 10; AC7 commits to ≥10 (upper bound 12 pending kickoff re-count per TD-016 silent-skip discipline).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-007",
+      "title": "Forward-port 80+ universal d-tests (ADR-anchored)",
+      "issue": 1032,
+      "priority": "P0",
+      "status": "ready",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect"
+      ],
+      "story_points_proposed": 5.0,
+      "depends_on": [
+        "S29-006"
+      ],
+      "blocks": [
+        "S29-014 (verify-portage)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-007.md",
+      "vision_metrics": [],
+      "notes": "Issue #1032 ID=S29-007. PM grooming cycle ~#1307. 6 ACs (5-6 themed PRs, self-hosted runner green, ID uniqueness per ADR-0055, INDEX regen, e2e-pilot+faz5+state-schema smokes exit 0, ADR-0049 ≥3-5 TC baseline). Depends on S29-006 (ADR FIRST per owner directive #2; d-tests cite ADRs as their reference per ADR-0055 §Cadence Rule 1 atomic). Source-of-truth: docs/sprints/sprint-29/00-plan.md §3.S29-007. ~80 d-tests from AtilCalculator 131 ported → template parity ≥95%.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-008",
+      "title": "Forward-port 5-7 missing top-level scripts (Phase 2 corrected count)",
+      "issue": 1033,
+      "priority": "P1",
+      "status": "ready",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [],
+      "blocks": [
+        "S29-014 (verify-portage)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-008.md",
+      "vision_metrics": [],
+      "notes": "Issue #1033 ID=S29-008. PM grooming cycle ~#1307. 4 ACs (5-7 universal scripts ported as 1 PR; project-specific excluded; AtilCalculator paths parameterized to atilproject; per-port ≥3 TCs). Phase 2 expansion per arch v3 audit §G (orchestrator miscount 38+ → corrected to 43 per §B-2). Explicit list per AC1: audit-project-refs.sh, cross-repo-scan.sh, proactive-board-scan.sh + 4 others (agent-watch-verdicts.sh, lint-notify-invocations.sh, strip-cascade-labels.sh, init-template-repo.sh). Scripts parity 33 → 38-40 (≥90%).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-009",
+      "title": "Forward-port 3 missing scripts/ sub-dirs (kickoff/ post-squash/ pre-push/)",
+      "issue": 1034,
+      "priority": "P1",
+      "status": "ready",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [],
+      "blocks": [
+        "S29-014 (verify-portage)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-009.md",
+      "vision_metrics": [],
+      "notes": "Issue #1034 ID=S29-009. PM grooming cycle ~#1307. 3 ACs (3 sub-dirs ported: kickoff/(5 agent txt), post-squash/(2 scripts), pre-push/(1 script); project-specific excluded; template-canonical README). Independent sub-dir port. Source-of-truth: docs/sprints/sprint-29/00-plan.md §3.S29-009. Sister-pattern: AtilCalculator scripts/kickoff/ + scripts/post-squash/ + scripts/pre-push/.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-010",
+      "title": "Forward-port 3 missing workflows + render deploy.yml from .tmpl (OWNER APPROVAL for deploy.yml)",
+      "issue": 1035,
+      "priority": "P1",
+      "status": "ready",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "developer",
+        "human"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [
+        "S29-001"
+      ],
+      "blocks": [
+        "S29-014 (verify-portage)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-010.md",
+      "vision_metrics": [],
+      "notes": "Issue #1035 ID=S29-010. PM grooming cycle ~#1307. 4 ACs (3 workflows ported: d050b-dispatch, lint-and-test, post-squash; deploy.yml render per OWNER APPROVAL — human-only territory per CLAUDE.md §File ownership matrix; all 4 pass S29-001 self-hosted 4-tuple migration; per-workflow ≥3 TCs). Depends on S29-001 (new workflows inherit self-hosted migration). OPEN OWNER-DECISION: deploy.yml render approval → owner: atilcan65 (default per owner #2 ratification pattern = approve when no objection by W2 mid-sprint).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-011",
+      "title": "Verify ISSUE_TEMPLATE content parity + ADR-0012 4-cat compliance (REFRAMED XS per owner #7)",
+      "issue": 1036,
+      "priority": "P2",
+      "status": "ready",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect"
+      ],
+      "story_points_proposed": 0.25,
+      "depends_on": [],
+      "blocks": [
+        "S29-014 (verify-portage)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-011.md",
+      "vision_metrics": [],
+      "notes": "Issue #1036 ID=S29-011. PM grooming cycle ~#1307. 4 ACs (content parity verification for all 6 ISSUE_TEMPLATEs; 4-cat label section compliance per template; d-test ≥3 TCs validates frontmatter + 4-cat presence; AC4 Phase 2 reduction rationale = no new template files). REFRAMED from 'port 7 templates (S)' → 'content parity + 4-cat compliance (XS)' per owner directive #7 (orchestrator miscount 0/7 corrected to 6/6 per arch v3 §B Error 1). Sister-pattern: AtilCalculator .github/ISSUE_TEMPLATE/ (6 templates).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
     }
   ],
-  "last_id": 1017,
+  "last_id": 1036,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
@@ -1751,9 +1900,10 @@
   "sprint_26_retro_doc": "docs/sprints/sprint-26/RETRO-018.md",
   "sprint_28_groomed_at": "2026-07-10T18:13:00Z",
   "sprint_28_source": "Issue #974 (Sprint 28 Kickoff, owner picked a hepsi default) + PR #967 audit-baseline.md",
-  "updated_at": "2026-07-13T08:35:00Z",
-  "last_modified_by": "product-manager (Sprint 29 W1 grooming cycle ~#1193, Issue #1011 kickoff, 5 STORY entries S29-001..005 added per [ORCH→PM] dual-channel wake 2026-07-13T11:31:41+03:00)",
+  "updated_at": "2026-07-13T13:58:00Z",
+  "last_modified_by": "product-manager (Sprint 29 W2 grooming cycle ~#1307, Issue #1030 Wave 2 dispatch, 6 STORY entries S29-006..011 added)",
   "sprint_29_groomed_at": "2026-07-13T08:35:00Z",
   "sprint_29_source": "Issue #1011 (Sprint 29 KICKOFF, owner ratified 9 decisions Phase 1 + Phase 2)",
-  "sprint_29_w1_groomed": "5 stories (S29-001..005) per orchestrator wake. W2/W2B/W2C/W3 stories deferred to wave-gated grooming per plan §4."
+  "sprint_29_w1_groomed": "5 stories (S29-001..005) per orchestrator wake. W2/W2B/W2C/W3 stories deferred to wave-gated grooming per plan §4.",
+  "sprint_29_w2_groomed": "6 stories (S29-006..011) per Issue #1030 dispatch. Wave 3 (S29-014, S29-015) + Wave 2B (S29-018, S29-013, S29-019) + Wave 2C (S29-016, S29-017) deferred to subsequent groomings per Wave plan §4."
 }
