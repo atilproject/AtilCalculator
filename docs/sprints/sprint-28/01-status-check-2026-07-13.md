@@ -393,7 +393,7 @@ follow-up audit cycle** (audit-baseline §Knowledge gaps admits incomplete).
 ## §6 Cross-references
 
 - [00-audit-baseline.md](00-audit-baseline.md) — comprehensive Sprint 28 audit (PR #967, merged)
-- [docs/new-projectsteps.md](../new-projectsteps.md) — runbook (existing, drift detected)
+- [docs/new-projectsteps.md](../../new-projectsteps.md) — runbook (existing, drift detected)
 - [docs/sprints/current/plan.md](../current/plan.md) — sprint pointer
 - `git remote get-url origin` — `https://github.com/atilproject/AtilCalculator.git`
 - `gh api /repos/atilproject/dev-studio-template` — template metadata
