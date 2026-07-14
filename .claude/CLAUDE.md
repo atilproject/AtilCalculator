@@ -311,7 +311,38 @@ Bu kullanım, hand-off değil **queue passing**'tir. `agent:*` değişmediği i�
 
 ### Terminal hand-off (Done)
 
-Orchestrator iş Done'a girdiğinde `agent:*` + `cc:*`'i temizler ve `status:done` ekler. Label Check workflow kapalı (closed) issue'ları ignore eder, bu bypass güvenlidir.
+Orchestrator iş Done'a girdiğinde `agent:*` + `cc:*`'i temizler ve `status:done` ekler.
+
+### Work-done-elsewhere terminal state (RETRO-024 amendment, Issue #1027)
+
+When work for an AtilCalculator issue is tracked via a **sister PR in another repo** (cross-repo workstream per RETRO-023, Issue #1024), the canonical terminal state is:
+
+```
+type:<feature|chore|...> + status:ready + cc:human + (NO agent:*)
+```
+
+**Why this exists**: Reflexively adding `agent:*` to such an issue re-enables `claim-next-ready.sh` (ADR-0038 §Layer 2) auto-claim on it, pulling completed work back into dev lane — visible churn + ghost work on already-shipped PRs. Two live instances:
+
+- **Cycle #1223 (orchestrator, reflexive 4-cat repair)** — orchestrator added `agent:developer` to work-done issues #1015 (S29-003) + #1017 (S29-005), reflexively "fixing the invariant". RETRO-022 regression.
+- **Cycle #1253 (PM, reflexive AC-verify approval)** — PM approved RETRO-024 ACs (3/3 met) without file-state verification. Sister-pattern recursion: the very reflexive anti-pattern RETRO-024 was filed to address.
+
+**4-cat invariant compliance**: This is a **4-cat-compliant EXCEPTION** to the universal ADR-0012 invariant. The issue has a clear `cc:human` merge gate; the absent `agent:*` signals "work tracked elsewhere, do NOT auto-claim".
+
+**Sister-pattern**: RETRO-022 (original 4-cat gap, Issue #1023), RETRO-023 (cross-repo codification, Issue #1024), RETRO-024 (this doctrine, Issue #1027).
+
+### §4-cat Invariant Repair Silent-Skip Rule (RETRO-024, Issue #1027)
+
+Any 4-cat-repair script (orchestrator hygiene loop, `gh issue edit` reflexive fix, post-PR-script label normalization) MUST **silent-skip** when an issue's current labels already match the work-done-elsewhere terminal state pattern:
+
+```
+type:<*> + status:ready + cc:human + (no agent:*)
+```
+
+Adding `agent:*` to a work-done-elsewhere issue re-enables auto-claim on completed items.
+
+**Implementation gate**: `scripts/claim-next-ready.sh` (auto-claim, ADR-0038 §Layer 2) and any future 4-cat-repair helper MUST filter `status:ready + cc:human` items from their result sets BEFORE the next claim/repair step. `silent_skip` log emission to `auto-claim.log` is required (lens d observability, TD-016/020 family).
+
+**Sister-test**: `scripts/tests/d-retro-024-4cat-repair-silent-skip.sh` (≥5 TCs RED-first per ADR-0044), `scripts/tests/INDEX.md` row per ADR-0055 §1 Cadence Rule 1 atomic. Label Check workflow kapalı (closed) issue'ları ignore eder, bu bypass güvenlidir.
 
 ### Label semantik sözlüğü
 
