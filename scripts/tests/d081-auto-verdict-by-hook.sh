@@ -11,7 +11,7 @@
 # Sister-pattern to d077 (P0 BUG #675 — L5 misfire regression) + d078 (Issue #680 + PR #683
 # initial-add defensive guard). Both use --self-test + bash + grep regression-guard contract.
 #
-# 5 TCs (per ADR-0044 RED-first + ADR-0024 amendment §Follow-up tickets):
+# 9 TCs (5 base per ADR-0044 RED-first + ADR-0024 amendment §Follow-up tickets, +4 sister-pattern extensions):
 #   TC1: Layer 5 auto-inject hook present in label-check.yml — `cc:*` label-add event
 #        triggers `addLabels(['verdict-by:<ts>'])` in same workflow step
 #   TC2: Agent-side peer-poke.sh auto-pair helper present — bash function that adds
@@ -30,6 +30,15 @@
 #        reference BOTH pull_request AND issue (sister-pattern to TC6)
 #   TC8: peerLabel accessor uses `context.payload.label.name` (or `github.event.label.name`),
 #        NOT `context.event.label.name` (regression guard for L189 bug per Issue #713)
+#
+# Issue #1070 (d081 TC9 sister — verdict-by auto-pair silent failure):
+#   TC9: gh label create defensive pre-step — `gh label view "$verdict_by_label"` pre-check
+#        + `gh label create "$verdict_by_label"` call with --force flag MUST be present in
+#        peer-poke.sh BEFORE `gh issue/pr edit --add-label $verdict_by_label`. gh CLI refuses
+#        to add labels not in repo catalog (returns "label not found"); without pre-create,
+#        every peer-poke verdict-by auto-pair silently fails via the || echo "warn: failed..."
+#        path. Cycle ~#1708 LIVE INSTANCE: 0 verdict-by:* labels in repo catalog after 30+
+#        peer-poke invocations — fix applied retroactively via Issue #1070 §Proposed fix block.
 #
 # Pre-impl RED state (current main as of 2026-06-29, c006b2a):
 #   - Layer 5 auto-inject hook: ABSENT (label-check.yml references verdict-by in comments only)
@@ -87,7 +96,7 @@ if [ "${1:-}" != "--self-test" ]; then
   exit 2
 fi
 
-printf "${B}d081 self-test (5 TCs per Issue #681 + ADR-0024 Auto-Verdict-By Hook, ADR-0044 RED-first)${D}\n"
+printf "${B}d081 self-test (9 TCs: 5 base + TC6/TC7/TC8/TC9 sister-pattern extensions, ADR-0044 RED-first)${D}\n"
 printf "${B}========================================================================${D}\n"
 printf "  Layer 5 under test:  %s\n" "$LABEL_CHECK"
 printf "  Agent-side under test: %s\n" "$PEER_POKE"
@@ -342,6 +351,52 @@ if [ "$CORRECT_ACCESSOR" -ge 1 ] && [ "$BROKEN_ACCESSOR" -eq 0 ]; then
   pass "TC8 — peerLabel accessor uses payload.label.name (correct=$CORRECT_ACCESSOR, broken=$BROKEN_ACCESSOR)"
 else
   fail "TC8 — peerLabel accessor BROKEN or wrong" "expected peerLabel = context.payload.label.name (or github.event.label.name); got correct=$CORRECT_ACCESSOR, broken=$BROKEN_ACCESSOR. Fix: change label-check.yml L189 from context.event.label.name to context.payload.label.name"
+fi
+
+# ============================================================================
+# TC9: gh label create defensive pre-step (Issue #1070)
+# ============================================================================
+section "TC9: gh label create defensive pre-step (Issue #1070)"
+
+# Per Issue #1070 (cycle ~#1708 LIVE INSTANCE): gh CLI refuses to add labels that
+# don't exist in the repo's label catalog (returns "label not found" error). Without
+# a pre-create step, every peer-poke verdict-by auto-pair silently fails via the
+# `|| echo "warn: failed..."` path. The fix: peer-poke.sh verdict_by_pair MUST
+# pre-create the verdict-by:<ts> label in the catalog BEFORE --add-label invocation.
+#
+# Evidence: 0 verdict-by:* labels in repo catalog after 30+ peer-poke invocations
+# across S29-010 + #1060 cluster. All prior verdict-by:<ts> labels on PRs were
+# manually added by humans via GitHub UI dropdown, NOT by peer-poke.sh automation.
+#
+# Fix shape (Issue #1070 §Proposed fix):
+#   if ! gh label view "$verdict_by_label" >/dev/null 2>&1; then
+#       gh label create "$verdict_by_label" \
+#           --color "0E8A16" \
+#           --description "..." \
+#           --force 2>/dev/null || true
+#   fi
+#
+# Required components for TC9 PASS (each pattern anchored to NOT match # comments):
+#   1. `if ! gh label view "$verdict_by_label"` pre-check (active, NOT # commented)
+#   2. `gh label create "$verdict_by_label"` invocation (active, NOT # commented)
+#   3. `--force` flag (active, NOT # commented)
+#   4. `--color` + `--description` metadata (active, NOT # commented)
+#   5. Position: BEFORE the gh issue/pr edit --add-label call (defensive order)
+#
+# Anti-pattern guard: patterns anchored with `^[[:space:]]+` (NOT `^[[:space:]]*#`)
+# so commented-out lines starting with `    # if !` or `    #     gh label create`
+# do NOT satisfy the assertions. This prevents false-positive PASS when the fix
+# is commented out for testing/debugging.
+
+LABEL_VIEW_PP=$(grep -cE '^[[:space:]]+if ! gh label view[[:space:]]+"\$\{?verdict_by_label' "$PEER_POKE" 2>/dev/null || true)
+LABEL_CREATE_PP=$(grep -cE '^[[:space:]]+gh label create[[:space:]]+"\$\{?verdict_by_label' "$PEER_POKE" 2>/dev/null || true)
+FORCE_FLAG_PP=$(grep -cE '^[[:space:]]+--force' "$PEER_POKE" 2>/dev/null || true)
+COLOR_DESC_PP=$(grep -cE '^[[:space:]]+--color[[:space:]]+|^[[:space:]]+--description[[:space:]]+' "$PEER_POKE" 2>/dev/null || true)
+
+if [ "$LABEL_VIEW_PP" -ge 1 ] && [ "$LABEL_CREATE_PP" -ge 1 ] && [ "$FORCE_FLAG_PP" -ge 1 ] && [ "$COLOR_DESC_PP" -ge 1 ]; then
+  pass "TC9 — gh label create defensive pre-step present (view=$LABEL_VIEW_PP, create=$LABEL_CREATE_PP, force=$FORCE_FLAG_PP, color/desc=$COLOR_DESC_PP)"
+else
+  fail "TC9 — gh label create defensive pre-step ABSENT in peer-poke.sh" "expected 'gh label view \$verdict_by_label' pre-check + 'gh label create \$verdict_by_label' call with --force + --color + --description per Issue #1070 §Proposed fix (gh CLI returns 'label not found' if not in repo catalog). All 4 patterns anchored to NOT match # commented-out lines — this is intentional."
 fi
 
 # ============================================================================
