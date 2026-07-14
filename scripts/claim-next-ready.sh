@@ -358,6 +358,31 @@ if [ "${CLAIM_NEXT_READY_FORM_C_VERIFY:-1}" = "1" ]; then
   fi
 fi
 
+# --- RETRO-024 silent-skip on work-done-elsewhere terminal state (Issue #1027) ---
+# Per CLAUDE.md §Work-done-elsewhere terminal state (RETRO-024 amendment): when
+# an issue has labels `status:ready + cc:human`, it is a work-done-elsewhere
+# terminal state (cross-repo sister-PR per RETRO-023). Reflexively added
+# `agent:*` would re-enable auto-claim on completed items (cycle #1223 LIVE
+# INSTANCE: orchestrator reflexive 4-cat repair on work-done issues #1015 + #1017).
+#
+# Even though the ready-items query filters by `agent:${ROLE},status:ready` and
+# the work-done-elsewhere issues technically should have NO `agent:*` (canonical
+# terminal state per AC2), a reflexively-added `agent:*` (orchestrator / PM
+# auto-watch tick) can bring them into this result set. Filter them out + emit
+# silent_skip log per TD-016/020 family (lens d observability).
+WORK_DONE_ELSEWHERE_COUNT=$(printf '%s' "$ready_raw" | jq '[.[] | select(.labels | map(select(.name == "cc:human")) | length > 0)] | length' 2>/dev/null || echo 0)
+if [ "${WORK_DONE_ELSEWHERE_COUNT:-0}" -gt 0 ]; then
+  # Filter out work-done-elsewhere items from ready_raw (RETRO-024 silent-skip)
+  ready_raw="$(printf '%s' "$ready_raw" | jq '[.[] | select(.labels | map(select(.name == "cc:human")) | length == 0)]' 2>/dev/null)"
+  # silent_skip log emission per lens (d) + TD-016/020 family
+  _wd_repo_name="${REPO##*/}"
+  _wd_log_dir="${AUTO_CLAIM_LOG_DIR:-/var/log/dev-studio/${_wd_repo_name}}"
+  mkdir -p "$_wd_log_dir" 2>/dev/null || true
+  _wd_now_iso="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+  echo "$_wd_now_iso $ROLE work-done-elsewhere-silent-skip (count=${WORK_DONE_ELSEWHERE_COUNT}) silent_skip" \
+    >> "$_wd_log_dir/auto-claim.log" 2>/dev/null || true
+fi
+
 ready_count="$(printf '%s' "$ready_raw" | jq 'length' 2>/dev/null || echo 0)"
 if [ "$ready_count" = "0" ]; then
   echo "[claim-next-ready.sh] no ready items for role=$ROLE — no claim"
