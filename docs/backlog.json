@@ -1860,9 +1860,211 @@
       "notes": "Issue #1036 ID=S29-011. PM grooming cycle ~#1307. 4 ACs (content parity verification for all 6 ISSUE_TEMPLATEs; 4-cat label section compliance per template; d-test ≥3 TCs validates frontmatter + 4-cat presence; AC4 Phase 2 reduction rationale = no new template files). REFRAMED from 'port 7 templates (S)' → 'content parity + 4-cat compliance (XS)' per owner directive #7 (orchestrator miscount 0/7 corrected to 6/6 per arch v3 §B Error 1). Sister-pattern: AtilCalculator .github/ISSUE_TEMPLATE/ (6 templates).",
       "v1_0_0_scope": "OUT",
       "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-013",
+      "title": "Launcher auto-applies self-hosted 4-tuple on bootstrap (per owner #5)",
+      "issue": 1072,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "tester",
+        "architect"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [
+        "S29-001 (template-side 4-tuple canonical)"
+      ],
+      "blocks": [
+        "S29-014 (verify-portage — S29-013 must land for verification to be meaningful)",
+        "S29-015 (Step 5b deprecation in new-projectsteps.md)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-013.md",
+      "vision_metrics": [],
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00 carrying owner directive 21:02+03 (Sprint 29 ALL gap-closing, zero Sprint 30 parks — TEMPLATE-META RESOLUTION of cycle #1540 escalation). 5 ACs (AC1 apply_self_hosted_runner_patch in new-project.sh after bootstrap-labels.sh, AC2 idempotent re-run safe, AC3 pre-flight gh api runners check + loud warning, AC4 d-test ≥5 TCs per ADR-0049 (patch idempotency + regex correctness + warning emission), AC5 new-projectsteps.md Step 5b removed). Lane: developer (launcher scripts/). Sister-pattern: S29-001 + AtilCalculator self-hosted-only. Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-013.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-014",
+      "title": "Verify-portage execution against post-portage template",
+      "issue": 1073,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "developer",
+      "cc": [
+        "developer",
+        "architect",
+        "tester",
+        "human"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [
+        "S29-005 (script exists)",
+        "S29-006..S29-013 (all gap-closing stories must land first)"
+      ],
+      "blocks": [
+        "Sprint 29 close ceremony (cannot close without this verification)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-014.md",
+      "vision_metrics": [],
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. 5 ACs (AC1 run verify-portage.sh end-to-end, AC2 capture diff to docs/sprints/sprint-29/01-portage-verify.md, AC3 ≤ 5% residual gap, else Sprint 30+ follow-up stories, AC4 owner ratification before Sprint 29 close per ADR-0031, AC5 backlog.json updated with residual gap items if > 0%). Lane: developer (script execution + diff capture, mirrors S29-005 lane). ORCH suggested dev ownership; plan.md says orchestrator — PM follows ORCH signal. Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-014.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-015",
+      "title": "Re-render new-projectsteps.md + audit doc §10 (final, EXPANDED per Phase 2 #9)",
+      "issue": 1074,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "orchestrator",
+      "cc": [
+        "orchestrator",
+        "architect",
+        "developer",
+        "tester"
+      ],
+      "story_points_proposed": 1.0,
+      "depends_on": [
+        "S29-013 (Step 5b must be auto-applied)",
+        "S29-014 (verification report must exist)",
+        "S29-017 (soul .md.tmpl re-author for dual-path content parity)"
+      ],
+      "blocks": [
+        "Sprint 29 close ceremony (this story IS the final doc-update before close)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-015.md",
+      "vision_metrics": [],
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. 6 ACs (AC1 Step 5b removed, AC2 tag discipline section updated v1.0.1 → current HEAD, AC3 audit doc §10.2 'EXECUTED 2026-07-27' + plan link + verify link, AC4 Post-Sprint-29 sunset checklist removed, AC5 CLAUDE.md dual-path resolution per Phase 2 #9 (dev-studio-init.sh renders BOTH root + .claude/ paths), AC6 d-test d113-markdown-internal-links GREEN). Lane: orchestrator (docs/ lane per file ownership matrix). Note ORCH WIP-capped 2/2 per ORCH wake signal — Story open but lane-queued. Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-015.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-016",
+      "title": "pyproject.toml.tmpl + LICENSE.tmpl + .template-version render path (CRITICAL BLOCKER)",
+      "issue": 1075,
+      "priority": "P0",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "developer",
+        "tester",
+        "human"
+      ],
+      "story_points_proposed": 5.0,
+      "depends_on": [
+        "S29-001 (template render doctrine, sister to .claude/CLAUDE.md.tmpl render path)"
+      ],
+      "blocks": [
+        "S29-014 (verification — S29-016 must land for d-test verification to be meaningful)",
+        "S29-015 AC5 (dual-path CLAUDE.md render references this story's render path contract)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-016.md",
+      "vision_metrics": [],
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. LOAD-BEARING CRITICAL per arch v3 audit §C Gap 1 — blocks owner goal 'launcher creates projects with full features'. 6 ACs (AC1 pyproject.toml.tmpl parameterized PEP 621, AC2 LICENSE.tmpl MIT per Phase 2 #6, AC3 .template-version.tmpl drift marker, AC4 dev-studio-init.sh render idempotent per ADR-0050, AC5 d-test ≥3 TCs per ADR-0049 (pyproject schema + LICENSE MIT + .template-version drift logic + dry-run pip install -e .[dev]), AC6 sister to .claude/CLAUDE.md.tmpl render path). Lane: architect (template render doctrine + PEP 621 design + idempotency contract). Co-owner: developer (PEP 621 metadata + d-test RED-first). Owner squash gate per ADR-0031. Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-016.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-017",
+      "title": "Re-author template .claude/CLAUDE.md.tmpl + 5 soul .md.tmpl files (Phase 2 NEW)",
+      "issue": 1076,
+      "priority": "P1",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "developer",
+        "tester"
+      ],
+      "story_points_proposed": 3.0,
+      "depends_on": [
+        "Sprint 28 SOUL AMEND lineage (Issues #414, #430, #682)",
+        "ADR-0038 / ADR-0057 / ADR-0062 / ADR-0063 SOUL AMEND family",
+        "Phase 2 #9 dual-path resolution"
+      ],
+      "blocks": [
+        "S29-015 AC5 (dual-path CLAUDE.md render references this story's re-authored content)"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-017.md",
+      "vision_metrics": [],
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. 6 ACs (AC1 lineage report at docs/sprints/sprint-29/s29-017-soul-amend-lineage.md ORCH lane pre-work, AC2 re-author .claude/CLAUDE.md.tmpl to mirror AtilCalculator root CLAUDE.md.tmpl commit 737b846e + Sprint 28 SOUL AMENDs per Phase 2 #9 'newer wins', AC3 re-author 5 soul files architect.md.tmpl + developer.md.tmpl + orchestrator.md.tmpl + product-manager.md.tmpl + tester.md.tmpl each with Sprint 28 SOUL AMENDs, AC4 soul-coverage d-test re-run per ADR-0049, AC5 content-drift verification git diff intentional not stale, AC6 dual-path documented in plan doc §E). Lane: architect (architectural authorship + SOUL AMEND interpretation). Co-owner: orchestrator (AC1 lineage + render path). Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-017.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-018",
+      "title": "8 docs sub-dir skeletons (Phase 2 expansion of S29-012, OBSOLETED)",
+      "issue": 1077,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "product-manager",
+        "developer",
+        "tester"
+      ],
+      "story_points_proposed": 2.0,
+      "depends_on": [
+        "S29-016 (render path doctrine — dev-studio-init.sh updates cascade)",
+        "S29-007 (sister-pattern — d1021 themed PR forward-port pattern)"
+      ],
+      "blocks": [
+        "Sprint 30+ docs re-render (after S29-015 close)",
+        "downstream-project doc adoption"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-018.md",
+      "vision_metrics": [],
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. S29-012 OBSOLETED — this story ABSORBS + EXPANDS S29-012 per arch v3 audit §G recommendation + owner directive #6. 5 ACs (AC1 8 sub-dir skeletons created in template docs/{backlog,bugs,designs,product,retros,soul-amends,sprints,test-plans}/ each with README + lane-specific .tmpl skeleton per file ownership matrix, AC2 each README ≥ 1 section heading + lane ownership + sibling-pattern documented, AC3 dev-studio-init.sh updated to render all 8 sub-dirs mkdir -p + render-template sister to .claude/ render path per ADR-0050, AC4 multi-lane co-CC per file ownership matrix PM on backlog/product, tester on bugs/test-plans, arch on designs, orch on retros/soul-amends/sprints, AC5 d-test ≥3 TCs per ADR-0049 sub-dir presence + README shape + lane-ownership consistency). Lane: architect (template render doctrine + lane-ownership matrix consistency). Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-018 (S29-012 OBSOLETED).",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
+    },
+    {
+      "id": "STORY-S29-019",
+      "title": "6 top-level docs files .tmpl render (Phase 2 NEW)",
+      "issue": 1078,
+      "priority": "P2",
+      "status": "backlog",
+      "agent": "architect",
+      "cc": [
+        "architect",
+        "orchestrator",
+        "product-manager",
+        "developer",
+        "tester"
+      ],
+      "story_points_proposed": 3.0,
+      "depends_on": [
+        "S29-016 (render path doctrine — dev-studio-init.sh updates cascade)",
+        "S29-018 (sub-dir siblings)",
+        "ADR-0033 (peer-poke spec is source for peer-poke-spec.md.tmpl)"
+      ],
+      "blocks": [
+        "Sprint 30+ doc adoption + glossary refresh",
+        "downstream-project operator onboarding"
+      ],
+      "sprint": "Sprint 29",
+      "sprint_story_doc": "docs/backlog/STORY-S29-019.md",
+      "vision_metrics": [],
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. 5 ACs (AC1 6 .tmpl files added USER-GUIDE.md.tmpl PM-owned, glossary.md.tmpl + index-cadence.md.tmpl + new-projectsteps.md.tmpl + peer-poke-spec.md.tmpl orchestrator-owned, tech-debt.md.tmpl architect-owned per file ownership matrix, AC2 each file ≥ 1 section heading non-empty stub, AC3 dev-studio-init.sh updated to render all 6 sister to S29-016 + S29-018 render paths, AC4 multi-lane co-CC per file ownership matrix PM on USER-GUIDE, orch on 4 files, arch on tech-debt, AC5 d-test admin-level file existence + content shape ≥1 section heading). Lane: architect (template render doctrine + multi-lane coordination). Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-019.",
+      "v1_0_0_scope": "OUT",
+      "issue_status": "backlog"
     }
   ],
-  "last_id": 1036,
+  "last_id": 1078,
   "vision_source": "#4",
   "sprint_sources": {
     "sprint_1_kickoff": "#12",
