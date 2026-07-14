@@ -136,7 +136,7 @@ fi
 # Canonical 4-tuple per S29-001 baseline (PR #73 squash-merged 2026-07-13T14:20:32Z):
 #   runs-on: [self-hosted, Linux, X64, atilproject]
 # Pre-impl: 0/4 (4 missing). Post-impl: 4/4.
-four_tuple='runs-on: \[self-hosted, Linux, X64, atilproject\]'
+four_tuple='runs-on: [self-hosted, Linux, X64, atilproject]'
 tuple_ok=0
 tuple_total=0
 for wf in "${EXPECTED_WORKFLOWS[@]}"; do
