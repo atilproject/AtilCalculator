@@ -143,6 +143,13 @@ ROLE="${1:-}"
 MODE="${2:---once}"
 TMUX_SESSION="${TMUX_SESSION:-dev-studio}"
 STALE_CC_SEC="${STALE_CC_SEC:-900}"
+# Default org-scan (owner directive 2026-07-15T06:42Z, "atilproject org'u tarayacak
+# hale getir"): when neither --repo nor AGENT_WATCH_REPOS is set, fall back to
+# org-wide scan of atilproject (the canonical dev-studio org with 5 repos). This
+# restores cross-repo sister-pattern discovery (RETRO-023 codifier) without
+# requiring every clone to set AGENT_WATCH_ORG manually. Override per clone by
+# exporting AGENT_WATCH_ORG="" (disable) or AGENT_WATCH_ORG=<other-org>.
+AGENT_WATCH_ORG="${AGENT_WATCH_ORG:-atilproject}"
 # v6 (ADR-0024 — stale-verdict watchdog schema): back-compat shim window.
 # During the shim window (now < VERDICT_SHIM_END), poll_once emits BOTH the old
 # `stale_cc` AND the new `stale_verdict` + `missing_expectation` event kinds so
@@ -176,12 +183,26 @@ Arguments:
                             stream. Overrides AGENT_WATCH_REPOS env var.
                             Examples: --repo owner/repo1,owner/repo2
                                       --repo <owner>/<repo>
+  --org <name>              GitHub ORG name; fetch all repos from `gh api
+                            /orgs/<name>/repos` and merge into REPOS[] (Issue
+                            cycle ~#1825 PM lane-exception: org-wide scan for
+                            cross-repo workstream discovery, RETRO-023 codifier).
+                            Skips archived repos. Overrides AGENT_WATCH_ORG env
+                            var. Combines with --repo: --org appends after --repo.
+                            Example: --org atilproject
 
 Environment:
+  AGENT_WATCH_ORG           GitHub ORG name (used when --org absent; DEFAULT
+                            atilproject per owner directive 2026-07-15T06:42Z).
+                            Fetches all non-archived repos from the org. Set
+                            AGENT_WATCH_ORG="" to disable org-scan fallback.
   AGENT_WATCH_REPOS         Comma-separated REPO list (used when --repo absent)
   GITHUB_REPO               Single-repo fallback (legacy; --repo / AGENT_WATCH_REPOS
                             take precedence)
   WAKE_PANE=1               Send tmux wake-up prompt on new_events > 0
+  POLL_INTERVAL_SEC         Override poll interval; default 180s (was 60s;
+                            owner directive 2026-07-15T06:42Z). State file
+                            value takes precedence.
   STALE_CC_SEC=900          cc:<role> staleness threshold (DEPRECATED, ADR-0024)
   VERDICT_SHIM_END          ISO ts; while now < this, stale_cc is still emitted
                             alongside stale_verdict (default 2026-07-02)
@@ -202,6 +223,9 @@ Examples:
   # Multi-repo
   agent-watch.sh developer --repo <owner>/<repo>,<owner>/<repo>
 
+  # Org-wide scan (new — cycle ~#1825 PM lane-exception, RETRO-023 codifier)
+  agent-watch.sh developer --org atilproject
+
   # Loop mode with tmux wake-up
   agent-watch.sh developer --loop
 USAGE
@@ -209,10 +233,12 @@ USAGE
   exit 0
 fi
 
-# --- argument parsing: --repo <list> (ADR-0047 Part 1) ---
-# Walks args (skipping $ROLE at [1]) and extracts --repo <list> if present.
-# All other args are forwarded semantics (--once/--loop detected via MODE above).
+# --- argument parsing: --repo <list> (ADR-0047 Part 1) + --org <name> ---
+# Walks args (skipping $ROLE at [1]) and extracts --repo <list> and --org <name>
+# if present. All other args are forwarded semantics (--once/--loop detected via
+# MODE above).
 REPO_FLAG=""
+ORG_FLAG=""
 ARG_IDX=2
 while [ "$ARG_IDX" -le "$#" ]; do
   arg="${!ARG_IDX:-}"
@@ -224,6 +250,15 @@ while [ "$ARG_IDX" -le "$#" ]; do
       ;;
     --repo=*)
       REPO_FLAG="${arg#--repo=}"
+      ARG_IDX=$((ARG_IDX + 1))
+      ;;
+    --org)
+      next_idx=$((ARG_IDX + 1))
+      ORG_FLAG="${!next_idx:-}"
+      ARG_IDX=$((ARG_IDX + 2))
+      ;;
+    --org=*)
+      ORG_FLAG="${arg#--org=}"
       ARG_IDX=$((ARG_IDX + 1))
       ;;
     *)
@@ -238,11 +273,20 @@ if [ ! -x "$STATE_HELPER" ]; then
 fi
 
 # --- multi-REPO resolution (ADR-0047 Part 1, Issue #422 Sprint 11 P1) ---
-# Precedence: --repo flag > AGENT_WATCH_REPOS env > GITHUB_REPO > auto-detect > fallback.
+# Precedence: --repo flag > --org flag / AGENT_WATCH_ORG (org-wide scan) >
+#             AGENT_WATCH_REPOS env > GITHUB_REPO > auto-detect > fallback.
 # Each entry must match owner/name format; otherwise rejected with usage error.
+# When --org is set without --repo, skip GITHUB_REPO fallback (org scan will
+# populate REPOS[] downstream; no point trying a single-repo fallback that
+# would just fail validation).
 REPOS_RAW=""
 if [ -n "$REPO_FLAG" ]; then
   REPOS_RAW="$REPO_FLAG"
+elif [ -n "$ORG_FLAG" ] || [ -n "${AGENT_WATCH_ORG:-}" ]; then
+  # Defer repo enumeration to the org-scan step below; leave REPOS_RAW empty so
+  # the GITHUB_REPO / auto-detect / fallback branches do NOT fire (they'd add a
+  # single invalid-format entry from ~/.dev-studio-env).
+  REPOS_RAW=""
 elif [ -n "${AGENT_WATCH_REPOS:-}" ]; then
   REPOS_RAW="$AGENT_WATCH_REPOS"
 elif [ -n "${GITHUB_REPO:-}" ]; then
@@ -254,13 +298,14 @@ fi
 # Last-resort fallback (Issue #238 sub-task 2 emergency fix lineage): source
 # ~/.dev-studio-env (AC3 contract from STORY-S21-010 / Issue #642) to pick up
 # GITHUB_REPO, then fail loud if still unset. No hardcoded repo literal — clone
-# projects must set their own value via dev-studio-init.sh.
-if [ -z "$REPOS_RAW" ]; then
+# projects must set their own value via dev-studio-init.sh. Skip when --org is
+# set (org scan populates REPOS[] downstream).
+if [ -z "$REPOS_RAW" ] && [ -z "$ORG_FLAG" ] && [ -z "${AGENT_WATCH_ORG:-}" ]; then
   [ -f "${HOME}/.dev-studio-env" ] && . "${HOME}/.dev-studio-env" 2>/dev/null || true
   REPOS_RAW="${GITHUB_REPO:-}"
 fi
-if [ -z "$REPOS_RAW" ]; then
-  echo "ERROR: REPOS_RAW is empty; set --repo, AGENT_WATCH_REPOS, GITHUB_REPO (~/.dev-studio-env), or run dev-studio-init.sh first" >&2
+if [ -z "$REPOS_RAW" ] && [ -z "$ORG_FLAG" ] && [ -z "${AGENT_WATCH_ORG:-}" ]; then
+  echo "ERROR: REPOS_RAW is empty; set --repo, --org, AGENT_WATCH_REPOS, AGENT_WATCH_ORG, GITHUB_REPO (~/.dev-studio-env), or run dev-studio-init.sh first" >&2
   exit 2
 fi
 
@@ -284,14 +329,67 @@ if [ -n "$REPO_INVALID" ]; then
   exit 2
 fi
 
-if [ "${#REPOS[@]}" -eq 0 ]; then
-  echo "ERROR: cannot determine repo. Set GITHUB_REPO=owner/name, AGENT_WATCH_REPOS, or run inside repo." >&2
+if [ "${#REPOS[@]}" -eq 0 ] && [ -z "$ORG_FLAG" ] && [ -z "${AGENT_WATCH_ORG:-}" ]; then
+  echo "ERROR: cannot determine repo. Set GITHUB_REPO=owner/name, AGENT_WATCH_REPOS, --org <name>, or run inside repo." >&2
   exit 4
 fi
 
 # Back-compat: keep single REPO var for non-iterative call sites (e.g.
 # query_proactive_sweep env export, gh pr view for individual PR lookups).
-REPO="${REPOS[0]}"
+#
+# Guarded with :- default expansion (d1042 sister-test) so set -euo pipefail
+# does not fire when REPOS[] is empty pre-org-scan. The org-scan block at
+# line 343+ populates REPOS[] and refreshes REPO from REPOS[0] at lines
+# 381-382 — this guard covers the gap between arg-parse and org-fetch.
+REPO="${REPOS[0]:-}"
+
+# --- ORG-wide scan (cycle ~#1825 PM lane-exception, RETRO-023 codifier) ---
+# When --org or AGENT_WATCH_ORG is set, enumerate all non-archived repos in the
+# org via `gh api /orgs/<org>/repos` and APPEND them to REPOS[] (deduplicating
+# against any explicit --repo entries). This makes org-wide workstream discovery
+# feasible for cross-repo sister-pattern trackers (RETRO-023 cluster).
+#
+# Skip archived repos: noise reduction, archived repos don't get fresh issue
+# traffic. If user wants archived, set AGENT_WATCH_INCLUDE_ARCHIVED=1.
+#
+# Per-page: 100 (max). Pagination: gh handles `?per_page=100` correctly; for
+# orgs with >100 repos we'd need to follow Link headers — defer to Sprint 30+
+# if any active org crosses 100 non-archived repos.
+if [ -n "$ORG_FLAG" ] || [ -n "${AGENT_WATCH_ORG:-}" ]; then
+  ORG_RESOLVED="${ORG_FLAG:-${AGENT_WATCH_ORG}}"
+  if [[ ! "$ORG_RESOLVED" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,38}[A-Za-z0-9])?$ ]]; then
+    echo "ERROR: invalid --org format: '$ORG_RESOLVED' (expected GitHub org slug)" >&2
+    exit 2
+  fi
+  ORG_REPOS_JSON="$(gh api "/orgs/${ORG_RESOLVED}/repos?per_page=100&type=all" 2>/dev/null || true)"
+  if [ -z "$ORG_REPOS_JSON" ] || ! echo "$ORG_REPOS_JSON" | jq -e . >/dev/null 2>&1; then
+    echo "ERROR: --org '$ORG_RESOLVED' fetch failed (gh api /orgs/.../repos)" >&2
+    echo "Hint: check gh auth + org visibility (private orgs need org-scope PAT)" >&2
+    exit 2
+  fi
+  # Build a set of existing REPOS[] for dedup; iterate org repos and append
+  # non-archived entries not already in REPOS[].
+  declare -A _seen_repos=()
+  for r in "${REPOS[@]:-}"; do _seen_repos["$r"]=1; done
+  ORG_ADDED=0
+  while IFS= read -r line; do
+    full_name="$(echo "$line" | jq -r .full_name)"
+    archived="$(echo "$line" | jq -r .archived)"
+    [ "$archived" = "true" ] && [ "${AGENT_WATCH_INCLUDE_ARCHIVED:-0}" != "1" ] && continue
+    if [ -n "$full_name" ] && [ -z "${_seen_repos[$full_name]:-}" ]; then
+      REPOS+=("$full_name")
+      _seen_repos["$full_name"]=1
+      ORG_ADDED=$((ORG_ADDED + 1))
+    fi
+  done < <(echo "$ORG_REPOS_JSON" | jq -c '.[]')
+  # Refresh REPO back-compat var in case REPOS[] was empty before org scan.
+  if [ "${#REPOS[@]}" -gt 0 ]; then
+    REPO="${REPOS[0]}"
+  fi
+  # Sister-pattern observability: log org-scan summary to stderr (visible in
+  # systemd journal + watch log).
+  echo "[--org $ORG_RESOLVED] appended $ORG_ADDED non-archived repos; REPOS[] total = ${#REPOS[@]}" >&2
+fi
 
 # gh_all_repos <out_var> <gh_subcmd> [args...]
 # Runs <gh_subcmd> [args...] --repo <each> for every repo in REPOS, merges
@@ -328,7 +426,12 @@ require_gh
 "$STATE_HELPER" init "$ROLE" >/dev/null
 
 POLL_INTERVAL="$("$STATE_HELPER" get "$ROLE" poll_interval_sec)"
-POLL_INTERVAL="${POLL_INTERVAL:-60}"
+# Default 180s (was 60s) per owner directive 2026-07-15T06:42Z ("180 saniyede 1'e
+# dönsün"). 60s was too aggressive — caused GitHub API rate-limit pressure during
+# multi-repo org-scan. State file value still takes precedence (operator can
+# tighten to 60s for critical handoff via scripts/agent-state.sh set <role>
+# poll_interval_sec 60).
+POLL_INTERVAL="${POLL_INTERVAL:-180}"
 
 # v3.4 (issue #61 fix): HWM refresh on every poll.
 #
