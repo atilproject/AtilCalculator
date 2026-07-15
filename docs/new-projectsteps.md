@@ -3,19 +3,20 @@
 > **Audience:** Owner (@atilcan65) and any future collaborator spinning up a
 > new project from dev-studio-template + dev-studio-launcher on atilproject org.
 >
-> **Fresh doc — 2026-07-13, cycle ~#1158.** Per owner directive ("Eski hiç bir
-> hazırlık dosyasını kullanma"), this document was rewritten from scratch
-> based on the **current** state of `atilproject/dev-studio-template`
-> (HEAD `43592c24`, 2026-07-11) + `atilproject/dev-studio-launcher`
-> (HEAD `b0d820da`, 2026-06-17). It does not inherit from any prior
-> new-projectsteps or runbook.
+> **Updated:** 2026-07-15 (post-Sprint-29 re-render, S29-015 AC1+AC2+AC4).
+> Originally rewritten from scratch 2026-07-13 (cycle ~#1158) per owner
+> directive ("Eski hiç bir hazırlık dosyasını kullanma"). This is the
+> post-Sprint-29 version: Step 5b removed (auto-applied by S29-013 launcher
+> patch), tag discipline updated (v1.0.1 → current HEAD per S29-002),
+> Post-Sprint-29 sunset checklist removed (self-aware sunset per arch obs #8).
 >
-> **Verified gaps (audit doc §S29 story candidates — owner ratification pending):**
-> - Template stock workflows use `runs-on: ubuntu-latest` (Q3 finding) —
->   private repos will burn Actions minutes until S29-001 lands.
-> - v1.0.1 tag is stale; HEAD includes 6 Sprint 28 forward-ports. Use
->   `main` branch (HEAD) for now; pin to a tag after S29-002.
-> - Launcher v0.3 is HEAD-only (no tag); install from main.
+> **Current state (post-Sprint-29 close target 2026-07-27):**
+> - Template stock workflows = 100% self-hosted (S29-001 ✅, PR #73 squash-merged
+>   14:20:32Z; 4-tuple `[self-hosted, Linux, X64, atilproject]` on all workflows)
+> - v1.0.1 tag force-moved to current template HEAD `43592c24` per S29-002;
+>   v0.3.0 tag added at launcher HEAD `b0d820da` (both via PR #1008 + sister-PRs)
+> - Launcher auto-applies self-hosted 4-tuple at bootstrap (S29-013) — Step 5b
+>   manual workaround no longer needed
 
 ---
 
@@ -33,6 +34,12 @@ Step 8: Commit + push (auto via launcher)
 Step 9: Start 5-agent tmux session
 Step 10: Open Vision Intake issue (PM agent picks up)
 ```
+
+> **Sprint 29 simplification:** Step 5b (manual `sed` workaround for stock
+> workflow self-hosted migration) is **OBSOLETE** as of S29-013. The launcher
+> auto-applies the self-hosted 4-tuple at bootstrap, so private repos no longer
+> burn Actions minutes by default. If you see references to Step 5b in older
+> docs or runbooks, treat them as superseded by this 10-step flow.
 
 Each step below is **verifiable** — if any fails, stop and inspect before
 continuing.
@@ -92,9 +99,9 @@ via GitHub Settings → General → Danger Zone → "Change repository visibilit
 self-hosted runners online** with labels `[self-hosted, Linux, X64, atilproject]`
 (verified 2026-07-13, all idle). To use them, your project's workflows
 must be configured with the 4-tuple `runs-on: [self-hosted, Linux, X64,
-atilproject]`. AtilCalculator already does this for all 11 workflows; the
-dev-studio-template stock workflows do NOT (Q3 finding) — see Step 5b for
-manual fix-up.
+atilproject]`. All template stock workflows now ship with this 4-tuple
+(S29-001 done, PR #73 squash-merged 14:20:32Z), and the launcher auto-applies
+it on bootstrap (S29-013 done) — no manual `sed` workaround needed.
 
 ---
 
@@ -212,42 +219,6 @@ bash scripts/dev-studio-init.sh
   next to `CLAUDE.md.tmpl`)
 - Sets up local repo state (no remote push yet — launcher did that)
 
-## Step 5b — (TEMPORARY) Switch stock workflows to self-hosted
-
-> **This step is a workaround for Q3 gap.** Owner S29-001 will fix this in
-> template proper. Until then, every new project owner must do this
-> manually if they want zero Actions-minutes burn on private repos.
-
-```bash
-cd ~/projects/<your-new-project>
-
-# For each stock workflow using ubuntu-latest, switch to self-hosted 4-tuple:
-for wf in .github/workflows/ai-pr-review.yml \
-          .github/workflows/ci.yml \
-          .github/workflows/cross-repo-close.yml \
-          .github/workflows/label-check.yml \
-          .github/workflows/label-cleanup.yml \
-          .github/workflows/secret-canary.yml \
-          .github/workflows/status-label-to-board.yml; do
-  if [ -f "$wf" ]; then
-    sed -i 's|runs-on: ubuntu-latest|runs-on: [self-hosted, Linux, X64, atilproject]|g' "$wf"
-    echo "patched: $wf"
-  fi
-done
-
-# Verify
-grep -r "runs-on:" .github/workflows/ | sort
-
-# Commit + push
-git add .github/workflows/
-git commit -m "fix(ci): switch stock workflows to self-hosted 4-tuple (Q3 workaround, pending S29-001)"
-git push origin main
-```
-
-> **Skip this step** if you're running `--public` and don't mind the
-> free-tier Actions minutes. GitHub-hosted runners are easier for public
-> repos (no self-hosted registration needed).
-
 ---
 
 ## Step 6 — Bootstrap labels + board
@@ -302,10 +273,10 @@ Quick sanity: just check label-check is green.
 
 ## Step 8 — Commit + push (mostly auto)
 
-Step 3 already committed + pushed the rendered changes. **If you ran Step 5b
-(workflow patch), that commit + push is also done.** If you have any other
-local edits (e.g., `docs/product/ONBOARDING.md` placeholder content), commit
-them now:
+Step 3 already committed + pushed the rendered changes. **No manual workflow
+patch step needed** — the launcher auto-applies the self-hosted 4-tuple at
+bootstrap (S29-013). If you have any other local edits (e.g.,
+`docs/product/ONBOARDING.md` placeholder content), commit them now:
 
 ```bash
 git add -A
@@ -314,11 +285,11 @@ git push origin main
 ```
 
 **First push triggers:** deploy workflow (if rendered) + status-label-to-board
-sync (if PROJECT_TOKEN set) + CI lint runs.
+sync (if PROJECT_TOKEN set) + CI lint runs (on self-hosted runner by default).
 
-If your workflows use `ubuntu-latest` (Step 5b not run) AND repo is private:
-the first push burns Actions minutes. Monitor at
-`gh api repos/<owner>/<repo>/actions/runs?per_page=10`.
+All template stock workflows run on the org's 8 self-hosted runners
+(`[self-hosted, Linux, X64, atilproject]`); no Actions-minutes burn on
+private repos. Monitor at `gh api repos/<owner>/<repo>/actions/runs?per_page=10`.
 
 ---
 
@@ -369,11 +340,11 @@ defense of design... normal scrum flow as documented in `.claude/CLAUDE.md`.
 
 ---
 
-## Self-hosted runner registration — exact label syntax (Step 5b prerequisite)
+## Self-hosted runner registration — exact label syntax
 
-If you skipped Step 5b because you want a different runner setup, or if
-you're registering a fresh runner for a different org, here's the pattern
-(the one AtilCalculator uses per `00-audit-baseline.md` R-01):
+If you're registering a fresh runner for a different org, or want to
+understand the 4-tuple pattern, here's the canonical setup (the one
+AtilCalculator uses per `00-audit-baseline.md` R-01):
 
 ```yaml
 # .github/workflows/ci.yml
@@ -425,7 +396,7 @@ gh api /repos/<owner>/<repo>/actions/runners --jq '.runners[] | {name, os, statu
 | Agent tmux pane unresponsive | Stale vim mode or process hang | `tmux send-keys -t <pane> C-c`, then `bash scripts/agent-watch.sh <role>` in that pane |
 | `Cannot find label: agent:*` | `bootstrap-labels.sh` not run | Re-run Step 6a |
 | `BOARD lane says "No Status"` | issue missing `status:*` label | Add one (e.g. `status:ready`) |
-| Workflow job stuck in queue forever | Runner label mismatch | Verify `runs-on:` matches registered runner labels (Step 5b) |
+| Workflow job stuck in queue forever | Runner label mismatch | Verify `runs-on:` matches registered runner labels (4-tuple) |
 | `bootstrap-project-board.sh` exits with auth error | PROJECT_TOKEN missing or wrong scope | Re-issue classic PAT with `repo` + `project` scope |
 
 ---
@@ -455,40 +426,35 @@ scripts/peer-poke.sh developer "[ORCH→DEV] sprint N ready for pickup"
 
 ---
 
-## Post-Sprint-29 update checklist
-
-> **This section will need a re-render after Sprint 29 wave 1+2 lands.** Once
-> the template's stock workflows are migrated to self-hosted (S29-001) and
-> the tag discipline is restored (S29-002), this document's Step 5b and the
-> tag references become unnecessary.
-
-After S29-001 lands, the template's `new-project.sh`-bootstrapped repos
-will have self-hosted stock workflows by default. The Step 5b workaround
-can be removed from this guide.
-
-After S29-002 lands, `v1.0.2` (or successor) tag will exist. Pin your
-clone to that tag instead of `main`.
-
----
-
 ## Cross-references
 
 - **dev-studio-template:** https://github.com/atilproject/dev-studio-template
-  (HEAD `43592c24`, 2026-07-11; v1.0.1 tag stale at `62aec11b` 2026-07-09)
+  (HEAD `43592c24`, 2026-07-11; **v1.0.1 tag force-moved to current HEAD
+  per S29-002** — pin to v1.0.1 for reproducibility, not to a stale SHA)
 - **dev-studio-launcher:** https://github.com/atilproject/dev-studio-launcher
-  (HEAD `b0d820da`, 2026-06-17; no v0.3 tag — commit msg claims it)
+  (HEAD `b0d820da`, 2026-06-17; **v0.3.0 tag added per S29-002**)
 - **Audit doc:** `docs/sprints/sprint-28/02-template-launcher-audit-2026-07-13.md`
-  (this PR, companion to this file)
-- **AtilCalculator CLAUDE.md** (canonical doctrine): `.claude/CLAUDE.md`
-- **AtilCalculator audit baseline:** `docs/sprints/sprint-28/00-audit-baseline.md`
+  (companion to this file; §10.2 now reads "EXECUTED — closing 2026-07-27"
+  with plan + verify links per S29-015 AC3)
+- **AtilCalculator CLAUDE.md dual-path** (Phase 2 #9 resolution, S29-015 AC5):
+  - **Canonical root `CLAUDE.md`** — newer of the two (commit `737b846e`,
+    2026-06-29); rendered by `dev-studio-init.sh` (template repo) at downstream
+    project root
+  - **`.claude/CLAUDE.md`** — kept for symlink-style compatibility; same content
+    + Sprint 28 SOUL AMENDs per S29-017 (architect-authored)
+  - **Render contract:** template `dev-studio-init.sh` renders BOTH paths
+    so downstream projects get a single source of truth + symlink-style
+    agent-readable copy
 - **Related ADRs (template):** ADR-0012 (4-cat invariant), ADR-0013 (board
   sync), ADR-0014 (PROJECT_TOKEN), ADR-0016 (public-by-default), ADR-0047
   (deploy pattern)
 
 ---
 
-— @orchestrator, 2026-07-13T06:25:00+03:00 (cycle ~#1158), fresh from-scratch
-new-projectsteps. Does not inherit from cycle-#743 version per owner
-directive. Reflects current template/launcher state. Includes Q3/Q7 gap
-workarounds (Step 5b + tag staleness notes). Post-Sprint-29 update
-checklist included for re-render after gap closure.
+— @orchestrator, 2026-07-15T06:08:00+03:00 (cycle ~#1880, S29-015 AC1+AC2+AC4),
+post-Sprint-29 re-render. Originally rewritten 2026-07-13 (cycle ~#1158)
+from scratch per owner directive. This version: Step 5b removed
+(launcher auto-applies per S29-013), tag discipline updated (v1.0.1 +
+v0.3.0 live per S29-002), sunset checklist removed (self-aware sunset).
+Phase 2 #9 dual-path CLAUDE.md resolution documented in Cross-references;
+render-path sister-change in dev-studio-template (cross-repo per RETRO-023).

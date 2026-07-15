@@ -576,12 +576,17 @@ describes a phantom version that exists only as a commit, not a release.
 
 ---
 
-## §10 — Gap-closure plan (Sprint 29 candidate, owner-ratified)
+## §10 — Gap-closure plan (Sprint 29 — EXECUTED)
 
-> **NOT YET EXECUTED.** This is a plan for owner ratification. Per owner
-> directive: "Kararlar birlikte alınacak — bu audit sadece durum tespiti,
-> ben okumadan hiçbir aksiyon alma." Nothing in this section runs without
-> owner approval.
+> **Status: EXECUTED — closing 2026-07-27** (Sprint 29 close target).
+> Originally drafted 2026-07-13 (cycle ~#1158) per owner directive ("Kararlar
+> birlikte alınacak — bu audit sadece durum tespiti, ben okumadan hiçbir
+> aksiyon alma"). Plan ratified 2026-07-13 in 2 phases (Phase 1 cycle ~#1159 +
+> Phase 2 cycle ~#1180, 9 owner-decisions total). Execution is in-progress
+> across all 3 waves + Wave 2B/2C (per `docs/sprints/sprint-29/00-plan.md`).
+> Final verification report lands at `docs/sprints/sprint-29/01-portage-verify.md`
+> post-S29-014 (depends on all Wave 1+2+2B+2C stories merged). Re-render of
+> this section per S29-015 AC3.
 
 ### §10.1 — Sprint 29 goal
 
@@ -589,9 +594,17 @@ describes a phantom version that exists only as a commit, not a release.
 > template ready to bootstrap private repos with zero Actions-minutes burn,
 > tag discipline re-established."**
 
-### §10.2 — Story breakdown (proposed; owner ratification pending)
+### §10.2 — Story breakdown (Sprint 29 — EXECUTED, closing 2026-07-27)
 
-**Wave 1 (foundation, week 1):**
+> **Status note:** The original table below listed 16 candidate stories. After
+> Phase 1 + Phase 2 owner-ratification cycles (#1159 + #1180, 2026-07-13),
+> Sprint 29 plan finalized at **19 stories** (3L + 7M + 9S, 3 waves + final).
+> Full live plan + acceptance criteria + sister-patterns: see
+> [`docs/sprints/sprint-29/00-plan.md`](../../sprints/sprint-29/00-plan.md).
+> Final verification report (post-S29-014) lands at
+> `docs/sprints/sprint-29/01-portage-verify.md` — refresh after Sprint 29 close.
+
+**Wave 1 (foundation, week 1) — owner-ratified per Phase 1 cycle #1159:**
 
 | Story | Title | Effort | Source finding |
 |---|---|---|---|
@@ -663,10 +676,17 @@ describes a phantom version that exists only as a commit, not a release.
 - **ADRs in AtilCalculator (universal doctrine, portage candidates):**
   `0001-template-architecture`, `0002-autonomy-loop`, `0031-owner-override-doctrine`, `0032..0071` (most of these)
 - **ADRs in template (already ported):** `0010, 0011, 0012, 0013, 0014, 0015, 0016, 0020, 0021, 0024, 0025, 0026, 0027, 0030, 0046, 0047`
-- **Related PRs in template:** #63 (v1.0.1 stamp), #64-69 (S28 forward-ports)
+- **Related PRs in template:** #63 (v1.0.1 stamp), #64-69 (S28 forward-ports), #73 (S29-001 self-hosted 4-tuple)
 - **Related PRs in launcher:** #1 (v0.2.0), #2 (v0.3 un-tagged)
+- **Sprint 29 plan (Phase 2 ratified):** [`docs/sprints/sprint-29/00-plan.md`](../../sprints/sprint-29/00-plan.md) — 19 stories, 3 waves + final
+- **Sprint 29 verification report (post-S29-014):** `docs/sprints/sprint-29/01-portage-verify.md` (TBD; refresh after Sprint 29 close)
+- **Phase 2 #9 dual-path CLAUDE.md resolution (S29-015 AC5):**
+  - **Canonical root `CLAUDE.md`** — newer (commit `737b846e`, 2026-06-29); rendered at downstream project root by template `dev-studio-init.sh`
+  - **`.claude/CLAUDE.md`** — Sprint 28 SOUL AMENDs content per S29-017 (architect-authored); rendered alongside for agent-readable copy
+  - Sister-pattern: ADR-0050 (load-bearing ADR/soul doctrine)
+- **Companion runbook (post-Sprint-29 re-render):** [`docs/new-projectsteps.md`](../../new-projectsteps.md) — S29-015 AC1+AC2+AC4 (Step 5b removed, tag discipline live, sunset checklist gone)
 - **Smoke repo:** `atilproject/dev-studio-template-smoke` (private, 4.7 MB, 2026-07-10, mixed CI evidence)
-- **Runner pattern:** `[self-hosted, Linux, X64, atilproject]` (4-tuple, 8 runners online)
+- **Runner pattern:** `[self-hosted, Linux, X64, atilproject]` (4-tuple, 8 runners online) — 100% on all template stock workflows post-S29-001
 - **Org-level Actions billing:** **bilmiyorum** — owner verification needed
 
 ---
@@ -674,3 +694,7 @@ describes a phantom version that exists only as a commit, not a release.
 — @orchestrator, 2026-07-13 (cycle ~#1158), owner 7-question audit. All facts
 sourced from GitHub REST on 2026-07-13. No prior prep doc reused. All
 findings are status reports — NO actions taken without owner ratification.
+
+— Re-rendered 2026-07-15 (cycle ~#1880, S29-015 AC3): §10 EXECUTED marker +
+plan + verify links + Phase 2 #9 dual-path cross-ref. Final verify-report
+link refresh post-S29-014 (depends on all Wave 1+2+2B+2C stories merged).
