@@ -99,22 +99,31 @@ run_tc "TC1" "default AGENT_WATCH_ORG path does not error with REPOS[0]: unbound
 #   (b) `REPO="${REPOS[0]:-}"` (default-expansion under set -u, REPO=empty fallback)
 #   (c) `REPO="${REPOS[0]:-some-default}"` (named fallback)
 # Both verified to work under `set -euo pipefail` per live test.
+#
+# NOTE: Line range widened from NR>=335 && NR<=345 → NR>=335 && NR<=365 to
+# tolerate the +16-line shift introduced by d1043's MODE-walker insertion at
+# line 143. The actual REPO= guarded read now lives at ~line 360 instead of
+# ~line 344. Structural pattern (guarded read of REPOS[0]) is invariant.
 run_tc "TC2" "line 339 uses guarded REPOS[0] read (length-check or :-) default)" '
-  if awk "NR>=335 && NR<=345" "'"$WATCH_SH"'" | grep -qE "REPO=\"\\\$\\{REPOS\\[0\\]:-"; then
+  if awk "NR>=335 && NR<=365" "'"$WATCH_SH"'" | grep -qE "REPO=\"\\\$\\{REPOS\\[0\\]:-"; then
     echo "PASS"
-  elif awk "NR>=335 && NR<=345" "'"$WATCH_SH"'" | grep -qE "if \\[ \"\\\$\\{#REPOS\\[\\\\@\\]\\}\" -gt 0 \\]; then"; then
+  elif awk "NR>=335 && NR<=365" "'"$WATCH_SH"'" | grep -qE "if \\[ \"\\\$\\{#REPOS\\[\\\\@\\]\\}\" -gt 0 \\]; then"; then
     echo "PASS"
   else
-    echo "FAIL: line 339 still uses unguarded REPO=\"\${REPOS[0]}\" — set -u will fire on empty REPOS[]"
+    echo "FAIL: line 339 area still uses unguarded REPO=\"\${REPOS[0]}\" — set -u will fire on empty REPOS[]"
   fi
 '
 
-# TC3: Org-scan refresh preserved — lines 381-382 must still set REPO from
+# TC3: Org-scan refresh preserved — post-org-scan block must still set REPO from
 # REPOS[0] after org-scan populates REPOS[]. This is the post-fix refresh;
 # TC2 fixes the pre-fix read. Both must coexist (single-repo back-compat var
 # must be defined regardless of where REPOS[] becomes non-empty).
+#
+# NOTE: Line range widened from NR>=378 && NR<=388 → NR>=378 && NR<=410 to
+# tolerate the +16-line shift introduced by d1043's MODE-walker insertion.
+# The post-org-scan REPO= refresh now lives at ~line 409 instead of ~line 388.
 run_tc "TC3" "org-scan refresh block still sets REPO from REPOS[0] post-population" '
-  if awk "NR>=378 && NR<=388" "'"$WATCH_SH"'" | grep -qE "REPO=\"\\\$\\{REPOS\\[0\\]\\}\""; then
+  if awk "NR>=378 && NR<=410" "'"$WATCH_SH"'" | grep -qE "REPO=\"\\\$\\{REPOS\\[0\\]\\}\""; then
     echo "PASS"
   else
     echo "FAIL: post-org-scan REPO refresh missing — single-repo back-compat var broken when --org path runs"
@@ -126,11 +135,15 @@ run_tc "TC3" "org-scan refresh block still sets REPO from REPOS[0] post-populati
 # REPO="${REPOS[0]}" reads a valid value. The fix must NOT change this path
 # (regression guard for the happy path). Static-grep: --repo arg-parsing path
 # must still flow into REPOS[] building before line 339.
+#
+# NOTE: Line range widened from NR<=345 → NR<=365 to tolerate +16-line shift
+# from d1043's MODE-walker insertion. Counts only REPO= assignments in the
+# pre-org-scan block; post-org-scan refresh lives outside this range.
 run_tc "TC4" "explicit --repo path still parses into REPOS[] before line 339" '
   # The --repo argparse populates REPOS_RAW before line 339; verify the
   # assignment structure at line 339 area is the only REPO assignment
   # between args parse and org-scan block.
-  REPO_ASSIGN_COUNT=$(awk "NR>=280 && NR<=345" "'"$WATCH_SH"'" | grep -cE "^\\s*REPO=\"\\\$\\{REPOS\\[0\\]")
+  REPO_ASSIGN_COUNT=$(awk "NR>=280 && NR<=365" "'"$WATCH_SH"'" | grep -cE "^\\s*REPO=\"\\\$\\{REPOS\\[0\\]")
   if [ "$REPO_ASSIGN_COUNT" -ge 1 ] && [ "$REPO_ASSIGN_COUNT" -le 2 ]; then
     echo "PASS"
   else
