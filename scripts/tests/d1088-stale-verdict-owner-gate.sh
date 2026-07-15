@@ -183,8 +183,9 @@ T3_OUT=$(echo "$T3_LABELS" | jq -e --arg now_epoch "$NOW_EPOCH" --arg role "$ROL
   (. | map(select(startswith("cc:")))) as $cc_lbls |
   (. | map(select(startswith("agent:")))) as $agent_lbls |
   (
-    (((. | map(select(startswith("status:")))) | any(. == "status:ready")) and
-     (($cc_lbls) | any(. == "cc:human")))
+    (($cc_lbls) | any(. == "cc:human")) and
+    (((. | map(select(startswith("status:")))) | any(. == "status:ready")) or
+     ((. | map(select(startswith("status:")))) | any(. == "status:blocked")))
   ) as $is_owner_gated |
   select($is_owner_gated | not) |
   (
@@ -214,8 +215,9 @@ T4_OUT=$(echo "$T4_LABELS" | jq -e --arg now_epoch "$NOW_EPOCH" --arg role "$ROL
   (. | map(select(startswith("cc:")))) as $cc_lbls |
   (. | map(select(startswith("agent:")))) as $agent_lbls |
   (
-    (((. | map(select(startswith("status:")))) | any(. == "status:ready")) and
-     (($cc_lbls) | any(. == "cc:human")))
+    (($cc_lbls) | any(. == "cc:human")) and
+    (((. | map(select(startswith("status:")))) | any(. == "status:ready")) or
+     ((. | map(select(startswith("status:")))) | any(. == "status:blocked")))
   ) as $is_owner_gated |
   select($is_owner_gated | not) |
   (
@@ -238,19 +240,21 @@ else
 fi
 
 # T5: Sister-pattern — status:blocked + cc:human → silent-skip (different gate semantics).
-# Per dev review cmt 4984989967 Bug 4: Issue #1088 §Proposed fix covers status:ready only;
-# §Verification TC5 covers status:blocked sister-pattern. T5 = aspirational coverage —
-# reflects Issue body §Verification TC5; will turn RED even after §Proposed fix lands
-# pending arch verdict on whether impl should extend to status:blocked (see Bug 4 cmt).
-section "T5: status:blocked + cc:human + agent:<role> + verdict-by:<past> → silent-skip (blocked semantics, aspirational per §Verification TC5)"
+# Per architect verdict cmt 4985008364 Option A (2026-07-15T20:30Z): ACCEPTED as
+# sister-pattern extension. Issue #1088 body §Verification TC5 codifies the
+# broader doctrine. Dev impl PR #1098 extends the `$is_owner_gated` filter to
+# cover BOTH `status:ready + cc:human` AND `status:blocked + cc:human`. T5 is
+# no longer aspirational — full spec-complete per Option A.
+section "T5: status:blocked + cc:human + agent:<role> + verdict-by:<past> → silent-skip (blocked semantics, sister-pattern extension per arch Option A cmt 4985008364)"
 T5_LABELS="[\"status:blocked\",\"cc:human\",\"agent:developer\",\"verdict-by:${PAST_VERDICT_BY_TS}\"]"
 # Per dev review cmt 4984989967 Bug 2: -e flag required for empty-select semantics.
 T5_OUT=$(echo "$T5_LABELS" | jq -e --arg now_epoch "$NOW_EPOCH" --arg role "$ROLE" '
   (. | map(select(startswith("cc:")))) as $cc_lbls |
   (. | map(select(startswith("agent:")))) as $agent_lbls |
   (
-    (((. | map(select(startswith("status:")))) | any(. == "status:ready")) and
-     (($cc_lbls) | any(. == "cc:human")))
+    (($cc_lbls) | any(. == "cc:human")) and
+    (((. | map(select(startswith("status:")))) | any(. == "status:ready")) or
+     ((. | map(select(startswith("status:")))) | any(. == "status:blocked")))
   ) as $is_owner_gated |
   select($is_owner_gated | not) |
   (
