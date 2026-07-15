@@ -30,7 +30,7 @@
 #   - RETRO-024 (Issue #1027, sister-pattern: work-done-elsewhere terminal state
 #     silent-skip rule — same doctrine applied to verdict-by deadline expiry)
 #
-# Test cases:
+# Test cases (per ADR-0049 d-test framework, ≥5 TCs baseline):
 #   T1: `$is_owner_gated` filter present in scripts/agent-watch.sh
 #       query_stale_verdict function (RED-first: absent pre-impl).
 #   T2: `$is_owner_gated` filter positioned BEFORE
@@ -38,10 +38,25 @@
 #       — exemption must apply before verdict-authority check).
 #   T3: Behavior — `status:ready + cc:human + agent:<role> + verdict-by:<past>`
 #       does NOT emit stale_verdict (owner-gated exemption, regression anchor).
+#       Implementation note: T3 uses a hardcoded jq simulation of the (proposed)
+#       exemption logic — independent of source state. This documents Issue §Verification
+#       TC1 expected post-fix behavior. Pre-fix: T3 PASSES because the simulated
+#       exemption logic operates regardless of source; T1+T2 are the structural
+#       bug detectors, this is the behavioral documentation per Issue spec.
 #   T4: Behavior — `status:in-review + cc:developer + verdict-by:<past>`
 #       STILL emits stale_verdict (regression: non-owner-gated PRs unchanged).
 #   T5: Sister-pattern — `status:blocked + cc:human + agent:<role> + verdict-by:<past>`
 #       does NOT emit stale_verdict (blocked semantics: owner pause, not verdict expiry).
+#       Aspirational per Issue body §Verification TC5; §Proposed fix only covers
+#       status:ready. T5 will remain RED until impl extends to status:blocked
+#       (awaiting arch verdict per dev review cmt 4984989967 Bug 4).
+#
+# Bug history (post dev review cmt 4984989967):
+#   Bug 1: T2 grep pattern mismatched escaped `$` — fix applied line ~103
+#          (now greps for `select(\$is_verdict_authority)` to match source line 1270)
+#   Bug 2: T3/T5 jq invocations lacked `-e` flag — fix applied (empty stdout → exit 4)
+#   Bug 3: NOW_EPOCH hardcoded to 13mo-stale value — fix applied (dynamic `date -u +%s`,
+#          PAST_VERDICT_BY_TS derived at deterministic -8h offset)
 #
 # Exit code: 0 = all pass, 1 = at least one fail.
 # Run standalone: bash scripts/tests/d1088-stale-verdict-owner-gate.sh
@@ -100,7 +115,9 @@ fi
 # ============================================================================
 section "T2: \$is_owner_gated positioned BEFORE select(\$is_verdict_authority)"
 OWNER_GATED_LINE=$(echo "$QUERY_VERDICT_BODY" | grep -nF 'is_owner_gated' | head -1 | cut -d: -f1 || echo "0")
-VERDICT_AUTH_LINE=$(echo "$QUERY_VERDICT_BODY" | grep -nF 'select($is_verdict_authority)' | head -1 | cut -d: -f1 || echo "0")
+# Per dev review cmt 4984989967 Bug 1: source line 1270 has `select(\$is_verdict_authority)`
+# with backslash escape (bash heredoc). T2 grep must use backslash too.
+VERDICT_AUTH_LINE=$(echo "$QUERY_VERDICT_BODY" | grep -nF 'select(\$is_verdict_authority)' | head -1 | cut -d: -f1 || echo "0")
 
 if [ "$OWNER_GATED_LINE" -eq 0 ]; then
   fail "T2 cannot validate ordering — T1 failure (no \$is_owner_gated filter found)"
@@ -147,16 +164,22 @@ simulate_stale_verdict() {
   ' >/dev/null 2>&1
 }
 
-# Test fixtures
-NOW_EPOCH="1752566400"  # 2026-07-15T16:00:00Z (deterministic anchor)
-PAST_VERDICT_BY="verdict-by:2026-07-15T08:00:00Z"  # 8h ago — deadline passed
+# Test fixtures (per dev review cmt 4984989967 Bug 3)
+# Pre-fix: hardcoded NOW_EPOCH=1752566400 was 13 months stale (→ 2025-07-15T08:00:00Z),
+# making the deadline check `($now_epoch | tonumber) > ($deadline | tonumber)`
+# permanently FALSE (deadline in future relative to fake-now) → select always empties.
+# Fix: compute NOW_EPOCH dynamically, derive PAST verdict-by at deterministic -8h offset.
+NOW_EPOCH=$(date -u +%s)
+PAST_VERDICT_BY_TS=$(date -u -d "@$((NOW_EPOCH - 8 * 3600))" +%Y-%m-%dT%H:%M:%SZ)  # 8h ago — deadline passed
 
 ROLE="developer"
 
 # T3: Owner-gated exemption — should NOT emit
 section "T3: status:ready + cc:human + agent:<role> + verdict-by:<past> → silent-skip (owner-gated)"
-T3_LABELS='["status:ready","cc:human","agent:developer","cc:developer","verdict-by:2026-07-15T08:00:00Z"]'
-T3_OUT=$(echo "$T3_LABELS" | jq --arg now_epoch "$NOW_EPOCH" --arg role "$ROLE" '
+T3_LABELS="[\"status:ready\",\"cc:human\",\"agent:developer\",\"cc:developer\",\"verdict-by:${PAST_VERDICT_BY_TS}\"]"
+# Per dev review cmt 4984989967 Bug 2: jq without -e exits 0 even on empty select.
+# Add -e flag so empty stdout → exit 1+ (specifically 4 for select-no-match).
+T3_OUT=$(echo "$T3_LABELS" | jq -e --arg now_epoch "$NOW_EPOCH" --arg role "$ROLE" '
   (. | map(select(startswith("cc:")))) as $cc_lbls |
   (. | map(select(startswith("agent:")))) as $agent_lbls |
   (
@@ -185,8 +208,9 @@ fi
 
 # T4: Non-owner-gated — should STILL emit (regression anchor)
 section "T4: status:in-review + cc:developer + verdict-by:<past> → emit stale_verdict (non-owner-gated)"
-T4_LABELS='["status:in-review","cc:developer","agent:developer","verdict-by:2026-07-15T08:00:00Z"]'
-T4_OUT=$(echo "$T4_LABELS" | jq --arg now_epoch "$NOW_EPOCH" --arg role "$ROLE" '
+T4_LABELS="[\"status:in-review\",\"cc:developer\",\"agent:developer\",\"verdict-by:${PAST_VERDICT_BY_TS}\"]"
+# Per dev review cmt 4984989967 Bug 2: -e flag preserves emit-success semantics.
+T4_OUT=$(echo "$T4_LABELS" | jq -e --arg now_epoch "$NOW_EPOCH" --arg role "$ROLE" '
   (. | map(select(startswith("cc:")))) as $cc_lbls |
   (. | map(select(startswith("agent:")))) as $agent_lbls |
   (
@@ -213,10 +237,15 @@ else
     "Fix regression: status:in-review + cc:developer + verdict-by:<past> MUST still emit. If not, the owner-gate filter is over-eager (exempts non-ready PRs)."
 fi
 
-# T5: Sister-pattern — status:blocked + cc:human → silent-skip (different gate)
-section "T5: status:blocked + cc:human + agent:<role> + verdict-by:<past> → silent-skip (blocked semantics)"
-T5_LABELS='["status:blocked","cc:human","agent:developer","verdict-by:2026-07-15T08:00:00Z"]'
-T5_OUT=$(echo "$T5_LABELS" | jq --arg now_epoch "$NOW_EPOCH" --arg role "$ROLE" '
+# T5: Sister-pattern — status:blocked + cc:human → silent-skip (different gate semantics).
+# Per dev review cmt 4984989967 Bug 4: Issue #1088 §Proposed fix covers status:ready only;
+# §Verification TC5 covers status:blocked sister-pattern. T5 = aspirational coverage —
+# reflects Issue body §Verification TC5; will turn RED even after §Proposed fix lands
+# pending arch verdict on whether impl should extend to status:blocked (see Bug 4 cmt).
+section "T5: status:blocked + cc:human + agent:<role> + verdict-by:<past> → silent-skip (blocked semantics, aspirational per §Verification TC5)"
+T5_LABELS="[\"status:blocked\",\"cc:human\",\"agent:developer\",\"verdict-by:${PAST_VERDICT_BY_TS}\"]"
+# Per dev review cmt 4984989967 Bug 2: -e flag required for empty-select semantics.
+T5_OUT=$(echo "$T5_LABELS" | jq -e --arg now_epoch "$NOW_EPOCH" --arg role "$ROLE" '
   (. | map(select(startswith("cc:")))) as $cc_lbls |
   (. | map(select(startswith("agent:")))) as $agent_lbls |
   (
