@@ -27,7 +27,7 @@
 ### L2 Contracts 🟢
 - Each .tmpl renders to .md at `dev-studio-init.sh` step (auto-pickup via `render_all()` iterating `*.tmpl`)
 - USER-GUIDE.md.tmpl ≥ 1-2 sections placeholder (AC2 minimum)
-- Multi-lane ownership: PM on USER-GUIDE; orchestrator on 5 files; architect on tech-debt
+- Multi-lane ownership (CORRECTED cycle ~#2067 per orchestrator cmt 4983524237): PM on USER-GUIDE + glossary (2 files); orchestrator on new-projectsteps + peer-poke-spec (2 files); tester on index-cadence + d1083 d-test (2 deliverables); architect on tech-debt (1 file)
 - 6 ACs defined in STORY-S29-019.md (1=files exist, 2=content shape, 3=render path, 4=multi-lane CC, 5=d-test, 6=metrics)
 
 ### L3 Dependencies 🟢
@@ -67,8 +67,8 @@ This design doc + STORY-S29-019.md + INDEX.md d1083 row + .tmpl files themselves
 | File | Lane owner | Co-CC | Source content |
 |---|---|---|---|
 | `docs/USER-GUIDE.md.tmpl` | PM (lane-defining) | architect (impl), tester (sign-off) | PM drafts skeleton + placeholder sections per AC2 |
-| `docs/glossary.md.tmpl` | orchestrator | architect, tester | Mirror `docs/glossary.md` (AtilCalculator, 17KB) |
-| `docs/index-cadence.md.tmpl` | orchestrator | architect, tester | Mirror `docs/index-cadence.md` (AtilCalculator, 9.6KB) |
+| `docs/glossary.md.tmpl` | **PM** (per file self-header) | architect, tester | Mirror `docs/glossary.md` (AtilCalculator, 17KB) |
+| `docs/index-cadence.md.tmpl` | **tester** (per file self-header) | architect, orchestrator | Mirror `docs/index-cadence.md` (AtilCalculator, 9.6KB) |
 | `docs/new-projectsteps.md.tmpl` | orchestrator | architect, tester | Mirror `docs/new-projectsteps.md` (AtilCalculator, 18KB; mirrors PR #1008, S29-015) |
 | `docs/peer-poke-spec.md.tmpl` | orchestrator | architect, tester (CRITICAL per ADR-0033) | Mirror `docs/peer-poke-spec.md` (AtilCalculator, 12.3KB) |
 | `docs/tech-debt.md.tmpl` | architect | orchestrator, tester | Mirror `docs/tech-debt.md` (AtilCalculator, 197KB — key sections only: Overview/Active/Closed-by-Sprint per Issue #1078 open question #1) |
@@ -94,7 +94,7 @@ Per ADR-0055 §1 Cadence Rule 1 atomic: d-test file + INDEX.md row + 6 .tmpl fil
 ### Cycle ~#2061 (this cycle): Claim + Coordination
 - ✅ Claim #1078 (status:in-progress, removed status:backlog mutual exclusion)
 - ✅ Branch open: `architect/issue-1078-s29-019-6-toplevel-docs-tmpl-render`
-- ✅ Peer-pokes: orchestrator (5 files), PM (USER-GUIDE), tester (AC5 d-test)
+- ✅ Peer-pokes: orchestrator (2 files: new-projectsteps + peer-poke-spec), PM (2 files: USER-GUIDE + glossary), tester (2 deliverables: index-cadence + AC5 d-test) — CORRECTED cycle ~#2067 per orchestrator cmt 4983524237
 - ✅ 9-Lens design doc (this file) committed
 
 ### Next cycles:
