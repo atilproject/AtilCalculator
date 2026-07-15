@@ -140,7 +140,23 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STATE_HELPER="$SCRIPT_DIR/agent-state.sh"
 ROLE="${1:-}"
-MODE="${2:---once}"
+# MODE detection: walk argv to find --once/--loop. Fix for Issue #1086 — the
+# previous `MODE="${2:-...}"` positional grab fired "Unknown mode: --repo" /
+# "Unknown mode: --org" when those flags followed <role> directly (Bug A).
+# Skip pattern: --repo/--org consume 1 extra arg (the flag value); --repo=*/
+# --org=* consume 0 extra; --once/--loop set MODE and consume 0 extra.
+MODE="--once"
+_idx=2
+while [ "$_idx" -le "$#" ]; do
+  _arg="${!_idx:-}"
+  case "$_arg" in
+    --repo|--org) _idx=$((_idx + 2)) ;;
+    --repo=*|--org=*) _idx=$((_idx + 1)) ;;
+    --once) MODE="--once"; _idx=$((_idx + 1)) ;;
+    --loop) MODE="--loop"; _idx=$((_idx + 1)) ;;
+    *) _idx=$((_idx + 1)) ;;
+  esac
+done
 TMUX_SESSION="${TMUX_SESSION:-dev-studio}"
 STALE_CC_SEC="${STALE_CC_SEC:-900}"
 # Default org-scan (owner directive 2026-07-15T06:42Z, "atilproject org'u tarayacak
@@ -339,8 +355,8 @@ fi
 #
 # Guarded with :- default expansion (d1042 sister-test) so set -euo pipefail
 # does not fire when REPOS[] is empty pre-org-scan. The org-scan block at
-# line 343+ populates REPOS[] and refreshes REPO from REPOS[0] at lines
-# 381-382 — this guard covers the gap between arg-parse and org-fetch.
+# line 359+ populates REPOS[] and refreshes REPO from REPOS[0] at lines
+# 405-409 — this guard covers the gap between arg-parse and org-fetch.
 REPO="${REPOS[0]:-}"
 
 # --- ORG-wide scan (cycle ~#1825 PM lane-exception, RETRO-023 codifier) ---
@@ -370,7 +386,13 @@ if [ -n "$ORG_FLAG" ] || [ -n "${AGENT_WATCH_ORG:-}" ]; then
   # Build a set of existing REPOS[] for dedup; iterate org repos and append
   # non-archived entries not already in REPOS[].
   declare -A _seen_repos=()
-  for r in "${REPOS[@]:-}"; do _seen_repos["$r"]=1; done
+  # Guard: empty REPOS[] + `${REPOS[@]:-}` expands to ONE empty string, which
+  # fails as associative-array key (bash 5.2+ "bad array subscript"). Use
+  # length-check to skip entirely when REPOS[] is empty pre-org-scan. Fix for
+  # Issue #1086 (Bug B).
+  if [ "${#REPOS[@]}" -gt 0 ]; then
+    for r in "${REPOS[@]}"; do _seen_repos["$r"]=1; done
+  fi
   ORG_ADDED=0
   while IFS= read -r line; do
     full_name="$(echo "$line" | jq -r .full_name)"
