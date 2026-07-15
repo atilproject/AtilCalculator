@@ -1950,12 +1950,10 @@
       "title": "pyproject.toml.tmpl + LICENSE.tmpl + .template-version render path (CRITICAL BLOCKER)",
       "issue": 1075,
       "priority": "P0",
-      "status": "backlog",
+      "status": "done",
       "agent": "architect",
       "cc": [
         "architect",
-        "developer",
-        "tester",
         "human"
       ],
       "story_points_proposed": 5.0,
@@ -1969,9 +1967,11 @@
       "sprint": "Sprint 29",
       "sprint_story_doc": "docs/backlog/STORY-S29-016.md",
       "vision_metrics": [],
-      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. LOAD-BEARING CRITICAL per arch v3 audit §C Gap 1 — blocks owner goal 'launcher creates projects with full features'. 6 ACs (AC1 pyproject.toml.tmpl parameterized PEP 621, AC2 LICENSE.tmpl MIT per Phase 2 #6, AC3 .template-version.tmpl drift marker, AC4 dev-studio-init.sh render idempotent per ADR-0050, AC5 d-test ≥3 TCs per ADR-0049 (pyproject schema + LICENSE MIT + .template-version drift logic + dry-run pip install -e .[dev]), AC6 sister to .claude/CLAUDE.md.tmpl render path). Lane: architect (template render doctrine + PEP 621 design + idempotency contract). Co-owner: developer (PEP 621 metadata + d-test RED-first). Owner squash gate per ADR-0031. Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-016.",
+      "story_url": "https://github.com/atilcan65/AtilCalculator/issues/1075",
+      "merged_pr": "https://github.com/atilcan65/dev-studio-template/pull/105",
+      "notes": "PM grooming cycle ~#1566 per [ORCH→PM] dual-channel wake 2026-07-14T21:03:32+03:00. LOAD-BEARING CRITICAL per arch v3 audit §C Gap 1 — blocks owner goal 'launcher creates projects with full features'. 6 ACs (AC1 pyproject.toml.tmpl parameterized PEP 621, AC2 LICENSE.tmpl MIT per Phase 2 #6, AC3 .template-version.tmpl drift marker, AC4 dev-studio-init.sh render idempotent per ADR-0050, AC5 d-test ≥3 TCs per ADR-0049 (pyproject schema + LICENSE MIT + .template-version drift logic + dry-run pip install -e .[dev]), AC6 sister to .claude/CLAUDE.md.tmpl render path). Lane: architect (template render doctrine + PEP 621 design + idempotency contract). Co-owner: developer (PEP 621 metadata + d-test RED-first). Owner squash gate per ADR-0031. Source-of-truth: docs/sprints/sprint-29/00-plan.md §3 S29-016. Sprint 29 W2B+ CLOSEOUT cycle ~#1621: P0 closed via sister-PR cluster — PR #104 (d1027-s29-016-template-pyproject-render Phase A RED-first d-test, squash-merged 2026-07-14T20:33:14Z by @atilcan65) + PR #105 (Phase B GREEN impl, squash-merged 2026-07-14T20:51:19Z by @atilcan65) — both in dev-studio-template. Issue #1075 RETRO-024 terminal state applied: type + status:ready + cc:human + NO agent:* (cross-repo workstream per RETRO-023, Issue #1024).",
       "v1_0_0_scope": "OUT",
-      "issue_status": "backlog"
+      "issue_status": "ready"
     },
     {
       "id": "STORY-S29-017",
