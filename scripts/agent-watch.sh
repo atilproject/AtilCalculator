@@ -1250,6 +1250,26 @@ query_stale_verdict() {
       # at 2026-07-04T09:08:26 but stale_verdict kept firing through 05:08:37Z
       # on PR #799 — see Issue #846 production evidence). Sister-pattern to
       # amendment-1 (VERDICT-AUTHORITY scope, Issue #802 / d320).
+      # ADR-0002-amendment-3 (Issue #1088 / d1088): owner-gate exemption.
+      # When a PR carries cc:human AND (status:ready OR status:blocked),
+      # verdict authority has already transferred to the owner — either
+      # via owner squash gate (ADR-0031, status:ready) or owner pause
+      # gate (status:blocked per ADR-0012 4-cat invariant, blocked =
+      # needs owner decision to unblock). The A-path `agent:${ROLE}`
+      # match below is misleading on these PRs (the role is the assigned
+      # owner but the decision authority is human). Silent-skip these
+      # PRs entirely — false-positive wake-loop noise documented in
+      # cycle #2081+ on PR #1095 (dev lane agent-watch woke ~62min on a
+      # terminal-state docs PR with intentional cc:developer retention
+      # per ADR-0059 cluster-squash coordination). Sister-pattern to
+      # RETRO-024 (Issue #1027) silent-skip doctrine, broadened per
+      # architect cycle ~#2121 verdict cmt 4985008364 (Option A — covers
+      # ALL owner-paused states, not just status:ready).
+      (
+        ((\$lbls | any(. == \"cc:human\")) and
+         ((\$lbls | any(. == \"status:ready\")) or (\$lbls | any(. == \"status:blocked\"))))
+      ) as \$is_owner_gated |
+      select(\$is_owner_gated | not) |
       (
         (\$lbls | any(. == \"agent:${ROLE}\")) or
         ((\$lbls | any(. == \"cc:human\")) and (\$lbls | any(. == \"cc:${ROLE}\")))
