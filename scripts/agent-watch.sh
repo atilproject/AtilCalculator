@@ -336,7 +336,12 @@ fi
 
 # Back-compat: keep single REPO var for non-iterative call sites (e.g.
 # query_proactive_sweep env export, gh pr view for individual PR lookups).
-REPO="${REPOS[0]}"
+#
+# Guarded with :- default expansion (d1042 sister-test) so set -euo pipefail
+# does not fire when REPOS[] is empty pre-org-scan. The org-scan block at
+# line 343+ populates REPOS[] and refreshes REPO from REPOS[0] at lines
+# 381-382 — this guard covers the gap between arg-parse and org-fetch.
+REPO="${REPOS[0]:-}"
 
 # --- ORG-wide scan (cycle ~#1825 PM lane-exception, RETRO-023 codifier) ---
 # When --org or AGENT_WATCH_ORG is set, enumerate all non-archived repos in the
