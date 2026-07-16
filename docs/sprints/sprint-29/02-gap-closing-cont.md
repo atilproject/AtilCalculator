@@ -1,10 +1,32 @@
-# Sprint 30 Plan — Gap-Closing Carry-Over
+# Sprint 29 W3 Gap-Closing Continuation — Carry-Over Reference (REFILED from Sprint 30)
 
-> **Sprint:** 30
-> **Author:** @product-manager (cycle ~#2467)
-> **Owner-directive:** cycle ~#2596 (CORRECTION — supersedes cycle ~#2593 framing)
-> **Scope doctrine binding:** Sprint 30 = gap-closing ONLY. Owner directive verbatim: *"gap closing dışında hiç bir item istemiyorum"* (cycle ~#2596, 2026-07-16T20:14Z+03).
-> **Cycle ~#2593 framing REJECTED:** Sprint 30 ≠ non-gap-closing. PM's earlier draft (vision intake, personas, RETRO-025, PM lane refinements) is **OUT OF SCOPE** per owner correction. Discarded.
+> **⚠️ REFILED PER OWNER CORRECTION cycle ~#2598 (2026-07-16T20:25+03)**:
+> **Sprint 30 does NOT exist.** This document was originally authored as the Sprint 30 plan (PR #1112, cycle ~#2467) per owner cycle ~#2596 directive, but the cycle ~#2598 owner correction reversed course: Sprint 29 continues as gap-closing. The 5 carry-over items from this plan stay in Sprint 29 W3 backlog. This file is preserved as the canonical reference for Sprint 29 W3 gap-closing carry-over scope.
+
+> **File origin:** Originally `docs/sprints/sprint-30/00-plan.md` (17955 bytes, authored 2026-07-16T20:14+03 by @product-manager, cycle ~#2467).
+> **Refile action:** Content moved to `docs/sprints/sprint-29/02-gap-closing-cont.md` (2026-07-16T23:30+03, cycle ~#2471).
+> **Sprint 30 directory:** Deleted per cycle ~#2598 ("sprint-30/00-plan.md sil veya boş bırak").
+> **PR #1112:** Status below (will be closed + repurposed, see cycle ~#2471+ dispatches).
+
+---
+
+## §0 — Sprint 29 W3 Gap-Closing Continuation (carry-over)
+
+> **Close the remaining Sprint 29 W3 backlog gap-closing items: 5 carry-over stories (#1078 #1072 #1073 #1075 #1032) that did not land in Sprint 29.**
+
+**Sprint boundary (owner directive cycle ~#2598):**
+- **Sprint 29 continues gap-closing** — Sprint 30 was proposed then cancelled.
+- **5-item carry-over scope stays in Sprint 29 W3** — these are Sprint 29 backlog items that did not land in Sprint 29.
+- **4 closed items TERMINAL** — #1068 #1059 #1058 #1049 stay CLOSED with backlog state `closed-scope-cleanup`. NOT re-evaluable. (Per cycle ~#2596: "TEKRAR AÇMA, Sprint 30 plan'a DAHİL ETME".)
+- **PM task per cycle ~#2598**: delete all non-gap-closing work first. After PM completes, Sprint 29 W3 kickoff begins.
+
+**Cycle ~#2598 supersession chain:**
+- cycle ~#2593 PM directive → SUPERSEDED by cycle ~#2596 (Sprint 30 framing)
+- cycle ~#2596 PM directive → SUPERSEDED by cycle ~#2598 (Sprint 30 YOK; Sprint 29 continues)
+- Memory [[sprint-30-pm-lane-placement-decisions]] (cycle ~#1974) → SUPERSEDED twice
+- Memory [[sprint-29-owner-override-gap-closing-doctrine]] (cycle ~#1988) → STILL BINDING (Sprint 29 = gap-closing only)
+
+---
 
 ---
 
