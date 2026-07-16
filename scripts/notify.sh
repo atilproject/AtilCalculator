@@ -151,7 +151,12 @@ ${FULL_MSG}
 [FULL_MSG_END]
 
 Lütfen pickup et."
-  if "$SCRIPT_DIR_NOTIFY/agent-wake.sh" "$ROLE" "$WAKE_PROMPT" 2>/dev/null; then
+  # Issue #1066: removed `2>/dev/null` so agent-wake.sh structured stderr
+  # (Fix 1's whole purpose is log honesty per PR #1065) propagates to the
+  # notify.sh caller. Debugging tmux-wake failures now surfaces the root-cause
+  # context (send-keys rc, capture-pane verify mismatch) instead of only the
+  # generic line 158 "tmux-wake failed for role=$ROLE". RETRO-005 #26 hygiene.
+  if "$SCRIPT_DIR_NOTIFY/agent-wake.sh" "$ROLE" "$WAKE_PROMPT"; then
     echo "Wake injected: role=$ROLE"
   else
     WAKE_RESULT=1
