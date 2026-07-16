@@ -43,8 +43,14 @@
 
 set -euo pipefail
 
-# Load env if not already in scope
-[ -f "$HOME/.dev-studio-env" ] && source "$HOME/.dev-studio-env"
+# Load env if not already in scope.
+# d1024-s29-ping-env-decoupling (Issue #1083) — fixture-rot fix: respect
+# NOTIFY_NO_AUTOLOAD=1 escape hatch so test fixtures using `env -u TELEGRAM_*`
+# to simulate CI/dev/recovery envs are NOT clobbered by auto-source. Sister-pattern:
+# template repo's notify.sh (Issue #1060 intentional non-auto-source contract)
+# reserves NOTIFY_NO_AUTOLOAD as the explicit opt-out signal. Production users
+# who need auto-load: leave NOTIFY_NO_AUTOLOAD unset.
+[ -z "${NOTIFY_NO_AUTOLOAD:-}" ] && [ -f "$HOME/.dev-studio-env" ] && source "$HOME/.dev-studio-env"
 
 # Defaults
 LEVEL="info"

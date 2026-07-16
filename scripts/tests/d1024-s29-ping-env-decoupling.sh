@@ -168,6 +168,7 @@ trap "cleanup_fake_session '$SESSION_TC1'" EXIT
 # Run notify.sh with Telegram env unset, in subshell to avoid leaking unset
 TC1_STDERR=$(mktemp)
 TC1_EXIT=$(env -u TELEGRAM_BOT_TOKEN -u TELEGRAM_CHAT_ID \
+    NOTIFY_NO_AUTOLOAD=1 \
     TMUX_SESSION="$SESSION_TC1" \
     bash "$NOTIFY_SH" -l info -w -r orchestrator "test d1024 tc1 env-unset probe" \
     2>"$TC1_STDERR" >/dev/null; echo $?)
@@ -204,6 +205,7 @@ trap "cleanup_fake_session '$SESSION_TC2'" EXIT
 TC2_STDERR=$(mktemp)
 TC2_EXIT=$(env TELEGRAM_BOT_TOKEN="invalid-token-for-d1024-test" \
     TELEGRAM_CHAT_ID="invalid-chat-for-d1024-test" \
+    NOTIFY_NO_AUTOLOAD=1 \
     TMUX_SESSION="$SESSION_TC2" \
     bash "$NOTIFY_SH" -l info -w -r developer "test d1024 tc2 invalid-token probe" \
     2>"$TC2_STDERR" >/dev/null; echo $?)
@@ -273,6 +275,7 @@ trap "cleanup_fake_session '$SESSION_TC4'" EXIT
 
 TC4_STDERR=$(mktemp)
 TC4_EXIT=$(env -u TELEGRAM_BOT_TOKEN -u TELEGRAM_CHAT_ID \
+    NOTIFY_NO_AUTOLOAD=1 \
     TMUX_SESSION="$SESSION_TC4" \
     bash "$PEER_POKE_SH" orchestrator "test d1024 tc4 peer-poke env-unset probe" \
     2>"$TC4_STDERR" >/dev/null; echo $?)
