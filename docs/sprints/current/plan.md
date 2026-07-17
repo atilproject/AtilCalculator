@@ -1,11 +1,12 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 29 — gap-closing only** (cycle ~#1245, 2026-07-13T13:45+03:00, scope-locked per owner directive "Sprint 29 ve gap closinge odaklanacağım, başka işlere dokunmuyoruz bitne kadar")
+> **Active sprint:** **Sprint 30 — Template Portability (owner GO @ 2026-07-17T06:30Z, post-PR-#1115 squash)** — cycle ~#2752, 2026-07-17
 >
-> 📄 **Sprint 29 plan source:** [`docs/sprints/sprint-29/00-plan.md`](../sprint-29/00-plan.md) (full 19-story plan, 3 waves + final)
-> 📄 **Sprint 29 prereq:** [`docs/sprints/sprint-28/02-template-launcher-audit-2026-07-13.md`](../sprint-28/02-template-launcher-audit-2026-07-13.md) — PR #1008, status:ready awaiting owner squash-merge per ADR-0031
-> 📄 **Sprint 28 closeout (pending):** [`docs/sprints/sprint-28/close.md`](../sprint-28/close.md) — drafts via Issue #1018 (orchestrator, lightweight mode)
-> 📄 **Sprint 28 retro (RETRO-018 W6):** captured via [PR #995 squash (1ea16cb)](https://github.com/atilcan65/AtilCalculator/pull/995) — orchestrator.md.tmpl SOUL AMEND codification (branch-ownership matrix cross-check)
+> 📄 **Sprint 30 plan source:** [`docs/sprints/sprint-30/00-plan.md`](../sprint-30/00-plan.md) (9-WP cluster, scope-locked per owner directive "1 sprintte tamamlıcaz, Sprint 30 sadece bu iş olacak")
+> 📄 **Sprint 30 audit source:** [`docs/sprints/sprint-30/00-audit-template-portability.md`](../sprint-30/00-audit-template-portability.md) (475 LOC, gh API verified, owner-directed audit)
+> 📄 **Sprint 30 new-project steps:** [`new-projectsteps.md`](../../new-projectsteps.md) (293 LOC, Q6 standalone doc — migrates to tmpl `docs/OPERATIONS.md` in Sprint 30 WP8)
+> 📄 **Sprint 30 Kickoff:** [Issue #1116](https://github.com/atilcan65/AtilCalculator/issues/1116) (cross-repo coordination anchor)
+> 📄 **Sprint 30 audit PR:** [PR #1115](https://github.com/atilcan65/AtilCalculator/pull/1115) (squash-merged @ 06:30:16Z, commit 6d1a719)
 
 ---
 
