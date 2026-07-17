@@ -38,11 +38,16 @@
 #   1 — at least one FAIL (RED state — production fix not yet impl'd OR harness bug)
 #   2 — preflight failure (missing tool, etc.)
 #
-# RED-first discipline (ADR-0044):
-#   Pre-fix (current state at cycle ~#2789): TC5 + TC7 FAIL (production fix not yet
-#                                            applied to scripts/claim-next-ready.sh OR
-#                                            d-test harness needs behavioral TC)
-#   Post-fix (this PR + element #5 + PR #1132 atomic squash): TC1-TC8 GREEN
+# RED-first discipline (ADR-0044) — env-rot variant:
+#   Locally: GREEN-by-design (TC1-TC8 pass WITHOUT production fix)
+#     - hypothesis (b) NOT reproducible cycle ~#2789; production script is correct
+#   CI: RED-by-design on env-rot (TC2b FAIL signature captured in TC7)
+#     - CI env-rot signature: bash + pipefail + WIP_LIMIT env-prefix loop interaction
+#       (per Issue #1133 hypothesis c, tester-lane fix candidate)
+#   This PR = d1133 d-test + d058 observability instrumentation port ONLY
+#     - No scripts/claim-next-ready.sh production fix in this PR
+#     - No scripts/dev-studio-start.sh change in this PR (PR #1132 owns that for #1129)
+#     - d1133 serves as regression guard for future Issue #1133-style regressions
 #
 # Sister-pattern references:
 #   - d058 (parent, 10 TCs ADR-0038 §Work-Stream Awareness impl) — Issue #505
@@ -337,9 +342,9 @@ printf "  INFO: %d\n" "$INFO"
 echo "========================================================================"
 
 if [ "$FAIL" -gt 0 ]; then
-  echo "d1133 RED (cycle ~#2789 baseline — Issue #1133 d058 TC2b CI env-rot not yet fixed)"
+  echo "d1133 RED (cycle ~#2789 baseline — Issue #1133 d058 TC2b CI env-rot regression guard tripped; investigate CI env or production script divergence)"
   exit 1
 fi
 
-echo "d1133 GREEN — production fix verified end-to-end (hypothesis b applied per element #5)"
+echo "d1133 GREEN — regression guard verified end-to-end (env-rot variant, GREEN locally, RED-by-design on CI env per arch NIT Lens 5)"
 exit 0
