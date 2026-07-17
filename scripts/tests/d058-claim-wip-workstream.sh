@@ -325,6 +325,21 @@ run_claim() {
   log_path="$fake_bin/gh-log"
   flipped_file="$fake_bin/gh.flipped"
   : > "$flipped_file"  # truncate so each run_claim invocation starts clean
+  # DEBUG (cycle ~#2789 Issue #1133 d058 TC2b CI env-rot): capture pre-populate state
+  # Sister-pattern port from PR #1135 (debug branch) — production-grade via chore(d058) prefix
+  # (NOT debug(d058): per ADR-0012 CC allowlist — debug branch was sister-pattern evidence corpus).
+  # Gated on GITHUB_ACTIONS=true so local runs are quiet; CI runs surface pre-populate state
+  # for future Issue #1133-style TC2b regression analysis.
+  if [ -n "${D058_DEBUG_FLIPPED:-}" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    {
+      echo "=== D058 DEBUG run_claim ==="
+      echo "role=$role"
+      echo "env_prefix=[$env_prefix]"
+      echo "WIP_LIMIT_in_env=[${WIP_LIMIT:-unset}]"
+      echo "ready_json_chars=${#ready_json}"
+      echo "flipped_file=$flipped_file"
+    } >&2
+  fi
   # Pin flip state for verify_post_flip — Issue #1108 d058 TC1 CI env-rot fix.
   # Fake-gh's issue-edit branch parses `cmd` via `grep -oE 'issue edit [0-9]+'` to extract
   # the flip target and append to FAKE_FLIPPED_FILE. In CI's bash/grep env (vs local), this
@@ -336,6 +351,15 @@ run_claim() {
   if [ -n "$ready_json" ] && [ "$ready_json" != "[]" ]; then
     printf '%s' "$ready_json" | jq -r '.[]? | .number' 2>/dev/null \
       | grep -v '^$' >> "$flipped_file" || true
+  fi
+  if [ -n "${D058_DEBUG_FLIPPED:-}" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    {
+      echo "--- after pre-populate ---"
+      echo "flipped_file_content:"
+      cat "$flipped_file" | sed 's/^/  /'
+      echo "flipped_file_lines=$(wc -l < "$flipped_file")"
+      echo "ready_json_first_50=$(printf '%s' "$ready_json" | head -c 50)"
+    } >&2
   fi
   make_fake_gh "$fake_bin/gh" "$wip_data" "$pr_clusters" "$dep_open_n" "$log_path" >/dev/null
 
