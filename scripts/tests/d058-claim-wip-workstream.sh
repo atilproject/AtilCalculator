@@ -326,7 +326,7 @@ run_claim() {
   flipped_file="$fake_bin/gh.flipped"
   : > "$flipped_file"  # truncate so each run_claim invocation starts clean
   # DEBUG (cycle ~#2789 Issue #1133 d058 TC2b CI env-rot): capture pre-populate state
-  if [ -n "${D058_DEBUG_FLIPPED:-}" ]; then
+  if [ -n "${D058_DEBUG_FLIPPED:-}" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     {
       echo "=== D058 DEBUG run_claim ==="
       echo "role=$role"
@@ -334,7 +334,7 @@ run_claim() {
       echo "WIP_LIMIT_in_env=[${WIP_LIMIT:-unset}]"
       echo "ready_json_chars=${#ready_json}"
       echo "flipped_file=$flipped_file"
-    } >> "$D058_DEBUG_FLIPPED"
+    } >&2
   fi
   # Pin flip state for verify_post_flip — Issue #1108 d058 TC1 CI env-rot fix.
   # Fake-gh's issue-edit branch parses `cmd` via `grep -oE 'issue edit [0-9]+'` to extract
@@ -348,14 +348,14 @@ run_claim() {
     printf '%s' "$ready_json" | jq -r '.[]? | .number' 2>/dev/null \
       | grep -v '^$' >> "$flipped_file" || true
   fi
-  if [ -n "${D058_DEBUG_FLIPPED:-}" ]; then
+  if [ -n "${D058_DEBUG_FLIPPED:-}" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     {
       echo "--- after pre-populate ---"
       echo "flipped_file_content:"
       cat "$flipped_file" | sed 's/^/  /'
       echo "flipped_file_lines=$(wc -l < "$flipped_file")"
       echo "ready_json_first_50=$(printf '%s' "$ready_json" | head -c 50)"
-    } >> "$D058_DEBUG_FLIPPED"
+    } >&2
   fi
   make_fake_gh "$fake_bin/gh" "$wip_data" "$pr_clusters" "$dep_open_n" "$log_path" >/dev/null
 
