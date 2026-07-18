@@ -30,6 +30,42 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 README_PATH = REPO_ROOT / "README.md"
 
+
+# ---------------------------------------------------------------------------
+# Issue #1150 — Session-scoped venv fixture for install_command_executes
+# ---------------------------------------------------------------------------
+@pytest.fixture(scope="session")
+def shared_venv() -> str:
+    """Create a throwaway venv ONCE per pytest session, reuse across tests.
+
+    Issue #1150 root cause: per-test venv creation (was inside
+    test_install_command_executes as a `with tempfile.TemporaryDirectory()`
+    block) hit the github-hosted runner OOM killer during `python -m venv`
+    (returncode -9 = SIGKILL). The fix amortizes the memory-hungry venv
+    creation across the pytest session via `scope="session"`.
+
+    Memory hygiene:
+    - session-scoped venv: created ONCE per pytest run (was per-test)
+    - Timeout bumped 60s -> 180s to absorb slower CI runners
+    - Default venv (with pip) preserves the real-install path; AC4 of Issue #1150
+      mandates "no pure mock", so the venv must be a real venv with real pip.
+
+    Cross-platform: `os.name == "nt"` -> Scripts/, else bin/.
+    """
+    with tempfile.TemporaryDirectory() as venv_dir:
+        result = subprocess.run(
+            [sys.executable, "-m", "venv", venv_dir],
+            capture_output=True,
+            text=True,
+            timeout=180,  # was 60 — bumped per Issue #1150 (CI runner OOM needs more headroom)
+        )
+        assert result.returncode == 0, (
+            f"venv creation failed (exit {result.returncode}). "
+            f"stderr: {result.stderr[:500]}"
+        )
+        yield venv_dir
+        # cleanup happens via TemporaryDirectory context manager exit
+
 # TDD red guard — module-level skip ensures CI is green while the README refresh lands.
 try:
     if not README_PATH.exists():
@@ -148,44 +184,42 @@ class TestReadmeLinks:
 class TestReadmeCommandsActuallyWork:
     """AP-1: install/run/test commands in README must execute successfully."""
 
-    def test_install_command_executes(self) -> None:
+    def test_install_command_executes(self, shared_venv) -> None:
         """Verify README's documented install workflow executes successfully.
 
         README documents: python3 -m venv .venv && source .venv/bin/activate && pip install -e .[dev]
-        This test creates a throwaway venv, activates it, and asserts pip install succeeds.
+        This test creates a venv (shared across the class via session-scoped fixture),
+        activates it, and asserts pip install succeeds.
 
         Per ADR-0017 (tech stack) + PEP 668 (Debian 12+, Ubuntu 23.04+, Fedora 38+),
         the system Python refuses package installs without a venv. README correctly
         documents venv setup; this test enforces that the documented workflow
         actually executes end-to-end (Option A from PR #122 round-2 review).
+
+        Issue #1150 fix: session-scoped fixture `shared_venv` amortizes the memory-
+        hungry venv creation across the test session (was previously per-test, which
+        OOM-killed on github-hosted runner — returncode -9 = SIGKILL). Venv-creation
+        timeout bumped 60s -> 180s to absorb slower CI runners. Test still validates
+        real install (no mock, AC4 preserved): a single real venv is created per
+        pytest session (scope="session") and reused across tests, while real
+        `pip install -e .[dev]` still runs end-to-end inside that venv.
         """
-        with tempfile.TemporaryDirectory() as venv_dir:
-            # 1. Create venv using the Python that pytest runs under
-            result = subprocess.run(
-                [sys.executable, "-m", "venv", venv_dir],
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
-            assert result.returncode == 0, (
-                f"venv creation failed (exit {result.returncode}). "
-                f"stderr: {result.stderr[:500]}"
-            )
-            # 2. Run pip install inside the venv (cross-platform pip path)
-            venv_bin = "Scripts" if os.name == "nt" else "bin"
-            venv_pip = os.path.join(venv_dir, venv_bin, "pip")
-            result = subprocess.run(
-                [venv_pip, "install", "-e", ".[dev]"],
-                capture_output=True,
-                text=True,
-                timeout=300,
-                cwd=str(REPO_ROOT),
-            )
-            assert result.returncode == 0, (
-                f"AP-1: `pip install -e .[dev]` (in venv) failed "
-                f"(exit {result.returncode}). README install command broken. "
-                f"stderr: {result.stderr[:500]}"
-            )
+        venv_dir = shared_venv
+        # Cross-platform pip path inside the shared venv
+        venv_bin = "Scripts" if os.name == "nt" else "bin"
+        venv_pip = os.path.join(venv_dir, venv_bin, "pip")
+        result = subprocess.run(
+            [venv_pip, "install", "-e", ".[dev]"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+            cwd=str(REPO_ROOT),
+        )
+        assert result.returncode == 0, (
+            f"AP-1: `pip install -e .[dev]` (in venv) failed "
+            f"(exit {result.returncode}). README install command broken. "
+            f"stderr: {result.stderr[:500]}"
+        )
 
     def test_pytest_command_executes(self) -> None:
         """Run `pytest -q` in subprocess; assert exit 0 (allowing skips).
