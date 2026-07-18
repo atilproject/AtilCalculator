@@ -55,13 +55,34 @@ log "  heartbeat: $PROJECT_HEARTBEAT_DIR"
 [[ "$PROJECT_NAME" != *"--"* ]] \
   || fail "PROJECT_NAME must not contain '--' (used as separator): $PROJECT_NAME"
 
-# Detect un-rendered template state and guide the user toward dev-studio-init.sh
-if [ -f "$SRC_UNITS/dev-studio-watcher@.service.tmpl" ] && \
-   [ ! -f "$SRC_UNITS/dev-studio-watcher@.service" ]; then
-  fail "systemd units not rendered yet. Run: bash $REPO_ROOT/scripts/dev-studio-init.sh first."
+# Detect un-rendered template state and render on-the-fly (sister-pattern to
+# bootstrap-project-board.sh:269-277 sed pipeline per Issue #151 S32-011).
+# If .tmpl exists but .service is missing OR older than .tmpl, re-render.
+#
+# S32-011 forward-port (Issue #151): tmpl canonical source-of-truth is
+# `scripts/install/systemd/dev-studio-watcher@.service.tmpl` (byte-equal from
+# dev-studio-template commit `3383fbba...`). The .service file is a derived
+# artifact; we preserve it for sha-stable systemd --user invocations but ensure
+# freshness against .tmpl mtime.
+#
+# Path-substitution deltas vs tmpl (Issue #151 AC4):
+#   {{GITHUB_OWNER}} → atilproject
+#   {{GITHUB_REPO}}  → AtilCalculator
+# All other substitutions: placeholder kept in .service (e.g. %i is systemd-spec).
+if [ -f "$SRC_UNITS/dev-studio-watcher@.service.tmpl" ]; then
+  if [ ! -f "$SRC_UNITS/dev-studio-watcher@.service" ] || \
+     [ "$SRC_UNITS/dev-studio-watcher@.service.tmpl" -nt "$SRC_UNITS/dev-studio-watcher@.service" ]; then
+    log "rendering dev-studio-watcher@.service from .tmpl (Issue #151)"
+    sed -e "s|{{GITHUB_OWNER}}|${GITHUB_OWNER:-atilproject}|g" \
+        -e "s|{{GITHUB_REPO}}|${GITHUB_REPO:-AtilCalculator}|g" \
+        "$SRC_UNITS/dev-studio-watcher@.service.tmpl" \
+      > "$SRC_UNITS/dev-studio-watcher@.service"
+    chmod 644 "$SRC_UNITS/dev-studio-watcher@.service"
+    ok "rendered systemd unit from template"
+  fi
 fi
 
-[ -f "$SRC_UNITS/dev-studio-watcher@.service" ] || fail "watcher unit template missing (run dev-studio-init.sh)"
+[ -f "$SRC_UNITS/dev-studio-watcher@.service" ] || fail "watcher unit template missing (need either .tmpl or .service)"
 command -v systemctl >/dev/null 2>&1 || fail "systemctl not found"
 systemctl --user --no-pager show-environment >/dev/null 2>&1 \
   || fail "systemd --user not available (no XDG_RUNTIME_DIR session bus)"
