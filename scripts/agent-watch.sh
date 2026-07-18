@@ -2031,8 +2031,8 @@ poll_once() {
     <(echo "$is_alive_event") <(echo "$wip_idle") \
     2>/dev/null || echo '[]')"
 
-  # Filter out events already in processed_event_ids
-  local state_file new_events
+  # Filter out events already in processed_event_ids (Issue #1142 AC2 hardening)
+  local state_file new_events merged_count new_count dedup_hits
   state_file="$("$STATE_HELPER" path "$ROLE")"
   # TD-068 Fix 4 (Issue #920): null guard + self-heal on processed_event_ids.
   # Without this, when processed_event_ids is null (e.g., from external JSON
@@ -2064,6 +2064,38 @@ poll_once() {
       mv -f "${state_file}.tmp" "$state_file"
     ) 9>"${state_file}.lock"
   fi
+  # Issue #1142 AC2 Fix A — ring integrity check (defense against format drift).
+  # Without this, if processed_event_ids is a string (legacy pre-Issue #345
+  # format) or some other non-array type, `index($id)` inside the dedup
+  # filter would either crash jq or produce silent false-suppressions
+  # (echo-wake pathology this AC2 hardening is meant to expose). Self-heal:
+  # if string, split on whitespace to recover IDs; otherwise write empty array.
+  if ! jq -e '.processed_event_ids | type == "array"' "$state_file" >/dev/null 2>&1; then
+    echo "ALERT: $state_file processed_event_ids malformed (not array) — auto-healing" >&2
+    jq -nc \
+      --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      --arg role "${ROLE:-watcher}" \
+      --arg event "watcher_self_heal" \
+      --arg reason "processed_event_ids_malformed" \
+      --arg fallback_action "coerce_or_reset" \
+      --arg state_file "$state_file" \
+      '{ts:$ts, role:$role, event:$event, reason:$reason, fallback_action:$fallback_action, state_file:$state_file}' >&2
+    (
+      flock 9
+      # If current value is a string, split on whitespace to recover
+      # event IDs; otherwise reset to empty array. Mirrors d1142-TC4
+      # REPRIME auto-heal pattern but extends to non-null non-array values.
+      jq '
+        if .processed_event_ids | type == "string" then
+          .processed_event_ids = (.processed_event_ids | split(" ") | map(select(. != "")))
+        else
+          .processed_event_ids = []
+        end
+      ' "$state_file" > "${state_file}.tmp"
+      sync "${state_file}.tmp" 2>/dev/null || true
+      mv -f "${state_file}.tmp" "$state_file"
+    ) 9>"${state_file}.lock"
+  fi
   # TD-068 Fix 4 (sub-fix TD-068B): defensive jq filter — `// []` fallback
   # covers any race where processed_event_ids gets nulled between the guard
   # above and the read here. Without `// []`, a null pid would crash the filter.
@@ -2073,6 +2105,30 @@ poll_once() {
     [ $events[] | . as $e | ($state[0].processed_event_ids // []) as $pids |
       select(($pids | index($e.id)) == null) ]
   ')"
+  # Issue #1142 AC2 Fix B — dedup_ring_hits metric (production observability).
+  # Counts events suppressed by the dedup ring in the current poll cycle.
+  # When >0, emits a structured INFO log line so operators can detect
+  # echo-wake patterns in real time (Issue #393 + Issue #1142 AC2 AC3 dual-channel
+  # preservation: log line is informational only, does not affect event emission).
+  merged_count="$(echo "$merged" | jq 'length' 2>/dev/null || echo 0)"
+  new_count="$(echo "$new_events" | jq 'length' 2>/dev/null || echo 0)"
+  dedup_hits=$(( merged_count - new_count ))
+  if [ "$dedup_hits" -gt 0 ]; then
+    # Plain-text human fallback (matches existing log pattern)
+    printf '%s [INFO] agent-watch.sh: dedup_ring_hits count=%d merged=%d new=%d role=%s state_file=%s\n' \
+      "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$dedup_hits" "$merged_count" "$new_count" "$ROLE" "$state_file" >&2
+    # Structured JSONL machine-readable contract (sister-pattern TD-068
+    # observability, Issue #925). Production telemetry can ingest this.
+    jq -nc \
+      --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      --arg role "${ROLE:-watcher}" \
+      --arg event "watcher_dedup_hits" \
+      --argjson count "$dedup_hits" \
+      --argjson merged_count "$merged_count" \
+      --argjson new_count "$new_count" \
+      --arg state_file "$state_file" \
+      '{ts:$ts, role:$role, event:$event, count:$count, merged_count:$merged_count, new_count:$new_count, state_file:$state_file}' >&2
+  fi
 
   # Emit
   jq -n \
