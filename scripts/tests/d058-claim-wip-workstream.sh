@@ -23,9 +23,12 @@
 #   - d054 (Issue #468 §Closes-anchor strict format)
 #   - d058 (Issue #505 ADR-0038 §Work-Stream Awareness impl) — THIS FILE
 #
-# 10 TCs (9 original per Issue #505 AC2 + TC10 added per Issue #552 AC3):
+# 11 TCs (9 original per Issue #505 AC2 + TC10 added per Issue #552 AC3 + TC2b age
+# tie-break sanity + **TC11 CLAIM_NEXT_READY_LOCK_FILE override wired (Issue #1174
+# env-rot regression guard)**):
 #   TC1: PR cluster (PR-A closes #N + #M) → WIP=1 per work-stream rule (core)
 #   TC2: 2 standalone issues same priority → claim oldest (age tie-break, unchanged)
+#   TC2b: age tie-break sanity (WIP_LIMIT=3 override to isolate tie-break from cap)
 #   TC3: 1 PR cluster + 1 standalone → WIP=2 (cluster=1, standalone=1)
 #   TC4: 2 PR clusters → WIP=2 (each cluster=1)
 #   TC5: WIP limit reached (≥2 in-progress) → exit 3, no claim (work-stream-aware)
@@ -35,20 +38,28 @@
 #   TC9: PR cluster with closed-dep → WIP=1 (cluster collapse, dep filter applied)
 #   TC10: work-stream-count regression guard (Issue #552 AC3) — WIP cap message uses
 #         stream/cluster terminology when stream-count ≠ issue-count (sister-pattern to TC5)
+#   TC11: CLAIM_NEXT_READY_LOCK_FILE override wired (Issue #1174 env-rot regression
+#         guard — sister-pattern to Issue #1108 FAKE_FLIPPED_FILE seed pin, but for
+#         /var/lock/dev-studio/claim-<role>.lock persistence on self-hosted CI runner
+#         instead of fake-gh `gh issue view` parsing fragility)
 #
 # Usage:
-#   bash d058-claim-wip-workstream.sh --self-test     # run inline fixture (10 TCs)
+#   bash d058-claim-wip-workstream.sh --self-test     # run inline fixture (11 TCs)
 #
 # Exit codes:
-#   0 — all PASS (TC1-TC10 green, work-stream awareness impl'd + AC3 regression guard active)
-#   1 — at least one FAIL (RED state — work-stream awareness not yet impl'd OR fixture bug)
+#   0 — all PASS (TC1-TC11 green, work-stream awareness impl'd + AC3 regression guard
+#                 active + Issue #1174 lock-override isolation regression guard active)
+#   1 — at least one FAIL (RED state — work-stream awareness not yet impl'd OR
+#                          fixture bug OR Issue #1174 fix missing)
 #   2 — preflight failure (missing tool, etc.)
 #
 # RED-first discipline (ADR-0044):
 #   Pre-impl (issue-count): TC1, TC3, TC4, TC9, TC10 must FAIL (work-stream not counted;
 #                           TC10 additionally fails on missing "stream"/"cluster" terminology
-#                           in WIP cap message — guards against silent issue-count drift)
-#   Post-impl (work-stream): all 10 TCs must PASS
+#                           in WIP cap message — guards against silent issue-count drift).
+#                           TC11: pre-fix (no CLAIM_NEXT_READY_LOCK_FILE override wired in
+#                           run_claim env block) FAIL on static-grep assertion 1.
+#   Post-impl (work-stream): all 11 TCs must PASS
 #
 # CI env-rot hardening (Issue #1108, fix per option (d) — fixture seed pin):
 #   Fake-gh's issue-edit branch parses `cmd` via `grep -oE 'issue edit [0-9]+'` to extract
@@ -56,7 +67,17 @@
 #   parsing is fragile — file remains empty, verify_post_flip returns `status:ready` for
 #   the claimed issue, TC1 ROLLBACK. Fix: run_claim pre-populates FAKE_FLIPPED_FILE with
 #   ready-item issue numbers from the JSON fixture, decoupling verify_post_flip from
-#   the cmd-parsing path. Test logic (TC1-TC10 assertions) unchanged; local 10/10 GREEN.
+#   the cmd-parsing path. Test logic (TC1-TC10 assertions) unchanged; local 11/11 GREEN.
+#
+# CI env-rot hardening (Issue #1174, sister-pattern to #1108 — lock file override):
+#   claim-next-ready.sh (L111) reads LOCK_FILE=${CLAIM_NEXT_READY_LOCK_FILE:-/var/lock/
+#   dev-studio/claim-${ROLE}.lock}. Without override, the script uses system path; the
+#   atilproject/Linux/X64 self-hosted CI runner persists lock files between CI runs (no
+#   cleanup). When a stale lock exists with active PID, rc=5 (lock-contention-denied per
+#   Issue #809 + Issue #834) leaks into TC10 instead of expected rc=3 (WIP cap). Fix:
+#   run_claim env block wires CLAIM_NEXT_READY_LOCK_FILE="$TEST_TMPDIR/claim-${role}.lock"
+#   so trap cleanup at L106 (`rm -rf "$TEST_TMPDIR"`) handles lock deletion across runs.
+#   TC11 verifies wiring via static-grep sister-pattern to d046a ADR-0046 §A + d081 TC9.
 #
 # Run standalone: bash scripts/tests/d058-claim-wip-workstream.sh --self-test
 
@@ -91,7 +112,7 @@ if [ "${1:-}" != "--self-test" ]; then
   exit 2
 fi
 
-printf "${B}d058 self-test (10 TCs per ADR-0038 §Work-Stream Awareness + Issue #552 AC3 regression guard)${D}\n"
+printf "${B}d058 self-test (11 TCs: 10 per ADR-0038 §Work-Stream Awareness + Issue #552 AC3 + TC11 Issue #1174 lock-override env-rot guard)${D}\n"
 printf "${B}=========================================================================${D}\n"
 printf "  Impl under test: %s\n" "$CLAIM_SH"
 printf "  Fixture: fake-gh factory (binary shim, env-var-driven, --jq-aware)\n"
@@ -376,6 +397,7 @@ run_claim() {
     FAKE_LOG_PATH="$log_path" \
     READY_JSON="$ready_json" \
     AUTO_CLAIM_LOG_DIR="$AUTO_CLAIM_LOG_DIR" \
+    CLAIM_NEXT_READY_LOCK_FILE="$TEST_TMPDIR/claim-${role}.lock" \
     bash "$CLAIM_SH" "$role" 2>&1)"
   CLAIM_RC=$?
 }
@@ -633,6 +655,55 @@ else
 fi
 
 # ============================================================================
+# TC11: CLAIM_NEXT_READY_LOCK_FILE override wired (Issue #1174 env-rot regression guard)
+# ============================================================================
+# Issue #1174 (cycle ~#3853 d058 CI env-rot, expanded cycle ~#3893Q refinement):
+# the self-hosted CI runner atilproject/Linux/X64 persists
+# `/var/lock/dev-studio/claim-<role>.lock` between CI runs (created by prior
+# claim-next-ready.sh invocations + never cleaned). Without override, the
+# script reads LOCK_FILE=${CLAIM_NEXT_READY_LOCK_FILE:-/var/lock/dev-studio/claim-${ROLE}.lock}
+# (sister to Issue #809 flock mutex + Issue #834 PID-aware stale-lock self-cleanup).
+# When a stale lock exists with active PID, the script hits rc=5 (lock-contention-denied)
+# instead of the expected rc=3 (WIP cap). Local env doesn't reproduce because
+# /var/lock/dev-studio/ is empty by default.
+#
+# Sister-pattern to Issue #1108 (FAKE_FLIPPED_FILE seed pin fix, TC1 env-rot):
+# override the env-var-controlled path to point at TEST_TMPDIR so the trap
+# cleanup at L106 (`trap 'rm -rf "$TEST_TMPDIR"' EXIT`) handles the lock
+# deletion. Same env-var override idiom as FAKE_LOG_PATH / READY_JSON /
+# AUTO_CLAIM_LOG_DIR (see run_claim env block + cycle ~#3893Q owner-deferral).
+#
+# Discrimination mechanism (static-grep, sister-pattern to d046a ADR-0046 §A
+# literal-form guard + d081 TC9 gh label create defensive pre-step):
+#   Assertion 1: env block must contain CLAIM_NEXT_READY_LOCK_FILE assignment
+#   Assertion 2: must point to TEST_TMPDIR (not system /var/lock/ path)
+#
+# Pre-impl (no override in env block, cycle ~#3853 state): TC11 FAIL — grep
+#          returns nothing for "CLAIM_NEXT_READY_LOCK_FILE=" in d058.
+# Post-impl (override added per Issue #1174 fix): TC11 PASS — both grep assertions
+#          match; lock file goes to TEST_TMPDIR + trap cleanup handles it.
+section "TC11: CLAIM_NEXT_READY_LOCK_FILE override wired (Issue #1174 env-rot regression guard)"
+D058_SCRIPT_PATH="$SCRIPT_DIR/d058-claim-wip-workstream.sh"
+
+# Assertion 1: env block must contain CLAIM_NEXT_READY_LOCK_FILE assignment
+# Static-grep with whitespace anchor per d046a TC5 scope-guard discipline (Issue #906).
+# Anchor: line must START with whitespace + "CLAIM_NEXT_READY_LOCK_FILE=" (env block), NOT commented-out.
+if grep -qE '^[[:space:]]+CLAIM_NEXT_READY_LOCK_FILE=' "$D058_SCRIPT_PATH"; then
+  # Assertion 2: must point to TEST_TMPDIR (not system /var/lock/ — trap cleanup needs TEST_TMPDIR path)
+  if grep -E '^[[:space:]]+CLAIM_NEXT_READY_LOCK_FILE=' "$D058_SCRIPT_PATH" | grep -q 'TEST_TMPDIR'; then
+    pass "TC11: CLAIM_NEXT_READY_LOCK_FILE override wired to TEST_TMPDIR (Issue #1174 env-rot regression guard — trap cleanup handles lock)"
+  else
+    fail "TC11: CLAIM_NEXT_READY_LOCK_FILE present but NOT pointed at TEST_TMPDIR" \
+      "fix should use TEST_TMPDIR (trap cleanup at L106) not /var/lock/ (system pollution persists across CI runs)"
+    EXIT_CODE=1
+  fi
+else
+  fail "TC11: CLAIM_NEXT_READY_LOCK_FILE missing from d058 env block" \
+    "Issue #1174 d058 CI env-rot — fix must wire CLAIM_NEXT_READY_LOCK_FILE to TEST_TMPDIR for trap cleanup"
+  EXIT_CODE=1
+fi
+
+# ============================================================================
 # Summary
 # ============================================================================
 printf "\n${B}==== d058 SELF-TEST SUMMARY ====${D}\n"
@@ -652,7 +723,7 @@ printf "  ${Y}INFO${D}: %d\n" "$INFO"
 #   (b) FAIL on TC1, TC3, TC4, TC9, TC10 only — RED state confirmed (5 FAIL), impl pending
 #       (AC2 not yet applied — Issue #552 AC2 PR by orchestrator)
 if [ "$FAIL" -eq 0 ]; then
-  printf "  ${G}d058 GREEN${D} — 10/10 PASS = work-stream awareness fully impl'd + Issue #552 AC3 regression guard active\n"
+  printf "  ${G}d058 GREEN${D} — 11/11 PASS = work-stream awareness fully impl'd + Issue #552 AC3 regression guard active + Issue #1174 lock-override env-rot guard active\n"
   exit 0
 elif [ "$FAIL" -ge 5 ] && [ "$FAIL" -le 10 ]; then
   printf "  ${Y}d058 RED${D} — %d FAIL observed. Expected: TC1, TC3, TC4, TC9, TC10 (work-stream-dependent, pre-impl).\n" "$FAIL"
