@@ -7,6 +7,8 @@
 > **Sister-pattern:** RETRO-024 (work-done-elsewhere 4-cat exception, exception-not-rule) + RETRO-022 (original 4-cat gap, Issue #1023) + RETRO-023 (cross-repo codification, Issue #1024)
 > **Closes:** Issue #1130 (priority:P1, type:docs, agent:orchestrator, template-gap-close cluster)
 
+> **§Removal note (2026-07-19, tmpl#164 Phase 2)**: AtilCalculator `docs/decisions/ADR-0061-cli-2.1.207-agent-flag.md` was REMOVED per tmpl#164 Phase 2 (duplicate doctrine — same content as tmpl ADR-0060 Claude Code 2.1.207 agent-flag, canonical home is tmpl#88 closure on tmpl ADR-0060). Historical references to ADR-0061 throughout this retro are preserved as audit trail of the cycle ~#2776 KAPI hotfix dispatch event. For canonical doctrine, see tmpl ADR-0060 at [atilcan65/dev-studio-template](https://github.com/atilcan65/dev-studio-template/blob/main/docs/decisions/ADR-0060-claude-code-2.1.207-agent-flag.md).
+
 ## TL;DR
 
 At cycle ~#2776 (2026-07-17 ~08:34Z), the Cadence Rule 2 SOUL AMEND was applied to the orchestrator's local soul file covering the **forward-port dispatch** case (ADR merge → sister issue @-mention same turn). The **symmetric case** — closing orphan-impl issues retroactively without a PR — was NOT preconditioned.

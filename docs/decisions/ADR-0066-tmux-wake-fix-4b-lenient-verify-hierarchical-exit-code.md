@@ -12,8 +12,7 @@
   - [ADR-0049-d-test-framework](./ADR-0049-behavioral-workflow-test-framework.md) — d-test structure (≥5 TCs, sister-pattern)
   - [ADR-0055-d-test-id-uniqueness-sub-pattern-matrix](./ADR-0055-d-test-id-uniqueness-sub-pattern-matrix.md) — Cadence Rule 1 atomic (d-test + INDEX.md row same commit)
   - [ADR-0059-cluster-squash-batch-lag-detection](./ADR-0059-cluster-squash-batch-lag-detection.md) — cluster-squash doctrine (ADR + d-test + impl 3-PR atomic squash window)
-  - [ADR-0061-cli-2.1.207-agent-flag](./ADR-0061-cli-2.1.207-agent-flag.md) — sister Sprint 31 cluster-squash (KAPI hotfix dispatch, Sprint 30 W3 wrap)
-  - RETRO-027 (cadence-rule-2-retroactive-close-doctrine) — sister-pattern on cluster-squash + retroactive close on Cadence Rule 2 violation
+  - RETRO-027 (cadence-rule-2-retroactive-close-doctrine) — sister-pattern on cluster-squash + retroactive close on Cadence Rule 2 violation (historical sister-pattern; ADR-0061 KAPI hotfix dispatch removed 2026-07-19 per tmpl#164 Phase 2 — duplicate of tmpl ADR-0060)
 
 ## §Context
 
