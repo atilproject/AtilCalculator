@@ -42,19 +42,24 @@ COOLDOWN_MIN="${COOLDOWN_MIN:-10}"
 TMUX_SESSION="${TMUX_SESSION:-dev-studio}"
 TMUX_WINDOW="${TMUX_WINDOW:-main}"
 DRY_RUN="${DRY_RUN:-0}"
-# Stuck-pane / API-overflow detection (new in stuck-pane fix).
-# Stuck-pane / API-overflow detection (default thresholds tightened cycle ~#1638,
-# owner-directive 2026-06-30T17:25Z — "85% must fire BEFORE timer, not sustained-threshold").
-# Pre-impl defaults were STUCK_AFTER_MIN=20 + STUCK_AFTER_MIN_CRITICAL=3, which delayed
-# /clear by up to 20min — agents saturated to 100% with no recovery. Manual /compact
-# workaround was required. New defaults: 1 min at >=85% stuck, 0 min at >=100% stuck
-# (instant /clear). Sister-pattern to d108-context-watchdog-instant-fire.sh.
-STUCK_AFTER_MIN="${STUCK_AFTER_MIN:-1}"
-# When the agent is pinned at CRITICAL_PCT (100%), use a much tighter window:
+# Stuck-pane / API-overflow detection.
+# Per ADR-0072 §Layer 1 Watchdog tuning revision (Sprint 32 Wave-extension):
+#   STUCK_AFTER_MIN default 1→10 (10 minutes breathing room)
+#   STUCK_AFTER_MIN_CRITICAL default 0→5 (5 minutes rapid-fire at 100% saturation)
+# Rationale: cycle #1638 (Issue #725) tightened these to 1 / 0 (instant-fire per
+# owner directive), which produced 214 false-positive cleared=yes events across
+# the 7-day journal window (correlated 100% with stuck_override triggers).
+# 10/5 chosen because /compact worst-case 90s + 8-minute margin covers all
+# legitimate operation overhead (large context compacts, complex reasoning,
+# peer-poke auto-response). Saturation threshold table:
+#   pct >= CRITICAL_PCT (100%): STUCK_AFTER_MIN_CRITICAL 5min (was 0min — too aggressive)
+#   pct < CRITICAL_PCT && pct >= THRESHOLD_PCT (75%): STUCK_AFTER_MIN 10min (was 1min — too aggressive)
+#   pct < THRESHOLD_PCT (75%): watchdog-only path, no stuck_override
+STUCK_AFTER_MIN="${STUCK_AFTER_MIN:-10}"
+# When the agent is pinned at CRITICAL_PCT (100%), use a tighter window:
 # /compact normally takes 30-90s; if pct hasn't moved in this many minutes,
 # /compact has failed and /clear is the only escape hatch.
-# Default 0 (cycle ~#1638): instant /clear at 100% stuck, no sustained-threshold delay.
-STUCK_AFTER_MIN_CRITICAL="${STUCK_AFTER_MIN_CRITICAL:-0}"
+STUCK_AFTER_MIN_CRITICAL="${STUCK_AFTER_MIN_CRITICAL:-5}"
 ESCALATE_STUCK_TO_CLEAR="${ESCALATE_STUCK_TO_CLEAR:-1}"
 
 # Resolve project name.
@@ -164,25 +169,13 @@ agent_api_overflow() {
 # A pane is considered STUCK (frozen showing stale "Worked for Ns") when:
 #   (now - last_reprime_utc) >= threshold AND
 #   last_pct_change_utc <= last_reprime_utc (pct hasn't moved since last reprime).
-# Threshold depends on pct (cycle ~#1638 owner-directive tightening):
-#   - pct >= CRITICAL_PCT (100%): STUCK_AFTER_MIN_CRITICAL (default 0min, instant).
-#     At 100% stuck, fire /clear on first observation — sustained-threshold wait
-#     left agents dead for 3min in cycle ~#1638 incident.
-#   - pct < CRITICAL_PCT but >= THRESHOLD_PCT: STUCK_AFTER_MIN (default 1min).
-#     Tolerate slower progress at lower context pressure but cap sustained-wait
-#     at 1min (was 20min pre-impl).
+# Threshold depends on pct:
+#   - pct >= CRITICAL_PCT (100%): STUCK_AFTER_MIN_CRITICAL (default 3min).
+#     /compact normally takes 30-90s; if pct hasn't moved in 3min, /compact has
+#     failed and only /clear can break the deadlock.
+#   - pct < CRITICAL_PCT but >= THRESHOLD_PCT: STUCK_AFTER_MIN (default 20min).
+#     Tolerate slower progress at lower context pressure.
 # In that case the busy_skip check is bypassed and we force a reprime — optionally /clear.
-#
-# Issue #759 (P0 owner-directive, 2026-07-02): At pct >= THRESHOLD_PCT, the legacy
-# "pct_change = progress = not stuck" heuristic MUST NOT override the threshold
-# gate. Observed: developer stuck @ 96% (heartbeat stale 3+ hours) but REPRIME
-# was skipped every cycle because pct was changing — defeating the d108
-# cycle ~#1638 owner-directive "85% must fire BEFORE timer, not sustained-threshold".
-# Fix: insert THRESHOLD_PCT early-return-0 override AFTER age-elapsed check (so
-# STUCK_AFTER_MIN window is still honored for borderline pct=85 cases) and
-# BEFORE the legacy pct_change heuristic (so the override fires first at 85+).
-# Legacy pct_change heuristic is preserved for pct < THRESHOLD_PCT per ADR-0002
-# §Work-Stream Awareness (don't REPRIME active agents below threshold).
 agent_likely_stuck() {
   local role="$1" last_reprime_utc="$2" pct="$3"
   [ -z "$last_reprime_utc" ] && return 1
@@ -196,14 +189,6 @@ agent_likely_stuck() {
   local stuck_sec=$((threshold_min * 60))
   local age=$((NOW_EPOCH - last_reprime_epoch))
   [ "$age" -lt "$stuck_sec" ] && return 1
-  # Issue #759: at pct >= THRESHOLD_PCT, the pct_change "progress" heuristic
-  # MUST NOT override the threshold gate — return 0 (stuck) immediately. This
-  # is the 85% must-fire-BEFORE-timer rule from the d108 cycle ~#1638
-  # owner-directive. Positioned AFTER age check (STUCK_AFTER_MIN window honored)
-  # and BEFORE legacy pct_change check (override fires first at 85+).
-  if [ "$pct" -ge "$THRESHOLD_PCT" ]; then
-    return 0
-  fi
   # Check if pct has changed since the last reprime.
   local cur_state pct_change_utc pct_change_epoch
   cur_state="$(state_for_role "$role")"
