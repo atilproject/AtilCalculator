@@ -194,7 +194,7 @@ All 3 lanes converge on **peer-verdict-quality** as the shared objective. Triang
 
 ### Sprint 18 cross-lane trigger
 
-- **Issue #605** — Sprint 18 P0#2 cluster-lag-detector YAML wiring (dev lane, ADR-0061 candidate, awaiting dev impl for arch design review)
+- **Issue #605** — Sprint 18 P0#2 cluster-lag-detector YAML wiring (dev lane, ADR candidate [deferred — ADR-0061 removed 2026-07-19 per tmpl#164 Phase 2], awaiting dev impl for arch design review)
 - **Issue #608** — Sprint 18 P0#5 §Verdict-by Discipline (orch lane, codification via PR #612 sister-pattern)
 
 — @architect, 2026-06-28T18:11+03:00, ADR-0074 (renumbered from ADR-0060 per tmpl#164 AC2 — collision with tmpl ADR-0060 Claude Code agent-flag) §AC mapping verification doctrine codification, canonical home for cross-lane "verify-before" triangle (PM-side ratified + Arch-side codification in flight), sister-pattern to PR #595 (ADR-0059) + PR #598 (RETRO-012) + PR #612 (verdict-by Discipline codification), 5-of-5 lane consensus principle preserved (cycle 647 disposition pattern)

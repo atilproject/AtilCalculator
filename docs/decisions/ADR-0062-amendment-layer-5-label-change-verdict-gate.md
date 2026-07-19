@@ -184,7 +184,7 @@ RETRO-016 cluster (#1, #3, #5, #6) has 4 LIVE INSTANCES in 2 days (PR #679 + #69
 
 - d073 (PR #655 carrier, ADR-0048-amendment) — TC2 extended: add TC2.5 (label-change 🔴 false-positive)
 - d074 (PR #657 carrier) — unchanged
-- Sister: **d097** (Sprint 22 PIVOT runner access-grant regression, reserved cycle ~#1587 per ADR-0061)
+- Sister: **d097** (Sprint 22 PIVOT runner access-grant regression, reserved cycle ~#1587 — ADR-0061 reference obsolete 2026-07-19 per tmpl#164 Phase 2 removal)
 
 ### Sister-pattern: future prevention
 
