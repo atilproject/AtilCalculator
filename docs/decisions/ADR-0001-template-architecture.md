@@ -16,7 +16,7 @@ Sprint 21's mandate (per Issue #627 + owner directive 2026-06-29, PR #626 squash
 
 ### AtilCalculator as canonical template (Q4 ratified)
 
-Per `OPEN-QUESTIONS.md` Q4 (ratified 2026-06-29T02:22Z, arch RECOMMENDS (a) + owner squashed): **AtilCalculator IS the template**. The current state of AtilCalculator (5-agent dev-studio operational, ADR-0002..ADR-0060 doctrine, 40+ scripts, workflow YAML, label invariant) becomes the snapshot that ships as the template. New projects fork/clone + run `dev-studio-init.sh` to replace placeholders with their own values.
+Per `OPEN-QUESTIONS.md` Q4 (ratified 2026-06-29T02:22Z, arch RECOMMENDS (a) + owner squashed): **AtilCalculator IS the template**. The current state of AtilCalculator (5-agent dev-studio operational, ADR-0002..ADR-0074 doctrine, 40+ scripts, workflow YAML, label invariant) becomes the snapshot that ships as the template. New projects fork/clone + run `dev-studio-init.sh` to replace placeholders with their own values.
 
 ### Architectural gap (no canonical doctrine for template)
 
@@ -214,7 +214,7 @@ Native GitHub feature, zero friction for new users, no external tooling dependen
 - **ADR-0045** — 9-Lens pre-publish gate (every PR carries 9-Lens on architect verdicts)
 - **ADR-0049** — d-test framework (d070-template-render sister-pattern, AC3 cross-ref)
 - **ADR-0055** — Cadence Rule 1 atomic — this ADR + INDEX.md row in same PR
-- **ADR-0060** — §AC mapping verification doctrine (cross-lane "verify-before" triangle completion)
+- **ADR-0074** — §AC mapping verification doctrine (cross-lane "verify-before" triangle completion)
 
 ### Sprint 21 ratification chain
 

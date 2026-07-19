@@ -15,7 +15,7 @@
   - [ADR-0056](./ADR-0056-layer-5-idempotency-reconcile.md) — Layer 5 idempotency reconcile (WARN-not-FAIL cheaper fix sister-pattern)
 - **Closes:** Issue #798 doctrinal follow-up gap (PR #799 vacuous-pass surfacing; ARCH verdict retraction cmt 4881717762 corrected prior misdiagnosis)
 - **Live Instances:** PR #799 (Issue #798 d124 RED-state contract, discoverer instance, bot cmt 4881350496 surfaced j.4 VACUOUS-PASS at 08:47:46Z, arch retraction cmt 4881717762 at 11:01:40Z, cycle ~#4042)
-- **d-test integration:** d049 (`scripts/tests/d049-j4-tester-author-exemption.sh`, ≥3 TCs RED-first per ADR-0049 baseline) — contract committed in this PR-cluster, **impl deferred to Sprint 24+ P2 follow-up PR** per Cadence Rule 1 atomic cross-PR-cluster variant (Path B per ADR-0060 deferral pattern, sister-pattern to d121 in ADR-0064)
+- **d-test integration:** d049 (`scripts/tests/d049-j4-tester-author-exemption.sh`, ≥3 TCs RED-first per ADR-0049 baseline) — contract committed in this PR-cluster, **impl deferred to Sprint 24+ P2 follow-up PR** per Cadence Rule 1 atomic cross-PR-cluster variant (Path B per ADR-0074 deferral pattern, sister-pattern to d121 in ADR-0064)
 - **Workflow YAML changes:** `.github/workflows/label-check.yml` Layer 5 j.4 logic addition (~3 LoC, gates inner reviewer-chain check on `reqAgent !== 'agent:tester'`). **NOT in this PR** — owner-gated territory per file ownership matrix; owner squash required per ADR-0031.
 
 ---

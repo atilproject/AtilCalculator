@@ -146,7 +146,7 @@ exempt ⇔ has_label(starts_with("verdict-by:"))
 - TC3 bot-authored comment exclusion (X1 user=bot-* NOT exempted; X2 user=developer exempted — Phase 2 hook)
 - TC4 perf budget (median-of-5 < 200ms for 50-item fixture, tightens from <50ms single-run after cycle ~#4034 CI flake lesson)
 - TC5 d031 sister-pattern NOT regressed (10/10 PASS — sister non-regression guard)
-- Total: 5 TCs exceeds baseline by 2 (sister-pattern to d058 9→10 TC evolution per ADR-0060)
+- Total: 5 TCs exceeds baseline by 2 (sister-pattern to d058 9→10 TC evolution per ADR-0074)
 
 ---
 

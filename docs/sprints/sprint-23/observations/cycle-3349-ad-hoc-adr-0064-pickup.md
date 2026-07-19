@@ -74,7 +74,7 @@ Without ADR-0064, the next engineer adding `ATC_LOG_DIR` or `ATC_CONFIG_OWNER` w
 - **ADR-0045** — auto-generated file refs + live-state verification (lens j attested — verified PR #764 MERGED @ 8d9540b, Issue #765 status:ready, no auto-gen file refs)
 - **ADR-0049** — d-test framework (d121 sister-pattern, ≥5 TCs minimum per ADR-0049 baseline, 6 drafted)
 - **ADR-0055** — Cadence Rule 1 atomic (this ADR + INDEX.md row + TD-045 in same PR)
-- **ADR-0060** — AC mapping verification doctrine (N/A — doctrinal ADR, no story ACs)
+- **ADR-0074** — AC mapping verification doctrine (N/A — doctrinal ADR, no story ACs)
 - **Issue #113** — label-authority > body (worked from labels, not body text)
 - **Issue #430 + #470** — pre-verdict cross-check + §Timing window (REPRIME re-query within 30s of post)
 - **Issue #682** — post-verdict cross-watchdog (N/A for this cycle; will apply to PR review comments when peers respond)

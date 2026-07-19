@@ -211,7 +211,7 @@ sequenceDiagram
 - **ADR-0045** — 9-Lens Review (lens (a) data flow, (d) silent-skip, (f) observability, (h) SHA pin, (j) auto-gen refs)
 - **ADR-0049** — d-test framework ≥5 TCs
 - **ADR-0055 §1** — Cadence Rule 1 atomic for fix scope
-- **ADR-0060** — Lens (j) auto-gen file refs + live-state verification
+- **ADR-0074** — Lens (j) auto-gen file refs + live-state verification
 - **d081 d-test** — Auto-Verdict-By hook contract (4 TCs)
 - **d296 d-test** — peer-poke wrapper correctness (existing)
 - **PR #679** — LIVE INSTANCE (tester-authored, cc:{orch,arch,dev,human} added without verdict-by)

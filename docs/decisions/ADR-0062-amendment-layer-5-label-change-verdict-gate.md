@@ -133,7 +133,7 @@ if (onlyLabelChangeCc) {
 
 ### Why now (Sprint 22 P2 not later)
 
-RETRO-016 cluster (#1, #3, #5, #6) has 4 LIVE INSTANCES in 2 days (PR #679 + #695 + #705 + #692). Pattern is **active, not historical**. Sprint 22 P2 doctrine hardening is the right vehicle — same workshop that closed Issue #546 (ADR-0056) + Issue #659 (ADR-0048 amendment) + Issue #604 (ADR-0060).
+RETRO-016 cluster (#1, #3, #5, #6) has 4 LIVE INSTANCES in 2 days (PR #679 + #695 + #705 + #692). Pattern is **active, not historical**. Sprint 22 P2 doctrine hardening is the right vehicle — same workshop that closed Issue #546 (ADR-0056) + Issue #659 (ADR-0048 amendment) + Issue #604 (ADR-0074).
 
 ## Rationale
 

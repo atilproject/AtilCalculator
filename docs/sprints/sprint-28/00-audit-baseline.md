@@ -373,7 +373,7 @@ dev-studio-template UN-pinned actions (mutating refs):
 | **ADR-0057 + amendment** | Closes-anchor guard + closes-vs-refs-intent | 🟢 PORT | Already in tmpl CLAUDE.md partially |
 | **ADR-0058** | Comment Trigger Guard Multi-Fire Prevention | 🟢 PORT | Generic bot race |
 | **ADR-0059** | Cluster Squash Batch Lag Detection | 🟡 PORT-WITH-REFACTOR | Generic but calc-context |
-| **ADR-0060** | AC Mapping Verification Doctrine | 🟢 PORT | Generic AC discipline |
+| **ADR-0074** | AC Mapping Verification Doctrine | 🟢 PORT | Generic AC discipline |
 | **ADR-0062** | Amendment Layer-5 Label-Change Verdict Gate | 🟢 PORT | Layer-5 doctrine |
 | **ADR-0063** | Amendment Layer-4 Cascade-Strip Lane-Transition Skip | 🟢 PORT | Layer-4 doctrine |
 | **ADR-0064** | Cross-User Env Var Pattern | 🟢 PORT | Generic env pattern |
@@ -1302,7 +1302,7 @@ mapping old `S-NN/W-NN/A-NN/...` → new `S28-W1-NN/S28-W2-NN/S28-W3-NN`).
 | ADR-0058..ADR-0062 | architect | Sprint 28 audit-fix ADRs (one per architect gap) |
 | ADR-0058 | architect | Workflow SHA-pin enforcement (lens h, TD-028 close-out) — Closes A-19.3 |
 | ADR-0059 | architect | Workflow `permissions:` + `timeout-minutes:` baseline (lens i, TD-029) — Closes A-19.4 + A-19.5 |
-| ADR-0060 | architect | Runner label 4-tuple vs generic 2-tuple decision (D-OD6 follow-up) — Closes A-19.9 |
+| ADR-0074 | architect | Runner label 4-tuple vs generic 2-tuple decision (D-OD6 follow-up) — Closes A-19.9 |
 | ADR-0061 | architect | Story-ID naming scheme `S28-W<N>-NN` convention — Closes A-19.6 |
 | ADR-0062 | architect | d-test fixture generic-ization (sister-pattern with d121/d642/d649) — Closes A-19.8 |
 | ADR-0063..ADR-0070 | architect | Sprint 28 port-wave ADRs (souls, scripts, docs) — drafted in W2 |
@@ -1323,7 +1323,7 @@ pre-allocation).
 |---|---|---|---|---|
 | **S28-W1-01** | ADR-0058 SHA-pin enforcement | (none) | R-HIGH | architect |
 | **S28-W1-02** | ADR-0059 permissions+timeout baseline | (none) | R-HIGH | architect |
-| **S28-W1-03** | ADR-0060 runner label decision (D-OD6) | owner-decision | R-MED | architect |
+| **S28-W1-03** | ADR-0074 runner label decision (D-OD6) | owner-decision | R-MED | architect |
 | **S28-W1-04** | SHA-pin all 14+ action refs in 9 tmpl workflows | W1-01 | R-HIGH | developer |
 | **S28-W1-05** | Add `permissions:` + `timeout-minutes:` to 9 tmpl workflows | W1-02 | R-HIGH | developer |
 | **S28-W1-06** | ADR-0061 naming scheme codified | (none) | R-LOW | architect |
@@ -1332,7 +1332,7 @@ pre-allocation).
 
 **Exit criteria for Wave 1:**
 - All 9 tmpl workflows pass `d082` + `d083` RED-first tests
-- ADR-0058, ADR-0059, ADR-0060, ADR-0061 merged + INDEX.md updated
+- ADR-0058, ADR-0059, ADR-0074, ADR-0061 merged + INDEX.md updated
 - 4-cat invariant maintained across all W1 PRs
 
 ### Wave 2 — Feature port (R-LOW + R-MED, 14 stories, 7 days)

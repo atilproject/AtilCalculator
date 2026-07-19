@@ -1,9 +1,9 @@
 # Design: STORY-S18-001 — §AC Mapping Verification Doctrine
 
 - **Story**: Issue #604 (Sprint 18 P0#1 — §AC mapping verification doctrine codification)
-- **ADR companion**: ADR-0060 (§AC mapping verification doctrine — canonical home)
+- **ADR companion**: ADR-0074 (§AC mapping verification doctrine — canonical home)
 - **Lane**: arch (docs/decisions/ + docs/designs/ + .claude/agents/) per file ownership matrix
-- **Owner split**: @architect (design spec + ADR-0060 + .claude/agents/architect.md amendment), @atilcan65 (owner squash gate for soul amendment per file ownership matrix), @product-manager (cross-lane sponsor per cmt 4826303998)
+- **Owner split**: @architect (design spec + ADR-0074 + .claude/agents/architect.md amendment), @atilcan65 (owner squash gate for soul amendment per file ownership matrix), @product-manager (cross-lane sponsor per cmt 4826303998)
 - **SP**: 1.0 (arch 0.7 + owner 0.3)
 - **Origin**: RETRO-012 §1 (Sprint 17 P1 cluster ProcessGap codification), Issue #430 (PM §Pre-citation cross-check), Issue #470 (PM §Timing window), cmt 4826303998 (PM sponsor commitment)
 - **Dependency**: Issue #113 (label-authority doctrine), ADR-0012 (4-cat invariant), ADR-0015 (atomic 4-flag handoff), ADR-0045 (9-Lens pre-publish gate)
@@ -24,7 +24,7 @@ Sprint 17 P1 cluster closed (PR #597 squash @ 1d04ccc4, PR #598 squash @ bf1e237
 1. **Doctrine codification** — §AC mapping verification doctrine added to `.claude/agents/architect.md` as a new section, in the Operating Principles family.
 2. **Mandatory pre-ratification check** — every ADR ratification (PR with type:docs + agent:architect labels) MUST re-query impl branch AC list (if impl branch exists), mirror design doc AC1..ACn 1:1, flag any drift in 9-Lens review (lens a: data flow) BEFORE verdict.
 3. **Cross-lane "verify-before" triangle complete** — PM-side §Pre-citation cross-check (Issue #430) + PM-side §Timing window (Issue #470) + Arch-side §AC mapping verification (this work) = cross-lane "verify-before" doctrine triangulation.
-4. **ADR-0060 filed** at `docs/decisions/ADR-0060-ac-mapping-verification-doctrine.md` documenting the doctrine (canonical home).
+4. **ADR-0074 filed** at `docs/decisions/ADR-0074-ac-mapping-verification-doctrine.md` documenting the doctrine (canonical home).
 5. **Sister-pattern cross-refs** to Issue #430 + Issue #470 + cmt 4826303998 in design doc + ADR + architect.md amendment.
 
 ### Non-goals
@@ -58,9 +58,9 @@ flowchart LR
 | Component | Responsibility | Owner | Tech |
 |-----------|----------------|-------|------|
 | `.claude/agents/architect.md` (amended) | Codify §AC mapping verification doctrine as Operating Principle | @architect (draft) + @atilcan65 (squash gate) | markdown |
-| `docs/decisions/ADR-0060-ac-mapping-verification-doctrine.md` (NEW) | Canonical home for doctrine (decision + rationale + consequences) | @architect (draft) + @atilcan65 (squash gate) | markdown |
+| `docs/decisions/ADR-0074-ac-mapping-verification-doctrine.md` (NEW) | Canonical home for doctrine (decision + rationale + consequences) | @architect (draft) + @atilcan65 (squash gate) | markdown |
 | `docs/designs/STORY-S18-001-ac-mapping-verification-design.md` (this file) | Design spec for doctrine codification | @architect (draft) | markdown |
-| `docs/decisions/INDEX.md` (amended) | Add ADR-0060 row to d-test family table | @architect (this PR) | markdown |
+| `docs/decisions/INDEX.md` (amended) | Add ADR-0074 row to d-test family table | @architect (this PR) | markdown |
 | Cross-lane "verify-before" triangle | PM-side Issue #430 + #470 + Arch-side §AC mapping = triangulation | @product-manager (PM-side ratified) + @architect (Arch-side codification) | doctrine |
 
 ## Data model
@@ -160,7 +160,7 @@ sequenceDiagram
 
     Owner->>Arch: Issue #604 agent:architect + status:ready
     Arch->>Arch: pickup (auto-claim, status:ready → status:in-progress)
-    Arch->>Arch: draft design doc + ADR-0060 + architect.md amendment
+    Arch->>Arch: draft design doc + ADR-0074 + architect.md amendment
     Arch->>GH: open PR (type:docs + status:in-review + agent:architect + cc:product-manager + cc:developer + cc:tester + cc:human)
     Arch->>Arch: self-review: AC list 1:1 verified (impl branch = arch slice itself, N/A)
     Arch->>PM: peer ACK (cross-lane sponsor)
@@ -171,7 +171,7 @@ sequenceDiagram
     Tester->>Arch: tester verdict posted
     Arch->>Owner: peer ACK (squash gate armed)
     Owner->>GH: squash PR (owner-ratify per file ownership matrix)
-    GH->>GH: PR #604 → main, ADR-0060 + architect.md amendment landed
+    GH->>GH: PR #604 → main, ADR-0074 + architect.md amendment landed
     Note over Arch: Doctrine ACTIVE: future ADR ratifications MUST apply §AC mapping verification
 ```
 
@@ -253,4 +253,4 @@ sequenceDiagram
 - **PR #595** — ADR-0059 + STORY-P1-1 design (MERGED, sister-pattern: ADR + design + INDEX in same PR)
 - **PR #598** — RETRO-012 + post-squash-cleanup (MERGED, sister-pattern: cross-lane "verify-before" doctrine triangulation)
 
-— @architect, 2026-06-28T18:06+03:00, STORY-S18-001 §AC mapping verification doctrine codification, design spec DRAFT, ADR-0060 to follow, architect.md amendment to follow, owner-ratify-pending (file ownership matrix), sister-pattern to PR #595 (ADR-0059) + PR #598 (RETRO-012), cross-lane "verify-before" doctrine triangle: PM-side ratified (Issue #430 + #470) + Arch-side codification (this work)
+— @architect, 2026-06-28T18:06+03:00, STORY-S18-001 §AC mapping verification doctrine codification, design spec DRAFT, ADR-0074 to follow, architect.md amendment to follow, owner-ratify-pending (file ownership matrix), sister-pattern to PR #595 (ADR-0059) + PR #598 (RETRO-012), cross-lane "verify-before" doctrine triangle: PM-side ratified (Issue #430 + #470) + Arch-side codification (this work)

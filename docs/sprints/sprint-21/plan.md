@@ -49,7 +49,7 @@ Ship a `gh repo create --template` ready **Multi-Agent Dev Studio Template** rep
 |---|---|---|
 | Soul files | 5/5 (orch, PM, arch, dev, tester) | 5/5 parameterized + `.tmpl` |
 | Scripts | 40+ | All scripts use placeholders, init renders |
-| ADRs | 60+ (ADR-0001..ADR-0060) | All in template (current set canonical) |
+| ADRs | 60+ (ADR-0001..ADR-0074) | All in template (current set canonical) |
 | Workflows | 10 | All 10 wired + parameterized |
 | d-tests | 40+ | All 40+ in template + d070 new |
 | Issue templates | 6 | All 6 in template |
@@ -200,7 +200,7 @@ Sister-pair pattern: d-test PR (tester draft, RED-first) + impl PR (dev draft, G
 - **PR #676 + PR #677** (sister-pair MERGED @ 11:59:10Z) — d077 d-test + L5 fix, closes Issue #675
 - **Issues #630-#654** — Sprint 21 stories (S21-001..S21-025), PM-authored (PR #658 squash)
 - **Docs**: [`./CHECKLIST.md`](./CHECKLIST.md), [`./INVENTORY.md`](./INVENTORY.md), [`./RISK-REGISTER.md`](./RISK-REGISTER.md), [`./OPEN-QUESTIONS.md`](./OPEN-QUESTIONS.md), [`./proposed-scope.md`](./proposed-scope.md), [`./STORY-MAP.md`](./STORY-MAP.md)
-- **ADRs**: ADR-0001 (template arch), ADR-0012 (4-cat invariant), ADR-0014 (PROJECT_TOKEN), ADR-0021 (joint sizing), ADR-0024 (verdict-by), ADR-0038 (WIP cap), ADR-0044 (RED-first TDD), ADR-0045 (9-Lens), ADR-0049 (d-test sister-pattern), ADR-0055 (Cadence Rule 1 atomic), ADR-0059 (cluster-squash), ADR-0060 (AC mapping verification)
+- **ADRs**: ADR-0001 (template arch), ADR-0012 (4-cat invariant), ADR-0014 (PROJECT_TOKEN), ADR-0021 (joint sizing), ADR-0024 (verdict-by), ADR-0038 (WIP cap), ADR-0044 (RED-first TDD), ADR-0045 (9-Lens), ADR-0049 (d-test sister-pattern), ADR-0055 (Cadence Rule 1 atomic), ADR-0059 (cluster-squash), ADR-0074 (AC mapping verification)
 - **RETRO-016 (codification pending owner decision)** captures Sprint 21 in-flight doctrinal codifications: L5 misfire root cause (closes Issue #675), 2-lane cross-watchdog, pre-verdict gate proven retroactive, atomic handoff PATCH semantics, orch label mis-attribution, watcher read/write decoupling, d-test family expansion (d077 added), sister-pair cluster-squash codification.
 
 ---

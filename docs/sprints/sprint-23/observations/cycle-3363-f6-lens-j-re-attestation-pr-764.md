@@ -159,7 +159,7 @@ $ git show origin/main:scripts/deploy-runner.sh | grep -c ATC_SERVICE_USER
 - **TD-045** — `docs/tech-debt.md` row 75 (F-6 lesson added, 17th in 9-Lens blind-spot family)
 - **ADR-0045 + ADR-0043** — 9-Lens pre-publish gate (lens (j) re-attestation strengthened)
 - **ADR-0055** — Cadence Rule 1 atomic
-- **ADR-0060** — deferral pattern
+- **ADR-0074** — deferral pattern
 - **Issue #430** — §Pre-verdict cross-check (cycle #3359 partial violation)
 - **Issue #682** — §Post-verdict cross-watchdog (cycle #3359 partial violation)
 - **Issue #113** — labels > body (cycle #3359 partial violation; cycle #3363 fully honored)
