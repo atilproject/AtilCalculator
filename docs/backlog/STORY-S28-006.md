@@ -29,7 +29,7 @@ Sprint 28 wave 1 (low-risk, 0.5sp, fast). ADR pre-allocation map per §20.1 audi
 
 ## Dependencies
 - **Upstream**: PR #967 squash-merge (audit-baseline source-of-truth)
-- **Downstream**: ADR-0058, ADR-0059, ADR-0060, ADR-0061 (W1 stories that consume these ADR numbers)
+- **Downstream**: ADR-0058, ADR-0059, ADR-0074, ADR-0061 (W1 stories that consume these ADR numbers)
 
 ## Metrics of success
 - **Leading**: ADR count in tmpl INDEX.md = 28+ (vs 27 pre-refresh)

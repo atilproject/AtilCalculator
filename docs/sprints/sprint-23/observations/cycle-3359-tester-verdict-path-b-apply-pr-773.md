@@ -42,7 +42,7 @@ Tester returned 🔴 **CHANGES REQUESTED** on PR #773 (ADR-0064 cross-user env-v
    - Line 18 (d-test integration): d121 deferred to Sprint 23 P2 follow-up PR
    - Lines 127-147 (§d-test sister-pattern section): full rewrite — d121 contract (TC1-TC3 minimum) + corrected sister-pattern family (d109/d112/d117 + d121)
    - Line 212 (Positive #3 d121 coverage): corrected to "3 sister tests (d109/d112/d117) per ADR-0049 ≥3 baseline; d121 d-test impl deferred to Sprint 23 P2 follow-up PR"
-   - Line 220 (Negative #3 d121 required): corrected to "≥3 TCs baseline per ADR-0049; deferred per Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern ADR-0060 deferral)"
+   - Line 220 (Negative #3 d121 required): corrected to "≥3 TCs baseline per ADR-0049; deferred per Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern ADR-0074 deferral)"
    - Line 230 (Out of scope): ADD row "d121 d-test impl (≥3 TCs per ADR-0049 RED-first) | Sprint 23 P2 | @tester (impl) + @architect (9-Lens review per ADR-0045)"
    - Line 246 (§What this ADR commits to *now*): "d121 d-test contract" corrected to "≥3 TCs baseline per ADR-0049; impl deferred to Sprint 23 P2 follow-up PR (Cadence Rule 1 atomic cross-PR-cluster variant)"
    - Line 263 (9-Lens (f) Observability): "d121 TC6 verifies end-to-end" → "d121 d-test (deferred to Sprint 23 P2 follow-up PR) will verify end-to-end"
@@ -84,11 +84,11 @@ Final PR #773 labels: `type:docs + status:in-review + agent:architect + cc:orche
 - **4-cat invariant (ADR-0012)** — PR #773 final state has all 4 categories (type:* + status:* + agent:* + 4 cc:* labels); Issue #774 also has 4 categories
 - **ADR-0015** atomic handoff — labels flipped in correct order (--add-label x2 first, then --remove-label x2 where applicable)
 - **ADR-0024 amendment verdict-by** — peer verdict timestamp `verdict-by:2026-07-03T22:57:36Z` preserved as `comments[0]` reference
-- **ADR-0044** RED-first TDD — d121 d-test contract committed (≥3 TCs baseline), impl deferred to follow-up PR per Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern ADR-0060 deferral)
+- **ADR-0044** RED-first TDD — d121 d-test contract committed (≥3 TCs baseline), impl deferred to follow-up PR per Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern ADR-0074 deferral)
 - **ADR-0049** d-test framework — ≥3 TCs baseline; ≥3 sister-pattern coverage (d109 + d112 + d117 = 3) satisfied today; d121 follow-up PR makes it 4
 - **ADR-0045 + ADR-0043** 9-Lens — all 10 lenses re-attested against Path B corrected ADR; (j) live-state verification: PR #764 MERGED 8d9540b confirmed; Issue #765 status:ready + agent:human confirmed; d121 404 confirmed
-- **ADR-0055** Cadence Rule 1 atomic — d121 d-test contract committed in same PR-cluster (ADR-0064 + INDEX.md row + TD-045 + cycle-3349 + cycle-3359 observation); d121 impl atomicity applied as cross-PR-cluster variant (sister-pattern ADR-0060 deferral)
-- **ADR-0060** deferral pattern — sister-pattern explicitly cited as the precedent for cross-PR-cluster Cadence Rule 1 atomic variant
+- **ADR-0055** Cadence Rule 1 atomic — d121 d-test contract committed in same PR-cluster (ADR-0064 + INDEX.md row + TD-045 + cycle-3349 + cycle-3359 observation); d121 impl atomicity applied as cross-PR-cluster variant (sister-pattern ADR-0074 deferral)
+- **ADR-0074** deferral pattern — sister-pattern explicitly cited as the precedent for cross-PR-cluster Cadence Rule 1 atomic variant
 
 ## Cross-references
 
@@ -102,7 +102,7 @@ Final PR #773 labels: `type:docs + status:in-review + agent:architect + cc:orche
 - **cmt 4871063120** — @architect self-post (initial arch verdict cycle ~#3349)
 - **cmt 4871069718** — @product-manager PRD lens ACK (cross-lane sponsor)
 - **ADR-0064** — `docs/decisions/ADR-0064-cross-user-env-var-pattern.md` (Path B applied, 8 file edits)
-- **ADR-0060** — deferral pattern (sister-pattern for cross-PR-cluster Cadence Rule 1 variant)
+- **ADR-0074** — deferral pattern (sister-pattern for cross-PR-cluster Cadence Rule 1 variant)
 - **ADR-0055** — Cadence Rule 1 atomic doctrine
 - **ADR-0049** — d-test framework (≥3 TCs baseline, ≥3 sister-pattern coverage)
 - **ADR-0045 + ADR-0043** — 9-Lens pre-publish gate (lens j live-state verification)
@@ -116,7 +116,7 @@ Final PR #773 labels: `type:docs + status:in-review + agent:architect + cc:orche
 
 ## Lessons (16th in 9-Lens blind-spot family — NEW)
 
-**Path B test artifact fabrication lesson**: When ADR body references a forward d-test impl (e.g., "d121 NEW in same PR-cluster per Cadence Rule 1 atomic"), the 4-cat invariant for the d-test file is satisfied **before** the d-test exists (ADR d-test table fabricated, tester sign-off claim fabricated). The Cadence Rule 1 atomic doctrine is **silent** about the case where the ADR ships before the d-test ships. **Fix**: when ADR body references a forward d-test impl that does NOT exist in the PR-cluster, default to **Cadence Rule 1 atomic cross-PR-cluster variant** (sister-pattern ADR-0060 deferral) — explicitly commit the d-test **contract** in the ADR, defer the **impl** to a follow-up PR, and file a STORY-* follow-up issue with 4-cat labels so the lane owner + reviewer rotation is documented.
+**Path B test artifact fabrication lesson**: When ADR body references a forward d-test impl (e.g., "d121 NEW in same PR-cluster per Cadence Rule 1 atomic"), the 4-cat invariant for the d-test file is satisfied **before** the d-test exists (ADR d-test table fabricated, tester sign-off claim fabricated). The Cadence Rule 1 atomic doctrine is **silent** about the case where the ADR ships before the d-test ships. **Fix**: when ADR body references a forward d-test impl that does NOT exist in the PR-cluster, default to **Cadence Rule 1 atomic cross-PR-cluster variant** (sister-pattern ADR-0074 deferral) — explicitly commit the d-test **contract** in the ADR, defer the **impl** to a follow-up PR, and file a STORY-* follow-up issue with 4-cat labels so the lane owner + reviewer rotation is documented.
 
 This is the 16th instance in the 9-Lens blind-spot family (sister to TD-016/TD-018/TD-019/TD-020/TD-028/TD-029/TD-030/TD-037/TD-044/TD-045). The pattern that emerged: **forward-claiming d-test table TCs + forward-claiming tester sign-off** are both **fabrication hazards** that evade the standard pre-publish gate (4-cat + verdict) because they look like docs artifacts but semantically make implementation promises that can't be verified until the d-test ships.
 

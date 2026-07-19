@@ -108,12 +108,12 @@ Dev lane expected to claim #609 first per sprint priority order (P1#6 before P1#
 ## Cross-refs
 
 - **PR #614** — d065 dual-channel-enforcement regression guard
-- **PR #615** — ADR-0060 §AC mapping verification doctrine (closes #604)
+- **PR #615** — ADR-0074 §AC mapping verification doctrine (closes #604)
 - **PR #616** — cluster-lag-detector YAML wiring + d068 d-test (closes #605)
 - **Issue #604** — STORY-S18-001 §AC mapping verification (P0#1, closes via PR #615)
 - **Issue #605** — STORY-S18-002 cluster-lag YAML wiring (P0#2, closes via PR #616)
 - **Issue #607** — STORY-S18-004 d065 dual-channel-enforcement d-test (P1#4, manual close via this runbook)
-- **ADR-0060** — §AC mapping verification doctrine (Sprint 18 codification lineage)
+- **ADR-0074** — §AC mapping verification doctrine (Sprint 18 codification lineage)
 - **ADR-0024** — verdict-by:<ts> convention
 - **RETRO-012 §4a** — verdict-by codification origin
 - **ADR-0031** — Owner override (sprint scope + squash gate)

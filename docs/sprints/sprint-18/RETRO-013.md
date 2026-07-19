@@ -32,7 +32,7 @@ Sprint 18 cluster (8 stories: 3 P0 + 5 P1) closed via 9-PR parallel-ship pattern
 
 | # | Story | PR | Squash SHA | Closer | Closes |
 |---|-------|---|---|---|---|
-| 1 | STORY-S18-001 §AC mapping verification doctrine (ADR-0060 NEW) | #615 | d4572b6 | owner | #604 (Closes anchor) |
+| 1 | STORY-S18-001 §AC mapping verification doctrine (ADR-0074 NEW) | #615 | d4572b6 | owner | #604 (Closes anchor) |
 | 2 | STORY-S18-002 Cluster-lag-detector workflow YAML wiring | #616 | fbe3839 | owner | #605 (Closes anchor) |
 | 3 | STORY-S18-003 Cluster-lag.log retrospective population (PM curator) | #619 | 39f6772 | owner | #618 (Closes anchor, PM-as-fix-author) |
 | 4 | STORY-S18-004 d065 dual-channel-enforcement d-test | #614 | 8fcb955 | owner | #607 (Refs, manual close) |
@@ -175,11 +175,11 @@ See Tier 1 §1 above. Codification: amend ADR-0059 §1 to widen sub-cluster wind
 - **ADR-0055** — d-test ID uniqueness + sub-pattern remediation
 - **ADR-0056** — F3 silent_skip doctrine (Option X applied via PR #597)
 - **ADR-0059** — Cluster-squash batch-lag detection (Sprint 18 §1 amendment candidate)
-- **ADR-0060** — §AC mapping verification doctrine (NEW Sprint 18, PR #615)
+- **ADR-0074** — §AC mapping verification doctrine (NEW Sprint 18, PR #615)
 - **Issue #113** — labels > body doctrine
 - **Issue #238** — rate limit = API throttling NOT work pause
-- **Issue #430** — PM-side §Pre-citation cross-check (sister-pattern to ADR-0060)
-- **Issue #470** — PM-side §Timing window (sister-pattern to ADR-0060)
+- **Issue #430** — PM-side §Pre-citation cross-check (sister-pattern to ADR-0074)
+- **Issue #470** — PM-side §Timing window (sister-pattern to ADR-0074)
 - **Issue #508** — LIVE INSTANCE cluster-squash detection origin
 - **Issue #582 + #583** — Sprint 17 P1 owner-gated WIP miscount incident (RESOLVED via d066)
 - **Issue #602** — Sprint 18 Kickoff dispatch (CLOSED via PR #613)
@@ -198,7 +198,7 @@ See Tier 1 §1 above. Codification: amend ADR-0059 §1 to widen sub-cluster wind
 - **PR #612** — orchestrator.md §Verdict-by Discipline (squashed af1880e, this sprint)
 - **PR #613** — Sprint 18 backlog.json + plan.md (squashed 339d474, PM curator)
 - **PR #614** — d065 dual-channel-enforcement d-test (squashed 8fcb955, this sprint)
-- **PR #615** — ADR-0060 §AC mapping verification (squashed d4572b6, this sprint)
+- **PR #615** — ADR-0074 §AC mapping verification (squashed d4572b6, this sprint)
 - **PR #616** — cluster-lag-detector YAML wiring + d068 (squashed fbe3839, this sprint)
 - **PR #617** — post-squash cleanup runbook (squashed 2d15cd7, ironic §4)
 - **PR #619** — Sprint 17 close.md §Cluster-lag factual error fix (squashed 39f6772)
@@ -207,7 +207,7 @@ See Tier 1 §1 above. Codification: amend ADR-0059 §1 to widen sub-cluster wind
 - **Cycle 530** — Stale-state correction (Issue #113 doctrine, labels > body)
 - **Cycle 549** — Trust-but-verify (PR #591 flake re-diagnosis)
 - **Cycle 567** — Squash-pending tolerance
-- **Cycle 647** — Arch AC mapping drift (RETRO-012 §1 codification origin → ADR-0060)
+- **Cycle 647** — Arch AC mapping drift (RETRO-012 §1 codification origin → ADR-0074)
 - **PICKUP-625 + PICKUP-626** — PM curator work for cluster-lag detector (Issue #606)
 - **PICKUP-627** — PM lane hygiene cleanup (cc:product-manager removed from #609-#611)
 - **PICKUP-628** — Orchestrator squash miss flag (PR #617 unsquashed)

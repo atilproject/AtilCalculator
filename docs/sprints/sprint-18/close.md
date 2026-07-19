@@ -17,7 +17,7 @@
 - **Cluster scope:** 8 stories (3 P0 + 5 P1) shipped via **11 PRs** (3 P0 impl + 1 P0 design + 1 docs PM curator + 1 orchestrator soul + 2 P1 d-tests + 1 P1 docs/tech-debt + 1 Sprint 17 close.md fix + 1 S18-007 carry-over + 1 S18-008 carry-over)
 - **Cluster ledger:** PR #612 + #613 + #614 + #615 + #616 + #617 + #619 + #620 + #621 + #623 + #624 all merged to main
 - **Cluster stories:** S18-001 (AC mapping) + S18-002 (cluster-lag YAML) + S18-003 (cluster-lag.log retrospective) + S18-004 (d065) + S18-005 (verdict-by) + S18-006 (d066) + S18-007 (proactive-scan wip_overflow) + S18-008 (d064 CI integration) ALL DONE ✅
-- **Doctrine delivered:** ADR-0060 (§AC mapping verification, NEW) + ADR-0059 codification (cluster-squash detection, post-PR #597 wiring) + d-test family 19-sister (d065 dual-channel-enforcement NEW + d066 WIP cap filter NEW + d068 cluster-lag-detector regression guard NEW + d067 proactive-scan wip_overflow NEW) + 1 soul amendment (orchestrator.md §Verdict-by Discipline per ADR-0024)
+- **Doctrine delivered:** ADR-0074 (§AC mapping verification, NEW) + ADR-0059 codification (cluster-squash detection, post-PR #597 wiring) + d-test family 19-sister (d065 dual-channel-enforcement NEW + d066 WIP cap filter NEW + d068 cluster-lag-detector regression guard NEW + d067 proactive-scan wip_overflow NEW) + 1 soul amendment (orchestrator.md §Verdict-by Discipline per ADR-0024)
 - **Cluster-lag loop:** Closed end-to-end — script (PR #597) → workflow YAML (PR #616) → log emission (Issue #606 PM curator work) → retro markdown section (this file + RETRO-013)
 - **Squash lessons surfaced:** RETRO-013 §4 (squash miss + ironic #617 pattern) — fix-strengthening proposal captured for Sprint 19+ (skipped per owner directive) or Sprint 20 bug-only mode
 - **Owner-author-and-merge pattern (NEW lesson):** PR #624 (S18-008 d064 CI) authored + merged by owner (dev lane claimed Issue #611 at 21:00:11Z but stalled 7m36s). RETRO-014 captures this as doctrine gap candidate.
@@ -87,10 +87,10 @@
 | 1 | #612 | `af1880e` | docs(soul): orchestrator.md — §Verdict-by Discipline (ADR-0024 codification per RETRO-012 §4a) | S18-005 | #608 | owner |
 | 2 | #613 | `339d474` | docs(sprint-18): Sprint 18 backlog.json + plan.md (TIER 2.2 PM curator, clean rebase) | (docs carrier) | (none, PM curator tracker) | owner |
 | 3 | #614 | `8fcb955` | feat(d-tests): STORY-S18#4 d065 dual-channel-enforcement regression guard | S18-004 | (Refs #607, manual close) | owner |
-| 4 | #615 | `d4572b6` | docs(adr): ADR-0060 §AC mapping verification doctrine (STORY-S18-001) | S18-001 | #604 | owner |
+| 4 | #615 | `d4572b6` | docs(adr): ADR-0074 §AC mapping verification doctrine (STORY-S18-001) | S18-001 | #604 | owner |
 | 5 | #616 | `fbe3839` | feat(workflows): STORY-S18#2 cluster-lag-detector YAML wiring + d068 regression guard | S18-002 | #605 | owner |
 | 6 | #617 | `2d15cd7` | docs(sprint-18): post-squash cleanup runbook (Sprint 18 P0 cluster pre-stage) | (runbook carrier) | (Refs only, no Closes) | owner |
-| 7 | #619 | `39f6772` | fix(sprint-17): close.md §Cluster-lag factual error correction (post-PR #601 squash drift, per ADR-0060) | (Sprint 17 fix, PM-as-fix-author per RETRO-013 doctrine question) | #618 | owner |
+| 7 | #619 | `39f6772` | fix(sprint-17): close.md §Cluster-lag factual error correction (post-PR #601 squash drift, per ADR-0074) | (Sprint 17 fix, PM-as-fix-author per RETRO-013 doctrine question) | #618 | owner |
 | 8 | #620 | `1bd70ba5` | feat(d-tests): STORY-S18#6 d066 WIP cap filter regression guard | S18-006 | (Refs #609, manual close) | owner |
 | 9 | #621 | `b2d593d9` | docs(tech-debt): TD-033+TD-034+TD-035 recovery (cycle 766, Sprint 18 P1) | (tech-debt carrier, Sprint 18 P1 work) | (none) | owner |
 | 10 | #623 | (TBD, squash pending) | fix(scripts): STORY-S18#7 d067 proactive-scan wip_overflow per-role semantics (refs #610) | S18-007 (re-classified as bug) | #610 | owner |
@@ -105,16 +105,16 @@
 | PM sponsor review (RETRO-013 DRAFT) | TBD | @product-manager | 🟢 DRAFT | This file + RETRO-013.md |
 | PM curator commitment (Sprint 18 P0 cluster) | (cmt 4826303998 lineage) | @product-manager | ACTIVE | Issue #606 |
 | PM peer review PR #612 (verdict-by soul amendment) | cmt 4827054515 | @product-manager | 🟢 APPROVE (peer awareness) | PR #612 |
-| PM peer review PR #617 (runbook) | cmt 4827112996 + cmt 4827041214 | @product-manager | 🟢 APPROVED + ADR-0060 §AC mapping verified | PR #617 |
+| PM peer review PR #617 (runbook) | cmt 4827112996 + cmt 4827041214 | @product-manager | 🟢 APPROVED + ADR-0074 §AC mapping verified | PR #617 |
 | Arch FINAL 🟢 on PR #612 (orchestrator soul amendment) | cmt 4826960727 | @architect | FINAL 🟢 DESIGN ALIGNED | PR #612 |
 | PM peer review PR #614 (d065 d-test) | (PICKUP-579 lineage) | @product-manager | 🟢 APPROVE | PR #614 |
 | Tester sign-off PR #616 (cluster-lag YAML) | (PICKUP-580 lineage) | @tester | 🟢 APPROVED | PR #616 |
 
 ### Cluster doctrine additions (this sprint)
 
-#### ADR-0060 — §AC mapping verification doctrine (NEW)
+#### ADR-0074 — §AC mapping verification doctrine (NEW)
 - **Status:** Accepted (squashed PR #615 d4572b6)
-- **Lane:** `docs/decisions/ADR-0060-§AC-mapping-verification.md` (architect lane per file ownership matrix)
+- **Lane:** `docs/decisions/ADR-0074-§AC-mapping-verification.md` (architect lane per file ownership matrix)
 - **Closes:** Issue #604 (STORY-S18-001 spec)
 - **Sister-patterns:** ADR-0045 (9-Lens), Issue #430 (§Pre-citation cross-check, PM-side), Issue #470 (§Timing window, PM-side), RETRO-012 §1 (codification origin)
 - **PM lane role:** Cross-lane sponsor (Sprint 18 P0 #1) per arch verdict cmt 4826492842 + PM FYI cmt 4826478137 + tester 🟢 cmt 4826497562
@@ -212,7 +212,7 @@ Per orchestrator question (Sprint 18 ceremony done, what's next?):
 - [x] RETRO-013 on main (PR #622 squash)
 - [x] RETRO-014 (this PR — captures dev lane stall + owner-author-and-merge pattern)
 - [x] post-squash-cleanup runbook on main (PR #617 squash)
-- [x] ADR-0060 §AC mapping verification doctrine on main
+- [x] ADR-0074 §AC mapping verification doctrine on main
 - [x] d-test family 19-sister complete (d065 + d066 + d067 + d068 NEW)
 - [x] orchestrator.md §Verdict-by Discipline codified (per ADR-0024)
 - [x] PM recommendation on Sprint 20 / PROJECT CLOSE captured (RETRO-014 §3 — recommendation: direct PROJECT CLOSE)
@@ -237,7 +237,7 @@ Per orchestrator question (Sprint 18 ceremony done, what's next?):
 - PR #612 — orchestrator.md §Verdict-by Discipline (squash af1880e, Closes #608)
 - PR #613 — Sprint 18 backlog.json + plan.md (squash 339d474, PM curator docs carrier)
 - PR #614 — d065 dual-channel-enforcement d-test (squash 8fcb955, Refs #607)
-- PR #615 — ADR-0060 §AC mapping verification (squash d4572b6, Closes #604)
+- PR #615 — ADR-0074 §AC mapping verification (squash d4572b6, Closes #604)
 - PR #616 — cluster-lag-detector YAML wiring + d068 (squash fbe3839, Closes #605)
 - PR #617 — post-squash cleanup runbook (squash 2d15cd7, Refs only)
 - PR #619 — Sprint 17 close.md §Cluster-lag factual error (squash 39f6772, Closes #618)
@@ -245,14 +245,14 @@ Per orchestrator question (Sprint 18 ceremony done, what's next?):
 - PR #621 — Sprint 18 P1 docs/tech-debt (squash b2d593d9, no Closes)
 
 ### ADRs (new in Sprint 18)
-- **ADR-0060** — §AC mapping verification doctrine (NEW, accepted)
+- **ADR-0074** — §AC mapping verification doctrine (NEW, accepted)
 - **ADR-0059** — Cluster-squash batch-lag detection (NEW Sprint 17, applied Sprint 18)
 
 ### Cycles + doctrines
 - Cycle 530 — Stale-state correction (Issue #113 doctrine, labels > body) — RECURRED in Sprint 18 PR #617 cc:product-manager hygiene (PICKUP-626)
 - Cycle 549 — Trust-but-verify (PR #591 flake re-diagnosis, sister-pattern)
 - Cycle 567 — Squash-pending tolerance (cycle sister-pattern)
-- Cycle 647 — Arch AC mapping drift (RETRO-012 §1 codification origin → ADR-0060)
+- Cycle 647 — Arch AC mapping drift (RETRO-012 §1 codification origin → ADR-0074)
 
 ### RETROs + retros
 - **RETRO-012** — Sprint 17 P1 ProcessGap retro (`docs/sprints/sprint-17/RETRO-012.md`, orchestrator lane, on main)

@@ -30,7 +30,7 @@ Sprint 18 SHIPPED 8/8 ✅🎉🎉🎉 (PR #612 + #613 + #614 + #615 + #616 + #61
 
 | # | Story | PR | Squash SHA | Closer | Closes |
 |---|-------|---|---|---|---|
-| 1 | STORY-S18-001 §AC mapping verification doctrine (ADR-0060 NEW) | #615 | d4572b6 | owner | #604 |
+| 1 | STORY-S18-001 §AC mapping verification doctrine (ADR-0074 NEW) | #615 | d4572b6 | owner | #604 |
 | 2 | STORY-S18-002 Cluster-lag-detector workflow YAML wiring | #616 | fbe3839 | owner | #605 |
 | 3 | STORY-S18-003 Cluster-lag.log retrospective population (PM curator) | #619 | 39f6772 | owner | #618 |
 | 4 | STORY-S18-004 d065 dual-channel-enforcement d-test | #614 | 8fcb955 | owner | #607 (Refs, manual close) |
@@ -179,7 +179,7 @@ Owner retains final call. If owner prefers Sprint 20 kickoff for cleaner ceremon
 - **ADR-0038** — Per-role WIP cap 2/2 (auto-claim mechanism, claim-without-deliver gap)
 - **ADR-0044** — RED-first TDD (d-test framework)
 - **ADR-0059** — Cluster-squash batch-lag detection (Sprint 18 §1 amendment candidate)
-- **ADR-0060** — §AC mapping verification doctrine (NEW Sprint 18, PR #615)
+- **ADR-0074** — §AC mapping verification doctrine (NEW Sprint 18, PR #615)
 - **Issue #113** — labels > body doctrine
 - **Issue #238** — rate limit = API throttling NOT work pause
 - **Issue #430 + #470** — PM-side verify-before triangulation
@@ -198,7 +198,7 @@ Owner retains final call. If owner prefers Sprint 20 kickoff for cleaner ceremon
 - **PR #612** — orchestrator.md §Verdict-by Discipline (squashed af1880e, Sprint 18)
 - **PR #613** — Sprint 18 backlog.json + plan.md (squashed 339d474, PM curator)
 - **PR #614** — d065 dual-channel-enforcement d-test (squashed 8fcb955, Sprint 18)
-- **PR #615** — ADR-0060 §AC mapping verification (squashed d4572b6, Sprint 18)
+- **PR #615** — ADR-0074 §AC mapping verification (squashed d4572b6, Sprint 18)
 - **PR #616** — cluster-lag-detector YAML wiring + d068 (squashed fbe3839, Sprint 18)
 - **PR #617** — post-squash cleanup runbook (squashed 2d15cd7, Sprint 18)
 - **PR #619** — Sprint 17 close.md §Cluster-lag factual error fix (squashed 39f6772)
@@ -210,7 +210,7 @@ Owner retains final call. If owner prefers Sprint 20 kickoff for cleaner ceremon
 - **Cycle 530** — Stale-state correction (Issue #113 doctrine, labels > body)
 - **Cycle 549** — Trust-but-verify (PR #591 flake re-diagnosis)
 - **Cycle 567** — Squash-pending tolerance
-- **Cycle 647** — Arch AC mapping drift (RETRO-012 §1 codification origin → ADR-0060)
+- **Cycle 647** — Arch AC mapping drift (RETRO-012 §1 codification origin → ADR-0074)
 - **PICKUP-625 + PICKUP-626** — PM curator work for cluster-lag detector (Issue #606)
 - **PICKUP-627** — PM lane hygiene cleanup (cc:product-manager removed from #609-#611)
 - **PICKUP-628** — Orchestrator squash miss flag (PR #617 unsquashed, ironic)

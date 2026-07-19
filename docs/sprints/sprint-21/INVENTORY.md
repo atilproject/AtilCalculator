@@ -234,7 +234,7 @@
 | ADR-0057 | Closes-anchor guard | ✅ exists |
 | ADR-0058 | Comment-trigger guard | ✅ exists |
 | ADR-0059 | Cluster squash batch lag detection | ✅ exists |
-| ADR-0060 | AC mapping verification doctrine | ✅ exists |
+| ADR-0074 | AC mapping verification doctrine | ✅ exists |
 | `INDEX.md` | ADR index | ✅ exists |
 
 **Action:** All ADRs are project-agnostic doctrine. Init script does NOT modify ADRs. S21-015 verifies INDEX.md is current.

@@ -126,7 +126,7 @@ Per architect doctrine "Reversibility > correctness":
 
 ### §d-test sister-pattern (d121 — deferred to Sprint 23 P2 follow-up PR per Cadence Rule 1 atomic cross-PR-cluster variant)
 
-**Path B decision** (per tester CHANGES REQUESTED verdict cmt 4871079396 + F-5 follow-up cmt 4871123330, 2026-07-03): d121 d-test is **deferred to Sprint 23 P2 follow-up PR** with the same `Closes` anchor. This ADR commits the **d121 contract** (≥3 TCs baseline per ADR-0049 RED-first), not the d-test implementation itself. Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern to ADR-0060 §deferral pattern in INDEX.md — d-test implementation in a separate follow-up PR is a known option, not a violation).
+**Path B decision** (per tester CHANGES REQUESTED verdict cmt 4871079396 + F-5 follow-up cmt 4871123330, 2026-07-03): d121 d-test is **deferred to Sprint 23 P2 follow-up PR** with the same `Closes` anchor. This ADR commits the **d121 contract** (≥3 TCs baseline per ADR-0049 RED-first), not the d-test implementation itself. Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern to ADR-0074 §deferral pattern in INDEX.md — d-test implementation in a separate follow-up PR is a known option, not a violation).
 
 **d121 contract** (this ADR commits; follow-up PR ships the d-test):
 
@@ -213,7 +213,7 @@ The cross-user pattern has **distinct default semantics** (user-identity-bound v
 
 - **RCA-17 doctrinal closeout** — the `ATC_SERVICE_USER` pattern has a canonical ADR home. Future engineers adding similar cross-user patterns (e.g., `ATC_LOG_DIR`, `ATC_CONFIG_OWNER`) have an anchor.
 - **Issue #765 unblocked (conditional on PR #764 squash)** — owner can squash the deploy.yml env block change with full doctrinal backing **once PR #764 merges to main**. The PR cluster (PR #764 + Issue #765 follow-up + ADR-0064) is a complete cross-user pattern cluster **only after PR #764 squash**. Until then, PR cluster is in-progress per Issue #763 status.
-- **d121 d-test contract committed (impl in follow-up PR)** — env-var precedence family ships 3 sister tests (d109/d112/d117) per ADR-0049 ≥3 baseline; d121 d-test impl deferred to Sprint 23 P2 follow-up PR (Cadence Rule 1 atomic cross-PR-cluster variant, sister-pattern ADR-0060 deferral).
+- **d121 d-test contract committed (impl in follow-up PR)** — env-var precedence family ships 3 sister tests (d109/d112/d117) per ADR-0049 ≥3 baseline; d121 d-test impl deferred to Sprint 23 P2 follow-up PR (Cadence Rule 1 atomic cross-PR-cluster variant, sister-pattern ADR-0074 deferral).
 - **Reversibility preserved** — `<1 day` refactor to delete the pattern. Two-way door.
 - **Sister-pattern doctrine family formalized** — env-var precedence is now codified as a canonical doctrine across 3 distinct families (perf-budget, runtime API, cross-user). Future env-var additions can declare which family they belong to.
 
@@ -221,7 +221,7 @@ The cross-user pattern has **distinct default semantics** (user-identity-bound v
 
 - **3 sources of truth** (vars.X repo var, workflow YAML env block, script-side fallback) — mitigated by canonical ADR + d121 d-test contract (≥3 TCs baseline per ADR-0049, deferred to Sprint 23 P2 follow-up PR per Cadence Rule 1 atomic cross-PR-cluster variant). Per ADR-0019-amend-4, 3-tier precedence is the canonical doctrine; this is a known trade-off.
 - **`vars.ATC_SERVICE_USER` repo var adds operational surface** — owner must remember to set per-env override when needed. Mitigated by Tier 2 canonical prod default (`'atilcan'`); operator only sets the var when overriding.
-- **d121 d-test required (deferred)** — ≥3 TCs baseline per ADR-0049 RED-first; d121 d-test impl **deferred to Sprint 23 P2 follow-up PR** per Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern to ADR-0060 deferral pattern). This ADR commits the contract (TC1-TC3 minimum; TC4-TC5 optional); the follow-up PR ships the d-test.
+- **d121 d-test required (deferred)** — ≥3 TCs baseline per ADR-0049 RED-first; d121 d-test impl **deferred to Sprint 23 P2 follow-up PR** per Cadence Rule 1 atomic cross-PR-cluster variant (sister-pattern to ADR-0074 deferral pattern). This ADR commits the contract (TC1-TC3 minimum; TC4-TC5 optional); the follow-up PR ships the d-test.
 - **Workflow YAML changes human-only territory** — `.github/workflows/deploy.yml` is owner-only per file ownership matrix. Owner squash gate required for the env block addition. Sprint 23 dev lane cannot ship this directly; dev lane opens the PR, owner merges.
 
 ### Out of scope (deferred to follow-up tickets)
@@ -248,7 +248,7 @@ The cross-user pattern has **distinct default semantics** (user-identity-bound v
 - **Canonical deploy.yml env declaration**: `ATC_SERVICE_USER: ${{ vars.ATC_SERVICE_USER || 'atilcan' }}` (alongside existing `ATC_PORT` + `ATC_BIND_HOST`). Human-only territory per file ownership matrix.
 - **Canonical script-side fallback**: `ATC_SERVICE_USER="${ATC_SERVICE_USER:-$USER}"` (PR #764 PENDING squash @ 8384ccb6 on branch `RCA-17-deploy-runner-ac4-user-fix`; this ADR codifies Tier 3 for the post-merge state).
 - **`sudo -u "$ATC_SERVICE_USER" XDG_RUNTIME_DIR=... systemctl --user restart ...` idiom** — canonical cross-user systemd invocation (RCA-16 lineage).
-- **d121 d-test contract**: ≥3 TCs baseline (per ADR-0049 RED-first) verify Tier 1/Tier 2/Tier 3 precedence + empty-string handling + (optional) end-to-end cross-check. **Implementation deferred to Sprint 23 P2 follow-up PR** (Cadence Rule 1 atomic cross-PR-cluster variant, sister-pattern ADR-0060 deferral); this ADR commits the contract spec, not the d-test file.
+- **d121 d-test contract**: ≥3 TCs baseline (per ADR-0049 RED-first) verify Tier 1/Tier 2/Tier 3 precedence + empty-string handling + (optional) end-to-end cross-check. **Implementation deferred to Sprint 23 P2 follow-up PR** (Cadence Rule 1 atomic cross-PR-cluster variant, sister-pattern ADR-0074 deferral); this ADR commits the contract spec, not the d-test file.
 - **Issue #765 doctrinal home** — this ADR closes the RCA-17 cross-user follow-up. Owner squash gate for the deploy.yml env block addition.
 - **Sister-pattern doctrine family** — env-var precedence is now codified as a canonical doctrine across 3 distinct families (perf-budget: ADR-0019-amend-4, runtime API gate: ADR-0019-amend-5, cross-user identity: ADR-0064 this).
 

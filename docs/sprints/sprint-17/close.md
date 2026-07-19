@@ -42,7 +42,7 @@
 
 ### Sub-cluster analysis (600s window slices) — corrected 2026-06-28 (post-PR #601 squash drift)
 
-> **Curator note (retroactive §AC mapping verification, ADR-0060 + PR #615)**: The original "13:55Z-14:05Z | 4 PRs | 330s" row was factually incorrect — re-queried PR merge timestamps via `gh api pulls/{N}` per ADR-0060 §AC mapping verification protocol revealed that the 4 PRs span 12:54:07Z → 14:00:04Z (~1h 6m), with gaps exceeding the 600s window between consecutive pairs. Per cluster-lag-detector.sh algorithm (ADR-0059 §1 + d064 TC2 fixture codification), ALL Sprint 17 P1 events emit `silent_skip` (ADR-0048 lens d). NO `cluster_lag_detected` events for this cluster. See Issue #618 for full correction trail.
+> **Curator note (retroactive §AC mapping verification, ADR-0074 + PR #615)**: The original "13:55Z-14:05Z | 4 PRs | 330s" row was factually incorrect — re-queried PR merge timestamps via `gh api pulls/{N}` per ADR-0074 §AC mapping verification protocol revealed that the 4 PRs span 12:54:07Z → 14:00:04Z (~1h 6m), with gaps exceeding the 600s window between consecutive pairs. Per cluster-lag-detector.sh algorithm (ADR-0059 §1 + d064 TC2 fixture codification), ALL Sprint 17 P1 events emit `silent_skip` (ADR-0048 lens d). NO `cluster_lag_detected` events for this cluster. See Issue #618 for full correction trail.
 
 | Sub-window | PRs in window | Sub-cluster size | Sub-cluster lag | Algorithm verdict |
 |------------|---------------|------------------|------------------|-------------------|
@@ -54,7 +54,7 @@
 
 **Algorithm verdict (per cluster-lag-detector.sh, ADR-0059 §1):** ALL events for Sprint 17 P1 emit `silent_skip` (ADR-0048 lens d). NO `cluster_lag_detected` events — no sub-cluster of 3+ PRs in any 600s window.
 
-**Curator vs algorithm divergence:** The earlier "13:55Z-14:05Z | 4 PRs | 330s" row was factually incorrect — those 4 PRs actually span 12:54:07Z to 14:00:04Z (~1h 6m, not 330s) with gaps exceeding the 600s window between consecutive pairs. The §AC mapping verification doctrine (PR #615, ADR-0060) caught this drift post-PR #601 squash.
+**Curator vs algorithm divergence:** The earlier "13:55Z-14:05Z | 4 PRs | 330s" row was factually incorrect — those 4 PRs actually span 12:54:07Z to 14:00:04Z (~1h 6m, not 330s) with gaps exceeding the 600s window between consecutive pairs. The §AC mapping verification doctrine (PR #615, ADR-0074) caught this drift post-PR #601 squash.
 
 **Curator note:** This finding is documented in the ADR-0059 §1 amendment candidate (open follow-up issue). Curator concept of "cluster" (subjective, same-day grouping) diverges from algorithm definition (≥3 PRs in 600s window). For Sprint 17 P1, the curator view is "1 cluster of 7 PRs spanning ~5h" while the algorithm view is "0 clusters (7 silent_skip events)".
 
@@ -273,9 +273,9 @@ Per ADR-0015 terminal handoff + owner directive 2026-06-28T19:50+03:00 (TIER 1 c
 - Sprint 5 close.md (`docs/sprints/sprint-05/close.md`) — format reference (TL;DR + PRs merged + Doctrine + Reflection + Carryover)
 
 ### Post-ratification correction (2026-06-28)
-- **§Cluster-lag sub-cluster analysis table corrected** (Issue #618) — original "13:55Z-14:05Z | 4 PRs | 330s" row was factually incorrect per §AC mapping verification (ADR-0060 + PR #615). Re-queried PR merge timestamps via `gh api pulls/{N}` per ADR-0060 protocol revealed the 4 PRs span 12:54:07Z → 14:00:04Z (~1h 6m, not 330s), with gaps exceeding the 600s window. ALL Sprint 17 P1 events emit `silent_skip` (ADR-0048 lens d). NO `cluster_lag_detected` events for this cluster per algorithm.
+- **§Cluster-lag sub-cluster analysis table corrected** (Issue #618) — original "13:55Z-14:05Z | 4 PRs | 330s" row was factually incorrect per §AC mapping verification (ADR-0074 + PR #615). Re-queried PR merge timestamps via `gh api pulls/{N}` per ADR-0074 protocol revealed the 4 PRs span 12:54:07Z → 14:00:04Z (~1h 6m, not 330s), with gaps exceeding the 600s window. ALL Sprint 17 P1 events emit `silent_skip` (ADR-0048 lens d). NO `cluster_lag_detected` events for this cluster per algorithm.
 - **Curator vs algorithm divergence** documented in ADR-0059 §1 amendment candidate — Sprint 18+ resolution candidate.
 
 — @product-manager, 2026-06-28T19:55+03:00 = 16:55Z, Sprint 17 P1 cluster close-out (TIER 2 ceremony, owner ratification pending)
 
-— PM correction @ 2026-06-28T21:50+03:00 = 18:50Z, post-Issue #618 close.md §Cluster-lag factual error correction (per ADR-0060 §AC mapping verification)
+— PM correction @ 2026-06-28T21:50+03:00 = 18:50Z, post-Issue #618 close.md §Cluster-lag factual error correction (per ADR-0074 §AC mapping verification)

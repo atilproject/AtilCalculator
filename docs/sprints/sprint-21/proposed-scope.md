@@ -19,7 +19,7 @@
 |---|---|---|
 | Soul files | 5/5 (orch, PM, arch, dev, tester) | 5/5 parameterized + `.tmpl` |
 | Scripts | 40+ (`notify.sh`, `peer-poke.sh`, `agent-watch.sh`, `claim-next-ready.sh`, `dev-studio-init.sh`, `bootstrap-labels.sh`, `bootstrap-project-board.sh`, `ping.sh`, `codex-runner.sh`, `agent-doctor.sh`, d-tests, etc.) | All scripts use placeholders, init script renders them |
-| ADRs | 60+ (ADR-0001..ADR-0060) | All in template (current set is the canonical doctrine) |
+| ADRs | 60+ (ADR-0001..ADR-0074) | All in template (current set is the canonical doctrine) |
 | Workflows | 10 (`label-check.yml`, `status-label-to-board.yml`, `ci.yml`, `lint-and-test.yml`, `post-squash.yml`, `secret-canary.yml`, `cross-repo-close.yml`, `label-cleanup.yml`, `ai-pr-review.yml`, `deploy.yml`) | All 10 wired + parameterized |
 | d-tests | 40+ (d006..d046, d048..d058 etc.) | All 40+ in template, all passing on fresh clone |
 | Issue templates | 6 (vision-intake, bug, feature-request, incident, agent-stall, config) | All 6 in template |
