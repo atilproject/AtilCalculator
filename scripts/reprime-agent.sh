@@ -160,7 +160,7 @@ if [ "$REPRIME_SKIP_COMPACT" != "1" ]; then
     sleep 2
   else
     echo "→ Sending /compact to ${TARGET} (deterministic compaction)"
-    # TD-068b (Issue #935): split text + Enter with env-override sleep (default 0.5s).
+    # TD-068b (Issue #935): split text + Enter with env-override sleep (default 0.5s, override via WAKE_KEYS_GAP_SEC) prevents tmux from collapsing both into a single literal keystroke under load.
     tmux send-keys -t "$TARGET" -l "/compact"
     sleep "${WAKE_KEYS_GAP_SEC:-0.5}"
     tmux send-keys -t "$TARGET" Enter
@@ -192,7 +192,16 @@ if [ -n "$JOURNAL_SCRIPT" ]; then
 fi
 
 # ── STEP 3: build re-prime message ──────────────────────────────────────────
-MESSAGE_HEAD="[REPRIME] Doctrine may have changed and/or your context was compacted. Before your next action:"
+# Per ADR-0072 §Layer 2 Task-list Persistence Protocol, the FIRST ACTION on
+# reprime is to restore TodoWrite from the snapshot file (defeats reprime-storm
+# recovery gap when /clear wipes in-context TodoWrite state). The snapshot
+# file lives at state/tasklists/${ROLE}.md (runtime, VCS-excluded per
+# .gitignore + .gitignore.tmpl). The `2>/dev/null` guards first-session
+# agents who have no snapshot yet.
+MESSAGE_HEAD="[REPRIME] Doctrine may have changed and/or your context was compacted. Before your next action:
+
+0. First action MUST be: cat state/tasklists/${ROLE}.md 2>/dev/null && restore TodoWrite from snapshot
+   (per ADR-0072 §Layer 2 — defeats reprime-storm recovery gap; snapshot is RUNTIME file in state/tasklists/${ROLE}.md, VCS-excluded)."
 
 KICKOFF_LINE=""
 if [ -n "$KICKOFF_TMPL" ]; then
@@ -231,7 +240,7 @@ BUFFER_NAME="reprime-${ROLE}-$$"
 tmux load-buffer -b "$BUFFER_NAME" "$TMP_BUF"
 tmux paste-buffer -b "$BUFFER_NAME" -t "$TARGET" -p
 tmux delete-buffer -b "$BUFFER_NAME"
-# TD-068b (Issue #935): env-override sleep (default 0.5s, override via WAKE_KEYS_GAP_SEC) prevents paste being treated as single keystroke.
+# TD-068b (Issue #935): env-override sleep between paste-buffer and Enter (default 0.5s, override via WAKE_KEYS_GAP_SEC) prevents tmux from collapsing both into a single literal keystroke under load.
 sleep "${WAKE_KEYS_GAP_SEC:-0.5}"
 tmux send-keys -t "$TARGET" Enter
 
