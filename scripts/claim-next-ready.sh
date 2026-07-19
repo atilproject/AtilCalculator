@@ -421,10 +421,15 @@ fi
 # terminal state per AC2), a reflexively-added `agent:*` (orchestrator / PM
 # auto-watch tick) can bring them into this result set. Filter them out + emit
 # silent_skip log per TD-016/020 family (lens d observability).
-WORK_DONE_ELSEWHERE_COUNT=$(printf '%s' "$ready_raw" | jq '[.[] | select(.labels | map(select(.name == "cc:human")) | length > 0)] | length' 2>/dev/null || echo 0)
+WORK_DONE_ELSEWHERE_COUNT=$(printf '%s' "$ready_raw" | jq '[.[] | select((.labels | map(select(.name == "cc:human")) | length > 0) and (.labels | map(select(.name | startswith("agent:"))) | length == 0))] | length' 2>/dev/null || echo 0)
 if [ "${WORK_DONE_ELSEWHERE_COUNT:-0}" -gt 0 ]; then
-  # Filter out work-done-elsewhere items from ready_raw (RETRO-024 silent-skip)
-  ready_raw="$(printf '%s' "$ready_raw" | jq '[.[] | select(.labels | map(select(.name == "cc:human")) | length == 0)]' 2>/dev/null)"
+  # Filter out work-done-elsewhere items from ready_raw (RETRO-024 silent-skip).
+  # Predicate requires BOTH `cc:human` present AND `agent:*` absent — canonical
+  # RETRO-024 work-done-elsewhere terminal state per CLAUDE.md §Work-done-elsewhere
+  # (Issue #1027). Active claim candidates carrying `cc:human` alongside `agent:*`
+  # (e.g., tester APPROVED + cc:human canonical pre-merge gate per ADR-0012) are
+  # KEPT — only true work-done-elsewhere items (cc:human + NO agent:*) are removed.
+  ready_raw="$(printf '%s' "$ready_raw" | jq '[.[] | select((.labels | map(select(.name == "cc:human")) | length > 0) and (.labels | map(select(.name | startswith("agent:"))) | length == 0) | not)]' 2>/dev/null)"
   # silent_skip log emission per lens (d) + TD-016/020 family
   _wd_repo_name="${REPO##*/}"
   _wd_log_dir="${AUTO_CLAIM_LOG_DIR:-/var/log/dev-studio/${_wd_repo_name}}"
