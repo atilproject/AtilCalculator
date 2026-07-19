@@ -100,9 +100,9 @@ To be completed at PR-open (next cycle). 4-cat labels: `type:chore` + `status:in
 ## Sister-pattern anchors
 
 - [tmpl#132 S32-002.1 verdict cycle ~#3196](https://github.com/atilproject/dev-studio-template/pull/132) — anchor sister-script
-- [cycle ~#3471 PR #170 S32-021 d-test sweep](cycle-3471-sprint-32-tmpl170-s32-021-dtest-sweep-cycle-3471.md) — sister d-test sweep context
-- [cycle ~#3431 direction correction](cycle-3431-wave3-direction-corrected-calc-to-tmpl-and-launcher.md) — calc→tmpl+launcher direction
-- [cycle ~#3630 PR #1165 squash = cluster 4/4](cycle-3630-pr1165-squash-issue-1081-autoclose-cluster-4-4-milestone.md) — cluster-squash milestone
+- [PR #170 S32-021 d-test sweep (cycle ~#3471)](https://github.com/atilproject/dev-studio-template/pull/170) — sister d-test sweep context (41 d-tests, 26 GREEN)
+- [Sprint 32 plan direction correction (cycle ~#3431)](docs/sprints/sprint-32/00-plan.md) — calc→tmpl+launcher direction
+- [PR #1165 squash = cluster 4/4 (cycle ~#3630)](https://github.com/atilproject/AtilCalculator/pull/1165) — cluster-squash milestone (Issue #1081 RETRO-024 chain TERMINAL)
 - [Issue #1162 S32-022 verifier-portage re-run tracker](https://github.com/atilcan65/AtilCalculator/issues/1162) — original story
 - [Issue #1041 silent-green false-confidence](https://github.com/atilproject/dev-studio-template/issues/1041) — what the diff engine fixes
 
@@ -118,4 +118,4 @@ To be completed at PR-open (next cycle). 4-cat labels: `type:chore` + `status:in
 - **Issue #414 §1** — Pre-PR re-query doctrine (Issue #1162 + tmpl#130 + tmpl#132 re-queried)
 - **Issue #389** — Peer-Poke Discipline (will apply at PR-open)
 - **cycle ~#3475** — branch contamination doctrine (fresh branch from main, NOT on orch/sprint-32-template-finalize-audit)
-- **cycle ~#3480** — Closes anchor verify via API (Issue #1162 `Closes` anchor in PR body will be verified post-PR-open)
+- **cycle ~#3480** — Closes anchor verify via API (Issue #1162 `Closes` anchor in PR body will be verified post-PR-open) 
