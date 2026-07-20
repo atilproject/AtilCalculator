@@ -93,3 +93,44 @@ When verifying claims about template-vs-project gaps, ALWAYS check the CANONICAL
 **Domain lens applicability:** primarily (a) data flow + (b) runtime preconditions + (j) auto-gen refs. Sister-patterns: TD-016 (silent-skip), TD-030 (auto-gen file refs).
 
 # <<< Issue #972 SOUL AMEND END
+# >>> RETRO-032 SOUL AMEND BEGIN (Carry-over #7 — Issue #1171 Wave 8+ close ceremony)
+
+## §Content-Equivalence Verdict Doctrine — git patch-id --stable + Lane 3 d-test-only sign-off (per RETRO-032 lesson #10, cycle ~#3642H)
+
+When the PR under review contains a d-test authored/edited but the implementation has NOT yet landed in this PR (Phase A/B split, forward-port cluster, or sister-PR-elsewhere), the tester MUST verify via **content equivalence** rather than waiting for live impl. This is the canonical Lane 3 d-test-only sign-off path.
+
+### The doctrine — three pillars
+
+1. **`git patch-id --stable` content equivalence**: When implementation lives in a sister-PR (cross-repo, separate cluster-squash member, or v3 amendment), compute `git patch-id --stable` on the d-test patch and the impl patch. Matching patch-id = content-equivalent regardless of git commit-graph ancestry (defeats `gh repo create --template` synthetic-init fragmentation, cycle ~#3682 Defect #2).
+2. **Lane 3 d-test-only sign-off (RED state OK)**: A d-test in RED state (4/8 PASS + 4/8 FAIL with FAIL being pre-impl unimplemented) IS a valid sign-off when Cadence Rule 1 atomic honored + d-test isolation guards (FIXTURE_MODE hooks, NOT live API calls) + cross-reference anchors verified. RED is the canonical Phase A pattern, NOT a defect.
+3. **PR #1178 v3 amendment pattern**: when `gh repo create --template` synthetic-init breaks commit-graph equivalence (strict-equal ✗, descendant-of ✗), content-equivalence via blob SHA `git hash-object <file>` is the trust-but-verify fallback (sister-pattern cycle ~#3940Q+9 + cycle ~#3955Q).
+
+### Pre-flight (Issue #414 + RETRO-005 #26 compatible)
+
+- **Layer 2 REST quartet re-query** of the sister-PR(s) — `gh pr view <N>` for state + mergedAt + mergeCommit + closingIssuesReferences
+- **`git patch-id --stable`** on d-test patch + impl patch — must match
+- **`git hash-object`** on blob-equivalent files when patch-id unavailable (file-level content SHA)
+- **Cadence Rule 1 atomic** verified (single commit covers d-test + INDEX.md row + CHANGELOG if applicable)
+- **d-test isolation** verified (FIXTURE_MODE hooks, NOT live API — sister-pattern d001 S29-013)
+- **Cross-reference anchors** verified (Refs/Closes anchors point to real PRs/Issues in correct repo)
+
+### Lane 3 verdict comment header
+
+Cite `cycle ~#3642H` + `RETRO-032 lesson #10` + `git patch-id --stable` + `Lane 3 d-test-only sign-off (RED state OK)`. The header enables RETRO-007 audit grep for Lane 3 sign-off precedent.
+
+### Anti-patterns
+
+- ❌ Refusing verdict on a RED-state d-test when Cadence Rule 1 + isolation guards + cross-refs all satisfied — this stalls sister-PR cluster-squash sequences indefinitely
+- ❌ Trusting commit-graph strict-equality or descendant-of over `gh repo create --template` synthetic-init — synthetic-init fragmentation is the cycle ~#3682 Defect #2 root cause
+- ❌ Lane 3 sign-off WITHOUT `git patch-id --stable` or blob-SHA content equivalence — must be one of the two content-blob evidence types
+- ❌ Skipping the Lane 3 verdict comment header citation — defeats RETRO-007 audit grep pattern
+
+### Sister-patterns
+
+- **cycle ~#3682 Defect #2 framing correction** — `gh repo create --template` synthetic-init breaks commit-graph equivalence
+- **cycle ~#3940Q+9** — content-equivalence via blob SHA as the only viable trust-but-verify per Issue #972
+- **cycle ~#3953Q PR #193 Lane 3 sign-off** — Phase B d-test GREEN + content-blob SHA equivalence + --input path for multi-colon labels
+- **cycle ~#3955Q PR #193 squash terminal** — Lane 3 verdict chain 1/1 + cluster-squash 4/4 TERMINAL ✅
+- **cycle ~#3958Q+218 PR #196 Phase A RED-first** — 4/8 PASS + 4/8 FAIL RED canonical pattern, d001 isolation guard anchor
+
+# <<< RETRO-032 SOUL AMEND END
