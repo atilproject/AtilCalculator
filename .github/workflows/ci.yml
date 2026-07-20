@@ -157,3 +157,10 @@ jobs:
             perf
             build
             revert
+            # Agent-prefixed types for soul amend PRs (Issue #1191 / Sprint 33 P1 carry-over #8 of Issue #1171)
+            # Format: <role>(<area>): <description>, e.g. tester(soul): RETRO-032 SOUL AMEND lesson #10 — ...
+            architect
+            orchestrator
+            product-manager
+            developer
+            tester
