@@ -131,3 +131,99 @@ PM observation: **wave-plan-discipline gap**. Sprint 32 began with implicit scop
 ---
 
 — @orchestrator, cycle ~#3740 (2026-07-19T11:12+03:00, post-cycle ~#3739 owner directive)
+
+---
+
+## §Wave 8+ extension evolution capture (cycles ~#3889Q → ~#3962Q)
+
+> **Origin**: Owner directive cycle ~#3889Q Wave 8+ scope-override + cycle ~#3961Q dry-run TERMINAL + cycle ~#3962Q AC5 soak split-deferral.
+> **Supersedes**: Sprint 32 close ceremony terminal state at cycle ~#3748 (PR #1167 MERGED @ 2026-07-19T11:36:50Z, Issue #1163 AUTO-CLOSED).
+> **Sister-pattern**: Wave 8+ extension captured 5 NEW doctrine lessons beyond the 14 in Sprint 32 base. See §NEW doctrine codified (Wave 8+ — 5 lessons) below.
+
+### §Wave 8+ outcomes
+
+| Metric | Value | Notes |
+|---|---|---|
+| Owner directive cycle | ~#3889Q | "TÜM AÇIK ISSUE'LAR SPRINT 32'DE KAPANACAK" (Wave 8+ scope-override) |
+| Wave 8+ scope inventory | 17 items | `docs/sprints/sprint-32/00-plan-amend-wave8.md` |
+| Cluster-squash cadence (Wave 8+) | 4 PRs | PR #194+#195+#196+#198 squash-merged by atilcan65 |
+| Cluster window | 12:25:43Z → 15:28:21Z | 3h02m42s wall-clock, 4-PR cadence per ADR-0059 extended |
+| Re-Quadrant | 1 (PR #195) | arch rebase + push @ 6439d74, 1 conflict scripts/tests/INDEX.md d164+d165 preserved |
+| Cycle ~#3679 1-sec lag validations | 4-7 | cluster 4/4 confirms pattern determinism |
+| Dry-run wall-clock | 14min | owner-direct execution cycle ~#3961Q (S32-024 Phase A+Phase B) |
+| Sprint 33 kickoff | DEFERRED | no docs/sprints/sprint-33/ created; sprint:33 label unused |
+| AC5 24h soak | SPLIT-DEFERRED | cycle ~#3962Q owner directive (a); Sprint 33 RETRO follow-up issue to be opened |
+| WIP cap | 2/2 respected | per ADR-0038 §Auto-Claim; no cap-break in Wave 8+ |
+| 4-cat invariant violations caught | 4 | tmpl#165 stale labels (cycle ~#3958Q+192), Issue #1171 3 cc:*, PR #195 base-drift, tmpl#162 premature-close |
+
+### §What went well (Wave 8+ delta)
+
+### 6. Cycle ~#3679 1-sec lag sister-pattern — 4th-7th validations
+
+Cluster-squash doctrine (ADR-0059) anchored by 4 distinct PR squash → Issue auto-close events within 1s window. Confirms the pattern is deterministic under normal conditions. Sister-pattern: cycle ~#3955Q + cycle ~#3940Q+7 + cycle ~#3678 + cycle ~#3679 cluster-squash sequence.
+
+### 7. Owner-as-CI execution at sprint-close scale (cycle ~#3961Q)
+
+Cycle ~#3670 owner-escalation doctrine (warn-level notify.sh at 15min threshold) extended to sprint-close scale. Owner opened Issue #197 → drove 14-min full dry-run lifecycle (bootstrap + PM-claim + dev-claim + 15/15 pytest + squash + close-the-loop). Validates doctrine for sprint-crunch velocity when owner has bandwidth.
+
+### 8. Wave 8+ cluster-squash 4/4 TERMINAL (cycle ~#3960Q)
+
+PR #194+#195+#196+#198 cluster TERMINAL ✅. ADR-0059's 3-PR canonical extends to 4-PR scale. Cadence Rule 2 cumulative NO-OP across the cluster (single tmpl-side closes anchors only). Sister-pattern: cycle ~#3679 cluster-squash sequence (now 7 validations observed).
+
+### 9. Wake_nudge polling-loop bug discovery (cycle ~#3958Q)
+
+Dev nudge-storm (5 wake_nudges in 13min on tmpl#162) exposed `scripts/agent-watch.sh` wake_nudge ID = `wake-nudge-{role}-{now}` (UNIQUE per poll timestamp) NOT in dedup ring. Cross-cutting watcher bug affecting ALL roles. **Immediate mitigation**: `scripts/agent-state.sh set developer poll_interval_sec 600`. **Permanent fix deferred** to Sprint 33 P1 (script lane, requires architect/developer PR).
+
+### 10. tmpl#162 premature-close sister-pattern + sprint-close scoping (cycle ~#2919)
+
+PR #196 body explicit "Phase A only; Phase B impl needed for full AC1-AC6 verification", but used `Closes #162` anchor — GitHub auto-closed Phase B tracking. Bot REVERSED natural `status:done` cleanup → labels `[type:feature, status:in-progress, sprint:current]` (closed+status:in-progress = inconsistent). **DECISION**: NOT REOPENING, flagging as Sprint 33 follow-up. Sister-pattern: partial-Closes-anchor anti-pattern → opens Sprint 33 issue for Phase B (AC1 dry-run invocation + AC4-AC6).
+
+### §What didn't go well (Wave 8+ delta)
+
+### 6. Sprint 33 plan never authored
+
+Sprint 32 REOPEN cycle ~#3889Q pulled all `sprint:current` items into Sprint 32, but no `docs/sprints/sprint-33/` was created. Sprint 33 kickoff deferred until all Sprint 32 issues reach terminal state. **Lesson**: PM lane should author Sprint 33 plan DURING Sprint 32 final wave (not after) so Sprint 33 starts the moment Sprint 32 closes.
+
+### 7. Wake_nudge polling-loop bug cross-cutting impact
+
+The wake_nudge bug affects ALL roles (not just dev), but only dev's pattern escalated. Tester, PM, orch, arch panes could also be experiencing the same nudge-storm. **Lesson**: When a polling-loop bug surfaces on one role, IMMEDIATELY audit all 5 roles for the same symptom. Sprint 33 P1 follow-up.
+
+### 8. AC5 24h soak split-deferral cost
+
+Cycle ~#3962Q owner directive (a) splits AC5 24h soak verification from this docs PR close. Sprint 33 RETRO follow-up will need to re-verify no P0/P1 bugs filed in the 24h window from PR #193 squash. **Lesson**: AC5 split is owner-call, not agent-call; agent-level close ceremony should NOT split AC5 unless owner explicitly directs.
+
+### §NEW doctrine codified (Wave 8+ — 5 lessons)
+
+| # | Cycle | Lesson | Codification |
+|---|---|---|---|
+| 15 | ~#3679 4th-7th | 1-sec lag sister-pattern is deterministic | .claude/agents/orchestrator.md (TBD) + ADR-0059 amendment |
+| 16 | ~#3958Q | wake_nudge polling-loop bug — mitigation 600s, fix options a/b/c deferred Sprint 33 P1 | .claude/agents/orchestrator.md + .claude/agents/developer.md (deferred) |
+| 17 | ~#3961Q | owner-as-CI at sprint-close scale — owner-direct execution validated 14min full lifecycle | .claude/agents/orchestrator.md (TBD) |
+| 18 | ~#3960Q | Wave 8+ cluster-squash 4/4 — ADR-0059 extends to 4-PR scale | ADR-0059 amendment (TBD) |
+| 19 | ~#2919 | Premature-close + sister-PR doctrine — use `Refs #N` for partial coverage, `Closes #N` for full AC | .claude/agents/developer.md (TBD) |
+
+### §Action items (Sprint 32 → Sprint 33 carry-over, REVISED)
+
+1. **Codify Wave 8+ NEW doctrine** (lessons #15, #17, #18) — Sprint 33 P1
+2. **wake_nudge polling-loop bug fix** (lesson #16) — Sprint 33 P1 (script lane)
+3. **tmpl#162 Phase B follow-up** (lesson #19) — Sprint 33 P1 (new issue for Phase B AC1 dry-run invocation + AC4-AC6)
+4. **AC5 24h soak verification follow-up** (cycle ~#3962Q split-deferral) — Sprint 33 P1 (new issue, post-merge retro)
+5. **tmpl#176/#179/#180 sister forward-ports** (dev lane) — Sprint 33 P1 (already `sprint:current`, not yet claimed)
+6. **Codify Sprint 32 NEW doctrine into .claude/agents/orchestrator.md** (lessons #1-9, #11, #13-14) — Sprint 33 P1 (carry-over from base Sprint 32)
+7. **Codify Sprint 32 NEW doctrine into .claude/agents/tester.md** (lesson #10) — Sprint 33 P1 (carry-over)
+8. **Codify Sprint 32 NEW doctrine into .claude/agents/architect.md** (lesson #12) — Sprint 33 P1 (carry-over)
+9. **Env-dep d-test decoupling pattern** (lesson #5 didn't-go-well) — Sprint 33 P2 (carry-over)
+10. **Dev-pane pickup stall detection** (lesson #2 didn't-go-well) — Sprint 33 P2 (carry-over)
+11. **PM lane — author Sprint 33 plan DURING Sprint 32 final wave** (lesson #6 didn't-go-well) — Sprint 33 P1 retro action
+12. **Sprint 33 kickoff** — Sprint 33 P0 (PM lane)
+13. **Audit wake_nudge behavior across all 5 roles** (lesson #7 didn't-go-well) — Sprint 33 P1 follow-up
+
+### §PM retrospective watchlist entry (cycle ~#3511 + Wave 8+ delta)
+
+PM observation (Wave 8+ delta): **plan-authoring timing gap**. Sprint 32 base ended with PM observing "Sprint 33 plan NOT YET authored" pattern. Wave 8+ extension re-emphasized this — by cycle ~#3962Q, Sprint 33 plan is still missing. **Lesson**: PM lane should author Sprint 33 plan IN PARALLEL with Sprint 32 final wave, not AFTER. Sister-pattern: cycle ~#3431 direction correction (Wave 3 surfaces open in tmpl+launcher NOT calc) + cycle ~#3471 (PM wave-plan scope expansion discovery) + cycle ~#3889Q (Wave 8+ scope-override).
+
+**Codification**: PM wave-plan discipline doctrine (cycle ~#3511 watchlist entry → Sprint 33 RETRO-033 watchlist upgrade → Sprint 33 plan authoring timing refinement).
+
+---
+
+— @orchestrator, cycle ~#3962Q (2026-07-20T15:42+03:00, post-cycle ~#3961Q dry-run TERMINAL + cycle ~#3889Q Wave 8+ scope-override + cycle ~#3962Q AC5 split-deferral)
