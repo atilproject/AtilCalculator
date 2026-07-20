@@ -644,5 +644,38 @@ Sprint 32 cluster-squash Wave 1..6 forward-port cluster (atilproject/AtilCalcula
 - ADR-0059 (cluster-squash cadence) + ADR-0055 §1 (Cadence Rule 1) + ADR-0057 (Closes anchor strict)
 - RETRO-024 (work-done-elsewhere 4-cat exception) — Issue #159 + #1162 terminal pattern
 
+## 2026-07-20T15:42Z — Sprint 32 Wave 8+ extension close ceremony (Closes #1171, Refs #194 #195 #196 #198)
+
+Sprint 32 Wave 8+ extension cluster-squash 4/4 TERMINAL ✅. Owner-directive cycle ~#3889Q ("TÜM AÇIK ISSUE'LAR SPRINT 32'DE KAPANACAK") pulled 17 open org-wide items into Sprint 32 scope. 4-PR cluster (PR #194+#195+#196+#198) squash-merged by atilcan65 in 3h02m42s wall-clock. Sprint 32 S32-024 dry-run TERMINAL via owner-direct execution in 14min (cycle ~#3961Q). AC5 24h soak verification split-deferred to Sprint 33 RETRO follow-up (cycle ~#3962Q owner directive a).
+
+### Added
+
+- **PR #194** — docs(adr): S32-027-B DEFERRED cluster (5 ADRs, 2 added 0064+0065, 2 amended 0048+0012, 1 INDEX). squash-merged @ 2026-07-20T12:25:43Z (sha `6e1a562d`). Closes tmpl#164. 4th validation of cycle ~#3679 1-sec lag sister-pattern. Tester Lane 2 docs verdict 1/1 sole.
+- **PR #195** — docs(adr): S32-027-D HYBRID cluster (10 ADR amendments folded into 6 tmpl parent ADRs 0002+0024+0038+0048+0049+0057 per ADR-0057 §amendment-via-parent). squash-merged @ 2026-07-20T15:05:32Z (sha `87413d58`). Refs tmpl#165 NO Closes intentional (amendment-via-parent pattern). d165 47/47 GREEN. Arch rebase + push @ 6439d74 (cycle ~#3940Q+5 + RETRO-018 W6 cross-agent push authority). 5th validation cycle ~#3679.
+- **PR #196** — test(scripts): S32-024 d-test Phase A RED-first (8 TCs). squash-merged @ 2026-07-20T15:10:34Z (sha `5d2a251c`). Closes tmpl#162. 6th validation cycle ~#3679. tmpl#162 premature-close sister-pattern (cycle ~#2919): Phase A only; Phase B impl needed → flagged Sprint 33 P1 follow-up.
+- **PR #198** — docs(sprints): S32-024 Phase B summary + AC1-AC6 dry-run evidence. squash-merged @ 2026-07-20T15:28:21Z (sha `bc649eb`). Closes tmpl#197. 7th validation cycle ~#3679. Verdict labels `verdict-by:tester-dry + verdict-by:architect-dry` at 15:26Z (cycle ~#3670 owner-escalation pattern). Owner-as-CI execution at sprint-close scale.
+
+### Doctrine codified (Wave 8+ — 5 NEW lessons, beyond Sprint 32 14)
+
+- **Cycle ~#3679 1-sec lag sister-pattern — 4th-7th validations**: PR squash → Issue auto-close 1s later observed 7 distinct times. Confirms pattern is deterministic, not coincidental. Cluster-squash doctrine (ADR-0059) is now retroactively anchored.
+- **Cycle ~#3958Q wake_nudge polling-loop bug**: `scripts/agent-watch.sh` wake_nudge ID = `wake-nudge-{role}-{now}` (UNIQUE per poll timestamp) — NOT in dedup ring. Cross-cutting watcher bug. **Mitigation (immediate)**: `scripts/agent-state.sh set developer poll_interval_sec 600`. **Permanent fix deferred** to Sprint 33 P1.
+- **Cycle ~#3961Q owner-as-CI pattern at sprint-close scale**: Cycle ~#3670 owner-escalation extended to sprint-close scale. 14-min full dry-run lifecycle (bootstrap + PM-claim + dev-claim + 15/15 pytest + squash + close-the-loop) validates doctrine for sprint-crunch velocity.
+- **Cycle ~#3960Q Wave 8+ cluster-squash 4/4 TERMINAL**: ADR-0059's 3-PR canonical extends to 4-PR scale. Cadence Rule 2 cumulative NO-OP across the cluster.
+- **Cycle ~#2919 premature-close + sister-PR doctrine**: Partial Closes anchor + Phase A only body language auto-closes Phase B tracking. Mitigation: use `Refs #N` for partial coverage; reserve `Closes #N` for full AC coverage.
+
+### Cross-refs
+
+- **Issue #1171** (Closes) — Sprint 32 Wave 8+ close ceremony (orchestrator lane)
+- **Issue #197** (Ref tmpl#197) — S32-024 Phase B [DEV] follow-up to tmpl#162 premature-close (auto-closed via PR #198 Closes anchor)
+- **tmpl#162** (Refs) — S32-024 [DEV] New project bootstrap dry-run Phase A only; Phase B deferred to Sprint 33
+- **tmpl#164 / tmpl#165** (Refs) — S32-027-B / S32-027-D arch lane work products (Cadence Rule 2 cleanup)
+- **PR #194 / #195 / #196 / #198** — 4-PR cluster-squash (Wave 8+ extension milestone)
+- **PR #1167** (Ref) — Sprint 32 base close ceremony (cycle ~#3740, terminal @ cycle ~#3748)
+- **PR #193** (Ref) — Sprint 32 S32-018 (Phase B predecessor, AC5 24h soak anchor)
+- **ADR-0059** (cluster-squash cadence, 3-PR canonical, extended to 4-PR) + **ADR-0055 §1** (Cadence Rule 1 atomic) + **ADR-0057** (Closes anchor strict)
+- **RETRO-024** (work-done-elsewhere 4-cat exception) — Issue #1171 docs PR uses pattern when PR merges
+- **RETRO-018 W6** (branch-ownership matrix cross-check) — PR #195 rebase recovery dispatched to arch
+- **Sister-pattern**: cycle ~#3940Q+9 content-blob SHA doctrine (15/15 pytest in dry-run verification)
+
 ## 2026-06-20T09:31:07Z — uv PATH fix verified
 ## 2026-06-20T09:43:21Z — uv PATH fix verified (Sprint 3 P0 RCA-13)
