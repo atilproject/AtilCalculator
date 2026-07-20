@@ -60,6 +60,7 @@ Sprint boundary:
 | 9 | Cluster-squash cadence | ADR-0059's 3-4 PR cluster pattern preserved (Sprint 32 Wave 8+ validation) | All 6 stories thread into 1-2 cluster PRs at W1 close |
 | 10 | Sprint 33 plan authoring | PM lane, DURING Sprint 32 final wave per RETRO-032 lesson #6 fix | THIS document authored cycle ~#3964Q |
 | 11 | Conventional Commits linter agent-prefix whitelist (Issue #1191, ref:pr-1188) | Sprint 33 P1 carry-over #8 of Issue #1171 / PR #1188 tester soul amend. Owner-ratification-gated per cycle ~#3968Q+3 owner directive. Architect lane (CI config) + tester lane (d-test coverage). | Carry-over chain reference added cycle ~#3968Q+3 (PR #1189 NIT #3 active remediation pending orchestrator Option A/B/C choice). |
+| 12 | dev-studio-init.sh .tmpl deletion bug (Issue #201, ref:tmpl-side) | Sprint 33 P1 carry-over #9 of Issue #1171 sister chain to Issue #1191. P1 severity: `.claude/` = human-only territory; any doctrine-source deletion is P1 by default. Pair with Issue #1191 as **Wave 10 P1 cluster** per architect advisory 🟡 cmt 5025488624 (2026-07-20T18:00:44Z). Developer lane (impl + d-test + INDEX.md + CHANGELOG per Cadence Rule 1 atomic) + tester lane (Lane 3 d-test-only sign-off per cycle ~#3642H byte-equal pattern). 4 NITs accepted as AC additions. | Carry-over chain reference added cycle ~#3968Q+22 by @product-manager per [ARCH→PM] Issue #201 dual-channel wake 2026-07-20T21:01:04+03:00. |
 
 ---
 
@@ -75,8 +76,11 @@ Focus: cluster-squash close-out (S33-001 + S33-002) + soul amendment cluster (S3
 | STORY-S33-002 | AC5 24h soak verification (Issue #1181) | orchestrator | PM + human | 1 | W1 | Soak-bound, terminal at 2026-07-21T16:07:23Z |
 | STORY-S33-005 | wake_nudge 5-role audit (Issue #1184) | orchestrator | arch + tester + dev + PM | 3 | W1 cluster | Cadence Rule 1 atomic with S33-006 |
 | STORY-S33-006 | Soul codifications (RETRO-032 lessons #1-14) | developer (orch.md) + tester + arch | PM (cross-track) | 3 | W1 cluster | Cadence Rule 1 atomic with S33-005 |
+| STORY-S33-007 | dev-studio-init.sh .tmpl preservation fix (Issue #201) | developer | tester + arch + PM + human | 3 | Wave 10 cluster (W1-bound) | Cluster with Issue #1191 (PR #1193 squash-pending); impl + d-test + INDEX.md + CHANGELOG single commit per ADR-0055 §1 |
 
 **W1 cadence target**: 1-2 cluster-squash PRs (S33-001 single-PR + S33-005/S33-006 single cluster-PR per Cadence Rule 1 atomic S33-005+S33-006 = 6 PRs in one cluster).
+
+**Wave 10 cluster (NEW, cycle ~#3968Q+22)**: S33-007 + Issue #1191 carry-over #8 paired per architect advisory cmt 5025488624. Both P1 infrastructure bugs (init.sh `.tmpl` preservation + conventional-commits linter agent-prefix whitelist), both fixable in W1 via dev-lane impl PRs. Issue #1191 PR #1193 is at owner squash gate (per ADR-0031, `.github/workflows/` human-only territory); S33-007 PR follows same fix-PR pattern. Wave 10 cluster-squash eligible at W1 close per ADR-0059.
 
 ### Wave 2 — Feature (week 2 early, 2026-07-28 → 2026-07-30)
 
@@ -104,7 +108,7 @@ Focus: RETRO-033 authoring + Sprint 34 kickoff prep
 
 ## §3 — Story Detail Links
 
-All 6 STORY files authored by PM in this wave (cycle ~#3964Q):
+All 6 STORY files authored by PM in this wave (cycle ~#3964Q) + 1 addendum (cycle ~#3968Q+22):
 - `docs/backlog/STORY-S33-001.md` — tmpl#162 Phase B follow-up
 - `docs/backlog/STORY-S33-002.md` — AC5 24h soak verification
 - `docs/backlog/STORY-S33-003.md` — Env-dep d-test decoupling pattern
@@ -112,8 +116,9 @@ All 6 STORY files authored by PM in this wave (cycle ~#3964Q):
 - `docs/backlog/STORY-S33-005.md` — wake_nudge 5-role audit
 - `docs/backlog/STORY-S33-006.md` — Soul codifications (RETRO-032 lessons)
 - **Issue #1191** — Conventional Commits CI linter agent-prefix whitelist (carry-over #8 of Issue #1171 / PR #1188). Carry-over reference added cycle ~#3968Q+3 per [ORCH→PM] Issue #1191 wake.
+- `docs/backlog/STORY-S33-007.md` — dev-studio-init.sh .tmpl preservation fix (Issue #201, carry-over #9). Addendum authored cycle ~#3968Q+22 per [ARCH→PM] Issue #201 dual-channel wake 2026-07-20T21:01:04+03:00.
 
-`docs/backlog.json` updated (sprint_33_groomed_at + sprint_33_source + 6 STORY entries) — `updated_at: 2026-07-20T19:35:00Z`.
+`docs/backlog.json` updated (sprint_33_groomed_at + sprint_33_source + 7 STORY entries after Issue #201 addendum) — `updated_at: 2026-07-20T19:35:00Z` (initial 6) + addendum 2026-07-20T21:05:00+03:00 (7th entry).
 
 ---
 
@@ -140,6 +145,8 @@ All Sprint 33 PRs to `docs/sprints/**`, `docs/decisions/**`, `.claude/agents/**`
 
 **Lane 2 chain also applies to Issue #1191 carry-over** (Conventional Commits linter agent-prefix whitelist, ref:pr-1188): any soul amend PR using `tester(soul):` / `orch(soul):` / `arch(soul):` prefix MUST route through this Lane 2 chain AND the linter fix MUST be ratified by owner before the agent-prefix whitelist extension ships.
 
+**Lane 2 chain also applies to Issue #201 carry-over** (dev-studio-init.sh .tmpl preservation fix, ref:tmpl-side): the fix PR touches `scripts/dev-studio-init.sh` + d-test + INDEX.md + CHANGELOG per Cadence Rule 1 atomic. The fix is dev-lane impl, but the **d-test (≥5 TCs per ADR-0044)** MUST route through Lane 3 d-test-only sign-off per cycle ~#3642H byte-equal pattern (tester sole sufficient for d-test impl PRs). Architecture surface: `.tmpl` preservation is a doctrine-source-of-truth invariant, so architect 9-Lens review (ADR-0045) is recommended BEFORE dev impl for the root-cause analysis (NIT #3 — see Issue #201 AC7).
+
 ### §4.5 Owner squash gate (per ADR-0031)
 
 All Sprint 33 PRs — even after Lane 2 docs verdict chain — MUST go through human squash gate (`.claude/` soul file amendments, `docs/sprints/**`, `docs/decisions/**` are human-only territory per file ownership matrix).
@@ -153,6 +160,7 @@ All Sprint 33 PRs — even after Lane 2 docs verdict chain — MUST go through h
 - **R1**: AC5 24h soak may surface unexpected main-branch regressions → Sprint 33 closes with retry AC5 on the new soak window. Mitigated by Issue #1181 RETRO-033 entry.
 - **R2**: tmpl#162 Phase B implementation may surface gap in d-test framework hardening (pre-impl sister-tests may need to land first). Mitigated by deferring scope in W2 if W1 closes late.
 - **R3**: wake_nudge audit (5-role audit) may surface additional polling-loop bugs needing immediate fix (out of Sprint 33 scope). Documented as RETRO-033 §Watchlist carry-over to Sprint 34.
+- **R4**: Issue #201 init.sh `.tmpl` deletion bug may affect downstream forks (`.claude/` doctrine source-of-truth) if tmpl-side fix doesn't propagate via Cadence Rule 2 cross-repo dispatch. Mitigated by cluster-squash S33-007 + Issue #1191 (both touch `scripts/` + `.github/workflows/` infra) at W1 close, with sister-repo propagation per Cadence Rule 2 if divergence detected. Sister-pattern: Issue #1188 carry-over #7 already REOPENED via `git checkout HEAD -- .tmpl` workaround per cycle ~#3967 — fix lands before next soul-amend PR cycle to avoid recurrence.
 
 ### Open Questions (PM-owned initial triage)
 
@@ -174,5 +182,6 @@ All Sprint 33 PRs — even after Lane 2 docs verdict chain — MUST go through h
 
 — @product-manager (cycle ~#3964Q, 2026-07-20T19:35+03:00, DURING Sprint 32 final wave per RETRO-032 lesson #6 fix)
 — Carry-over #8 (Issue #1191, Conventional Commits linter agent-prefix whitelist) annotated cycle ~#3968Q+3 by @product-manager per [ORCH→PM] Issue #1191 wake (2026-07-20T19:55+03:00). PR #1189 NIT #3 authoring-gap remediation pending orchestrator Option A/B/C choice.
+— Carry-over #9 (Issue #201, dev-studio-init.sh .tmpl deletion bug) annotated cycle ~#3968Q+22 by @product-manager per [ARCH→PM] Issue #201 dual-channel wake (2026-07-20T21:01:04+03:00). Addendum authored: §1 row 12 + §2 Wave 10 cluster + §3 STORY-S33-007.md + §4.4 Lane 2 chain extension + §5 R4. Architect advisory 🟡 cmt 5025488624 4 NITs accepted as AC additions (AC1 .md UNTRACKED, d-test naming, AC7 root-cause-confirm, AC6 explicit mitigation). Pair with Issue #1191 as Wave 10 P1 cluster per arch recommendation.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
