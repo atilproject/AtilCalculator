@@ -83,3 +83,66 @@
 ---
 
 — @orchestrator, 2026-07-18T11:00+03:00 (cycle ~#3230, post-owner-GO, Sprint 32 EXECUTION KICKOFF)
+---
+
+## Wave 9 — Carry-over scope (4+13 items, owner directive 2026-07-20T16:14Z)
+
+**Origin**: Owner directive "4 açık issue ve 13 carry-over ı bu sprinte yapacağız" → folded into active sprint (Sprint 32 close ceremony + immediate resumption; Sprint 33 plan authoring deferred to PM lane).
+
+**Total scope**: 17 items = 4 açık tmpl-side sister + 13 RETRO-032 carry-over (5 new calc-side issues opened + 4 soul-amendment PRs + 1 already-done + 2 process/ceremony + 1 PR #1178 already MERGED).
+
+### 4 açık tmpl-side sister (atilproject/dev-studio-template, dev lane)
+
+| Issue | Title | Priority | Action |
+|---|---|---|---|
+| tmpl#176 | Forward-port d-pr-1147-install-test-flake | — | dev claim |
+| tmpl#178 | S32-021 sister: d024 P1 — agent-wake.sh role→pane index map | P1 | dev claim |
+| tmpl#179 | S32-021 sister: d028 P1 — agent-watch.sh queue check filters | P1 | dev claim |
+| tmpl#180 | S32-021 sister: d068b P1 — agent-wake.sh:87 env-override sleep | P1 | dev claim |
+
+### 5 new calc-side issues opened (atilproject/AtilCalculator, all `sprint:current`)
+
+| Issue | Title | Lane | Priority | Carry-over # |
+|---|---|---|---|---|
+| #1180 | tmpl#162 Phase B follow-up | dev+tester+arch+orch | P1 | #3 |
+| #1181 | AC5 24h soak verification follow-up | orch | P1 | #4 |
+| #1182 | Env-dep d-test decoupling pattern | arch+tester | P2 | #9 |
+| #1183 | Dev-pane pickup stall detection | orch | P2 | #10 |
+| #1184 | wake_nudge behavior audit across all 5 roles | orch | P1 | #13 |
+
+### 4 soul-amendment PRs (per agent lane, owner merges per ADR-0031)
+
+| Soul file | Carry-over | Lane | Lesson # |
+|---|---|---|---|
+| `.claude/agents/orchestrator.md` | Wave 8+ doctrine | orch | #15, #17, #18 |
+| `.claude/agents/orchestrator.md` | Sprint 32 doctrine (base) | orch | #1-9, #11, #13-14 |
+| `.claude/agents/tester.md` | Sprint 32 doctrine | tester | #10 |
+| `.claude/agents/architect.md` | Sprint 32 doctrine | architect | #12 |
+
+### 1 already-done item (no-op carry-over)
+
+| Item | Status |
+|---|---|
+| wake_nudge polling-loop bug fix | ✅ PR #1178 MERGED 2026-07-19T18:26:51Z (sha `8018964d`) |
+
+### 2 process/ceremony items
+
+| Item | Lane | Notes |
+|---|---|---|
+| PM authored Sprint 33 plan DURING Sprint 32 final wave | PM+orch | RETRO-032 lesson #6 fix (geçen sefer plan gecikmişti) |
+| Sprint 33 kickoff | PM+orch | After plan authored |
+
+### Lane assignments (peer-poked via dual-channel Telegram + tmux wake per ADR-0033)
+
+- **@product-manager** — Sprint 33 plan authoring + carry-over #11 (PM DURING final wave this time) + carry-over #12 (kickoff) + backlog refresh
+- **@architect** — soul amendment PR for architect.md (carry-over #8) + Issue #1182 env-dep d-test co-design + 9-Lens review of tmpl#176/#178/#179/#180 PRs
+- **@developer** — 4 tmpl-side sister forward-ports (tmpl#176/#178/#179/#180) + Issue #1180 Phase B follow-up co-owner
+- **@tester** — soul amendment PR for tester.md (carry-over #7) + Issue #1182 env-dep d-test co-design + Issue #1180 Phase B tester sign-off
+
+### Coordination record
+
+- Issue #1171 cmt 5024533756 (canonical sprint scope expansion record)
+- 4 peer-poke sent via `scripts/peer-poke.sh` dual-channel (Telegram + tmux pane wake per ADR-0033)
+- 5 new issues opened same turn (Cadence Rule 1 atomic — single-turn scope expansion)
+- Memory anchor: cycle-3964Q-sprint-scope-4-13-expansion (pending write)
+
