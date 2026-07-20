@@ -1,9 +1,11 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 32 — dev-studio-template + dev-studio-launcher finalize** (cycle ~#3221, 2026-07-18T10:01+03:00, owner directive "Sprint 32 sadece bu iş olacak, 1 sprintte tamamlıcaz")
+> **Active sprint:** **Sprint 33 — Doctrine Refresh + Wave 8+ Close-out** (cycle ~#3965Q, 2026-07-20T19:31+03:00, PM-authored DURING Sprint 32 final wave per RETRO-032 lesson #6 fix)
 >
-> 📄 **Sprint 32 plan source:** [`docs/sprints/sprint-32/00-plan.md`](../sprint-32/00-plan.md) (full 24-story plan, 6 waves)
-> 📄 **Sprint 32 prereq:** [`docs/sprints/sprint-32/00-audit.md` (atilproject/dev-studio-template PR #126)](https://github.com/atilproject/dev-studio-template/pull/126) — MERGED 2026-07-18T07:58:38Z (sha `52ed8407`), 4 verdict-by labels all 🟢 APPROVED
+> 📄 **Sprint 33 plan source:** [`docs/sprints/sprint-33/00-plan.md`](../sprint-33/00-plan.md) (PM-authored, 6 STORIES / 16 SP, doctrine refresh focus, gated on AC5 soak)
+> 📄 **Sprint 33 kickoff coordination:** [Issue #1186](https://github.com/atilproject/AtilCalculator/issues/1186) (gated on AC5 24h soak GREEN at 2026-07-21T16:07:23Z)
+> 📄 **Sprint 32 closeout:** [Issue #1171](https://github.com/atilcan65/AtilCalculator/issues/1171) — SQUASH-MERGED 2026-07-20T16:07:23Z (commit `a93a586`); cluster-squash 4/4 (PR #194+#195+#196+#1179)
+> 📄 **Sprint 32 retro (RETRO-032):** 19 NEW doctrine lessons captured (lessons #1-14 base + #15-19 Wave 8+ evolution), 13 carry-over items in Sprint 33 scope
 > 📄 **Sprint 31 closeout:** [`docs/sprints/sprint-31/close.md`](../sprint-31/close.md) — MERGED via PR #1145 (commit `b5f0a34`, 2026-07-18T06:52:11Z)
 > 📄 **Sprint 31 retro (RETRO-031):** captured via PR #1145 cluster-squash (Issue #1142 closure)
 
