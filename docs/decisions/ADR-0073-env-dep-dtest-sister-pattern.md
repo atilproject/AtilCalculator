@@ -179,7 +179,7 @@ A d-test PR is BLOCKED by tester if ANY of these fail:
 - [ ] **orchestrator**: schedule Sprint 34+ P2 cluster with dev-claim (2 patterns, NOT 3)
 - [ ] **PM**: refresh Sprint 34 plan addendum with 2 gap pattern Issues (NOT 3)
 - [x] **owner**: squash-merge per ADR-0031 owner gate (this ADR is `docs/decisions/` = arch lane, NOT human-only) — SQUASHED ✅
-- [ ] **arch**: amendment PR for §2 TIME_DEP removal + new §11 (this PR cycle ~#3968Q+71, owner directive 2026-07-21T09:57:47+03:00)
+- [x] **arch**: amendment PR for §2 TIME_DEP removal + new §11 (cycle ~#3968Q+71, owner directive 2026-07-21T09:57:47+03:00) — SQUASHED via PR #1196 1d21a32c 2026-07-21T08:30:06Z ✅ (cycle ~#3968Q+71+terminal; this hygiene PR cycle ~#3968Q+180+181)
 
 ## §11 — Considered + Rejected patterns (amendment 2026-07-21)
 
