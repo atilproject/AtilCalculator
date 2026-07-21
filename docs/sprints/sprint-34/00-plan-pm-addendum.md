@@ -50,8 +50,7 @@ Per cycle ~#3968Q+60 PM forward-planning acceptance verdict (PR #1195 Lane 2 cha
 
 ### AC2 — Addendum authored in `docs/sprints/sprint-34/00-plan-pm-addendum.md`
 
-- [ ] Single-file PM plan addendum authored via worktree (cycle ~#3673 branch contamination pre-commit doctrine honored — isolated from arch's `docs/adr-0073-section-10-checkbox-hygiene` branch)
-- [ ] Cadence Rule 1 atomic: addendum + this CHANGELOG.md entry same commit per ADR-0055 §1
+- [ ] **Single-file PM plan addendum** authored via worktree (cycle ~#3673 branch contamination pre-commit doctrine honored — isolated from arch's `docs/adr-0073-section-10-checkbox-hygiene` branch). **Single-file canonical** per PR #1194 (Sprint 33 plan addendum precedent, cycle ~#3968Q+55 SQUASH-MERGED) — no CHANGELOG.md entry required for PM plan addenda (docs-only PM lane artifacts, NOT user-facing change announcements; sister-pattern to PR #1192 + PR #1189 supersede evolution). NIT-1 reconciliation: AC2 line 2 (CHANGELOG.md requirement) DROPPED per arch 9-Lens verdict cmt 2026-07-21T08:43Z cycle ~#3674 — single-file PM plan addendum acceptable.
 - [ ] 4-cat label invariant on resulting PR per ADR-0012: `type:docs` + `status:ready` (after Lane 2 docs verdict chain) + `agent:product-manager` + `cc:human` + `cc:architect` + `cc:developer` + `cc:tester` + `cc:orchestrator` + `sprint:current` + `priority:P2`
 
 ### AC3 — Lane 2 docs verdict chain (PM-owned PR, sister-pattern to PR #1194 cycle ~#3968Q+24)
