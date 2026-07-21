@@ -1,11 +1,12 @@
 # ADR-0073: Env-Dep d-test Sister-Pattern Doctrine (Issue #1182, Sprint 33 P2)
 
-> **Status**: PROPOSED (draft, awaiting owner ratification per ADR-0012 birth contract)
-> **Date**: 2026-07-20
-> **Author**: @architect (cycle ~#3968Q+62, Issue #1182 dispatch per owner @atilcan65 directive 2026-07-20T20:03Z "hepsi bu sprint bitecek")
+> **Status**: ACCEPTED (squash-merged via PR #1195 dedb0f6 2026-07-21T06:34:56Z @atilcan65) + **AMENDED** (this PR, owner directive 2026-07-21T09:57:47+03:00)
+> **Date**: 2026-07-20 (original) / 2026-07-21 (amendment)
+> **Author**: @architect (cycle ~#3968Q+62 original, cycle ~#3968Q+71 amendment per owner directive)
 > **Sprint**: Sprint 33 P2 carry-over #9 (RETRO-032 lesson #5 didn't-go-well)
 > **Reviewer**: @tester (test discipline review per RETRO-032 lesson #5) + @human (owner approval gate per ADR-0031)
 > **Sister-ADR**: ADR-0044 (RED-first TDD), ADR-0049 (d-test framework ≥5 TCs baseline), ADR-0055 §1 (Cadence Rule 1 atomic)
+> **Amendment scope**: §2 + §9 + §10 (TIME_DEP removal from deferred gap patterns); new §11 (Considered + Rejected patterns) added. Sprint 33 plan addendum (S33-007) + arch lane S33-006 amendment UNTOUCHED per owner.
 
 ## Context
 
@@ -52,11 +53,12 @@ Per @tester peer-co-design cmt 5026776083 (cycle ~#3968Q+62, lane: test discipli
 
 | ID | Pattern | Env-dep class | Status | Origin |
 |---|---|---|---|---|
-| `pattern:TIME_DEP` | Monotonic clock mock + bounded test window | time-of-day | ⏳ proposed | Issue #1186 AC5 24h soak |
 | `pattern:CI_OS_DEP` | Multi-OS matrix OR explicit `--target-os` override | runner OS drift | ⏳ proposed | d058 TC1 env-rot |
 | `pattern:NETWORK_DEP` | Mock layer + RECONCILE_LIVE_TOKEN env toggle | network-live | ⏳ proposed | cycle ~#3642B partial (REST fallback only, NOT mock-first) |
 
-**Decision on Q4 (carry-over #9 finalization)**: Issue #1182 codifies the doctrine for the 8 existing patterns. The 3 gap patterns get follow-up Issues filed in Sprint 33+ P2 cluster (separate from Issue #1182 carry-over #9).
+**Decision on Q4 (carry-over #9 finalization)**: Issue #1182 codifies the doctrine for the 8 existing patterns. The 2 remaining gap patterns get follow-up Issues filed in Sprint 33+ P2 cluster (separate from Issue #1182 carry-over #9).
+
+**Amendment 2026-07-21**: `pattern:TIME_DEP` REMOVED from §2 (was previously listed). See §11 for rejection rationale. Original §2 row: `pattern:TIME_DEP | Monotonic clock mock + bounded test window | time-of-day | ⏳ proposed | Issue #1186 AC5 24h soak`.
 
 ### §3 — Pattern ID schema (answer to tester Q1)
 
@@ -145,7 +147,7 @@ A d-test PR is BLOCKED by tester if ANY of these fail:
 - **Issue #1182** — this ADR's origin (Sprint 33 P2 carry-over #9)
 - **Issue #1083** — NOTIFY_NO_AUTOLOAD precedent (shipped PR #1170+#1172)
 - **Issue #1108** — FAKE_FLIPPED_FILE precedent (shipped PR #1177)
-- **Issue #1186** — Sprint 33 kickoff (gated on AC5 24h soak; time-dep gap pattern candidate)
+- **Issue #1186** — Sprint 33 kickoff (kickoff gate REMOVED 2026-07-21 per owner directive — AC5 24h soak mechanic ABOLISHED; Issue #1181 closed)
 - **Issue #201** — tmpl-side P1 init.sh .tmpl deletion bug (--self-test/--live split, AC3 TC7)
 - **RETRO-032 lesson #5** — didn't-go-well capture (origin)
 - **cycle ~#3471** — S32-021 d-test sweep BOTH-gate (origin)
@@ -171,12 +173,32 @@ A d-test PR is BLOCKED by tester if ANY of these fail:
 
 ## §10 — Action items (this ADR)
 
-- [ ] **arch**: open PR with this ADR + scripts/tests/INDEX.md row + CHANGELOG.md entry same commit (Cadence Rule 1 atomic)
-- [ ] **tester**: Lane 3 sign-off per cycle ~#3642H (review INDEX.md row, validate Pattern ID schema)
-- [ ] **dev**: implement 3 gap pattern follow-up Issues (time-dep + CI-OS-dep + network-dep) in Sprint 34+ P2 cluster
-- [ ] **orchestrator**: schedule Sprint 34+ P2 cluster with dev-claim
-- [ ] **PM**: refresh Sprint 34 plan addendum with 3 gap pattern Issues
-- [ ] **owner**: squash-merge per ADR-0031 owner gate (this ADR is `docs/decisions/` = arch lane, NOT human-only)
+- [x] **arch**: open PR with this ADR + scripts/tests/INDEX.md row + CHANGELOG.md entry same commit (Cadence Rule 1 atomic) — SQUASHED via PR #1195 dedb0f6 2026-07-21T06:34:56Z ✅
+- [x] **tester**: Lane 3 sign-off per cycle ~#3642H (review INDEX.md row, validate Pattern ID schema) — cmt 5026934557 ✅
+- [ ] **dev**: implement 2 remaining gap pattern follow-up Issues (CI-OS-dep + network-dep) in Sprint 34+ P2 cluster (TIME_DEP REMOVED per §11 owner directive 2026-07-21)
+- [ ] **orchestrator**: schedule Sprint 34+ P2 cluster with dev-claim (2 patterns, NOT 3)
+- [ ] **PM**: refresh Sprint 34 plan addendum with 2 gap pattern Issues (NOT 3)
+- [x] **owner**: squash-merge per ADR-0031 owner gate (this ADR is `docs/decisions/` = arch lane, NOT human-only) — SQUASHED ✅
+- [ ] **arch**: amendment PR for §2 TIME_DEP removal + new §11 (this PR cycle ~#3968Q+71, owner directive 2026-07-21T09:57:47+03:00)
+
+## §11 — Considered + Rejected patterns (amendment 2026-07-21)
+
+| ID | Pattern | Env-dep class | Status | Origin | Rejection rationale |
+|---|---|---|---|---|---|
+| `pattern:TIME_DEP` | Monotonic clock mock + bounded test window | time-of-day | ❌ owner-rejected 2026-07-21 | Issue #1186 AC5 24h soak | AC5 24h soak mechanic ABOLISHED per owner directive 2026-07-21T09:57:47+03:00; owner rejects BOTH the 24h soak AND any TIME_DEP-class d-test pattern (Issue #1181 closed; Issue #1186 kickoff gate REMOVED) |
+
+**Rejection source**: owner directive 2026-07-21T09:57:47+03:00 (peer-poked via `notify.sh -w -r architect` to arch lane for §2 amendment). Captured at cycle ~#3968Q+71.
+
+**DOCTRINE**: §2 purpose is "deferred for Sprint 33+ follow-up" — REJECTED ≠ DEFERRED → rejected patterns MUST be moved here for historical record preservation. Future patterns must follow the same cadence: REJECT = §11 entry with rationale + source.
+
+**Cross-refs**: Issue #1181 (closed 2026-07-21 per owner), Issue #1186 (kickoff gate REMOVED 2026-07-21 per owner), Sprint 33 plan addendum (S33-007) UNTOUCHED per owner.
+
+**Alternatives rejected for §11 placement**:
+- (B) Remove TIME_DEP entirely without §11 entry — loss of historical record, sister-pattern failure vs ADR-0072 INDEX backfill pattern
+- (C) KEEP TIME_DEP in §2 with explicit "owner-rejected" status — mixes DEFERRED vs REJECTED categories (bad doctrine)
+- (D) Move TIME_DEP to a separate ADR (ADR-0075) — over-engineering for single-pattern rejection; §11 is the canonical home
+
+**Sister-pattern**: cycle ~#3968Q+71 (this amendment), cycle ~#3671 RETRO-022 regression (reflexive agent:* ADD anti-pattern), cycle ~#3968Q+70 RETRO-024 false-positive (reflexive agent:* REMOVE anti-pattern) — both anti-patterns emphasize lane-discipline + categorization hygiene.
 
 ## Sister-pattern + cross-refs
 
@@ -184,5 +206,6 @@ A d-test PR is BLOCKED by tester if ANY of these fail:
 - **Cycle sister**: cycle ~#3968Q+12 (PR #1189+#1192+#1194 supersede evolution pattern) — this ADR is Wave 10 P1 cluster (docs/sprints/souls lane)
 - **Wave 10 P1 cluster**: Issue #201 (carry-over #9 of Issue #1171) + this ADR (Issue #1182 carry-over #9)
 - **Lane**: architect (pattern + doctrine codification) + tester (test discipline review)
+- **Amendment (cycle ~#3968Q+71)**: §2 TIME_DEP removal + new §11 (Considered + Rejected patterns) per owner directive 2026-07-21T09:57:47+03:00; Issue #1181 closed; Issue #1186 kickoff gate REMOVED
 
-— @architect (Issue #1182 codification, cycle ~#3968Q+62, 2026-07-20T20:10Z)
+— @architect (Issue #1182 codification, cycle ~#3968Q+62, 2026-07-20T20:10Z; §2 TIME_DEP removal amendment, cycle ~#3968Q+71, 2026-07-21T10:05Z)
