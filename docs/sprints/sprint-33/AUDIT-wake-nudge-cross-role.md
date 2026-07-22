@@ -200,7 +200,7 @@ Developer WIP cap = 2 (ADR-0038 §Layer 2). wake_nudge showing `agent_count > 2`
 - **AC2**: `scripts/tests/d-wake-nudge-audit.sh` (NEW) ≥5 TCs RED-first per ADR-0044, covering: (a) trigger on non-empty queue, (b) trigger on heartbeat-missed >3x, (c) payload schema per role, (d) dedup retention, (e) orchestrator wip_idle ADDITION
 - **AC3**: ≥3 sister-patterns cited: d015 (original Issue #119), d118 (Issue #707 hysteresis), ADR-0039 (Issue #291 wip_idle), ADR-0072 §Layer 2 (REPRIME protocol)
 - **AC4**: d-wake-nudge-audit 5/5 GREEN locally pre-PR
-- **AC5**: Cadence Rule 1 atomic per ADR-0055 §1 (audit doc + d-test + 5 soul file amendments same commit)
+- **AC5**: Cadence Rule 1 atomic per ADR-0055 §1 — THIS PR scope: 2 files (audit doc + d-test) same commit; soul file amendments = 5 sister-PRs per file ownership matrix (out-of-scope for this PR per cycle ~#3968Q+186 wake-trigger lane-ownership)
 
 ## 7. Lane state post-audit
 
@@ -229,9 +229,9 @@ Developer WIP cap = 2 (ADR-0038 §Layer 2). wake_nudge showing `agent_count > 2`
 ## 9. Action items (orchestrator + each role)
 
 1. ✅ Audit doc — DONE (this file)
-2. ⏳ `scripts/tests/d-wake-nudge-audit.sh` (NEW) — orchestrator writes, RED-first
-3. ⏳ Soul file amendments (5 files) — each role proposes own amendment
-4. ⏳ Orchestrator cluster-squash (4 files atomic) — owner squash-merge per ADR-0031
+2. ✅ `scripts/tests/d-wake-nudge-audit.sh` (NEW) — DONE (`scripts/tests/d-wake-nudge-audit.sh` shipped in commit 455aac7, 7/7 GREEN locally per cycle ~#3893Q v2)
+3. ⏳ Soul file amendments (5 files) — each role proposes own amendment (sister-PRs per file ownership matrix)
+4. ⏳ Soul file sister-PRs (5 files) — owner batch-squash per ADR-0031 (4-files atomic reference is PR #1201 S33-008 sister-pattern, NOT this PR)
 5. ⏳ Tester Lane 3 verdict chain dispatch post-cluster-squash
 
 ## 10. Open questions
