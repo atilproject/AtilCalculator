@@ -6,13 +6,16 @@
 # dev pane went silent for ~36h after claiming S32-019 cluster — root cause was
 # tmux pane on the wrong working directory + no recovery signal).
 #
-# Detection rule (PR-driven, Issue #1183 spec):
+# Detection rule (Issue #1210 option (a) PR-driven-only — false-negative fix):
 #   STALL iff: issue has `agent:developer` + `status:in-progress` + state=open
-#              AND no PR linked to issue (any state) in last `threshold` hours
-#              AND issue `updatedAt` is older than `threshold` hours
+#              AND (no PR linked to issue in any state OR linked PR's last activity
+#                   is older than `threshold` minutes)
+#   Single source of truth = PR-driven signal. `issue.updatedAt` is intentionally
+#   NOT consulted — it was bumped by passive auto-claim comments on Issue #1180,
+#   masking the 24h threshold (dev audit cmt 5056373219 false-negative class).
 #
 # NOT-stall signals (edge cases, sister to wip-idle-detect signal 5):
-#   1. Linked PR found in last threshold hours (open or merged) — active work
+#   1. Linked PR found in last threshold window (open or merged) — active work
 #   2. Issue has `status:in-review` label — PR already up, awaiting verdict
 #   3. Issue has `status:blocked` label — legitimate block, not stall
 #
@@ -28,7 +31,11 @@
 #   bash scripts/agent-stall-detect.sh --dry-run           # print stalls without notify emission
 #
 # Output (stdout): JSON array
-#   [ {"issue":1180, "title":"...", "stall_hours":25, "linked_pr":null, "last_pr_min":-1}, ... ]
+#   [ {"issue":1180, "title":"...", "last_pr_min":-1, "linked_pr":null, "detected_at":"..."}, ... ]
+# Note (Issue #1210 AC3): `stall_hours` field dropped — option (a) does not
+# consult `issue.updatedAt`, so the field had no source of truth. `last_pr_min`
+# is the canonical stall duration signal (minutes since last PR activity, or
+# -1 if no PR linked).
 #
 # Exit codes:
 #   0  scan completed (regardless of stall count)
@@ -97,16 +104,6 @@ if [ -n "$ROLE_FLAG" ]; then
 else
   ROLES="$ALL_ROLES"
 fi
-
-# --- helper: ISO timestamp → epoch hours (integer) ---
-iso_to_hours() {
-  local iso="$1"
-  local now_epoch="$2"
-  local iso_epoch
-  iso_epoch="$(date -u -d "$iso" +%s 2>/dev/null || echo 0)"
-  if [ "$iso_epoch" = "0" ]; then echo "-1"; return; fi
-  echo $(( (now_epoch - iso_epoch) / 3600 ))
-}
 
 # --- helper: ISO timestamp → epoch minutes (for last_pr_min reporting) ---
 iso_to_min() {
@@ -181,21 +178,19 @@ for role in $ROLES; do
       ' 2>/dev/null || echo "null")"
     fi
 
-    # Get issue update time for stall_hours calc
-    issue_updated_iso="$(echo "$wip_issues" | jq -r --argjson n "$issue_n" '.[] | select(.number == $n) | .updatedAt' 2>/dev/null || echo "")"
-    issue_stall_hours="-1"
-    if [ -n "$issue_updated_iso" ] && [ "$issue_updated_iso" != "null" ]; then
-      issue_stall_hours="$(iso_to_hours "$issue_updated_iso" "$now_epoch")"
-    fi
-
-    # STALL iff:
-    #   - issue updatedAt older than threshold
-    #   - AND last_pr_min is missing (-1) OR older than threshold (in minutes)
+    # STALL iff (Issue #1210 option (a) PR-driven-only — false-negative fix):
+    #   - no PR linked to issue (last_pr_min == -1) OR last_pr_min >= threshold (in minutes)
+    # NOT-stall signals preserved (sister to wip-idle-detect signal 5):
+    #   - status:in-review (PR up, awaiting verdict) — checked above
+    #   - status:blocked (legitimate block) — checked above
+    # Removed per Issue #1210 option (a): the `issue_stall_hours >= threshold` AND
+    # wrapper. Root cause: `issue.updatedAt` was bumped by passive auto-claim
+    # comments, masking the 24h threshold on Issue #1180 (RETRO-032 lesson #2 +
+    # dev audit cmt 5056373219 false-negative). PR-driven signal is the single
+    # source of truth — no PR linked OR PR-linked-but-stale = stall.
     is_stalled="false"
-    if [ "$issue_stall_hours" -ge "$THRESHOLD_HOURS" ]; then
-      if [ "$last_pr_min" -eq "-1" ] || [ "$last_pr_min" -ge "$threshold_min" ]; then
-        is_stalled="true"
-      fi
+    if [ "$last_pr_min" -eq "-1" ] || [ "$last_pr_min" -ge "$threshold_min" ]; then
+      is_stalled="true"
     fi
 
     if [ "$is_stalled" = "true" ]; then
@@ -203,7 +198,6 @@ for role in $ROLES; do
       stall_json="$(echo "$stall_json" | jq \
         --argjson n "$issue_n" \
         --arg t "$issue_title" \
-        --argjson sh "$issue_stall_hours" \
         --argjson lpm "$last_pr_min" \
         --argjson lpn "$linked_pr_num" \
         --arg now "$now_iso" \
@@ -212,7 +206,6 @@ for role in $ROLES; do
           title: $t,
           agent: "developer",
           status: "in-progress",
-          stall_hours: $sh,
           last_pr_min: $lpm,
           linked_pr: $lpn,
           detected_at: $now
@@ -240,8 +233,8 @@ echo "$stall_json" | jq .
 stall_total="$(echo "$stall_json" | jq 'length' 2>/dev/null || echo 0)"
 if [ "$stall_total" -ge 1 ] && [ "${STALL_DETECT_AUTO_NOTIFY:-0}" = "1" ]; then
   for issue_n in $(echo "$stall_json" | jq -r '.[].issue'); do
-    stall_h="$(echo "$stall_json" | jq -r --argjson n "$issue_n" '.[] | select(.issue == $n) | .stall_hours')"
-    notify_msg="[STALL-DETECT] dev lane: Issue #${issue_n} stalled ${stall_h}h (no PR opened in >${THRESHOLD_HOURS}h threshold)"
+    lpm="$(echo "$stall_json" | jq -r --argjson n "$issue_n" '.[] | select(.issue == $n) | .last_pr_min')"
+    notify_msg="[STALL-DETECT] dev lane: Issue #${issue_n} stalled (last_pr_min=${lpm}m, threshold=${THRESHOLD_HOURS}h — no PR opened in window)"
     bash "$(dirname "$0")/notify.sh" -l developer "$notify_msg" >/dev/null 2>&1 || true
   done
 fi
