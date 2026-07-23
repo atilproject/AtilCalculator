@@ -49,9 +49,6 @@ for arg in "$@"; do
     --target-os=*)
       TARGET_OS_FLAG="${arg#--target-os=}"
       ;;
-    --target-os=*)
-      TARGET_OS_FLAG="${arg#--target-os=}"
-      ;;
     --help|-h)
       printf 'Usage: %s [--target-os=<linux|darwin>] [TARGET_OS=<val>]\n' "$0" >&2
       printf 'Resolves and prints the target OS class for env-dep d-test gating.\n' >&2
