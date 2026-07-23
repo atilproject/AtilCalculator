@@ -1975,6 +1975,26 @@ poll_once() {
       local stall_json stall_total
       stall_json="$(bash "$stall_detect_sh" 2>/dev/null || echo '[]')"
       stall_total="$(echo "$stall_json" | jq 'length' 2>/dev/null || echo 0)"
+      # RETRO-024 silent-skip (Issue #1211 AC5, arch NIT-2 cmt 5058101861):
+      #   Filter out stalls whose record lacks the developer-agent binding.
+      #   Defense-in-depth: agent-stall-detect.sh already upstream-filters to
+      #   `agent:developer + status:in-progress` via gh issue list, so RETRO-024
+      #   work-done-elsewhere records (type:*+status:ready+cc:human+no agent:*)
+      #   cannot structurally appear. The `.agent != null` guard documents intent
+      #   + future-proofs cross-lane emission. Sister-pattern: agent-watch.sh
+      #   L1265 stale_verdict owner-gated filter (Issue #1027 RETRO-024 doctrine).
+      local stall_pre_filter="$stall_total"
+      stall_json="$(echo "$stall_json" | jq '[ .[] | select(.agent != null) ]' 2>/dev/null || echo '[]')"
+      local stall_filtered_count=$(( stall_pre_filter - "$(echo "$stall_json" | jq 'length' 2>/dev/null || echo 0)" ))
+      if [ "$stall_filtered_count" -gt 0 ]; then
+        # ADR-0056 silent_skip log emission (lens-d observability, TD-016/020 family)
+        local stall_skip_log="${XDG_CACHE_HOME:-$HOME/.cache}/dev-studio/agent-watch/dev-stall-wiring.log"
+        mkdir -p "$(dirname "$stall_skip_log")" 2>/dev/null || true
+        printf '%s silent_skip mode=retro-024-work-done-elsewhere helper=scripts/agent-watch.sh filtered_count=%d\n' \
+          "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$stall_filtered_count" \
+          >> "$stall_skip_log" 2>/dev/null || true
+      fi
+      stall_total="$(echo "$stall_json" | jq 'length' 2>/dev/null || echo 0)"
       if [ "$stall_total" -ge 3 ]; then
         # Wave coalesce: ≥3 dev stalls = single wave event (sister to wip_idle_wave)
         local stall_bucket
@@ -1990,18 +2010,38 @@ poll_once() {
             context: { stall_count: ([.[].issue] | length), issues: [.[]] }
           } ]')"
       else
-        # Per-stall events (Issue #1183 spec: peer-poke dev + orchestrator with @mention)
-        dev_stall="$(echo "$stall_json" | jq --arg now "$now" '
-          [ .[] | {
-              id: ("dev-stall-" + (.issue | tostring) + "-" + (.detected_at // $now)),
-              kind: "dev_stall",
-              number: .issue,
-              title: ("Dev-stall: Issue #" + (.issue | tostring) + " (" + (.stall_hours | tostring) + "h, no PR opened, " + (if .linked_pr == null then "no linked PR" else ("last PR #" + (.linked_pr | tostring)) end) + ")"),
-              url: ("https://github.com/atilproject/AtilCalculator/issues/" + (.issue | tostring)),
-              updated_at: $now,
-              context: { issue: .issue, stall_hours: .stall_hours, linked_pr: .linked_pr, last_pr_min: .last_pr_min }
-            }
-          ]')"
+        # STALL_DETECT_AUTO_NOTIFY env gate (Issue #1211 AC4, arch NIT-1 cmt
+        # 5058101861): default OFF (matches sister-pattern scripts/agent-stall-detect.sh
+        # L241 + scripts/wip-idle-detect.sh AUTO_NOTIFY gate). When unset, orchestrator
+        # emits observability-only `dev_stall_observed` events (no peer-poke escalation);
+        # when STALL_DETECT_AUTO_NOTIFY=1, emits existing dev_stall events with full
+        # peer-poke + wave coalesce.
+        if [ "${STALL_DETECT_AUTO_NOTIFY:-0}" != "1" ]; then
+          dev_stall="$(echo "$stall_json" | jq --arg now "$now" '
+            [ .[] | {
+                id: ("dev-stall-observed-" + (.issue | tostring) + "-" + (.detected_at // $now)),
+                kind: "dev_stall_observed",
+                number: .issue,
+                title: ("Dev-stall observed (gate off): Issue #" + (.issue | tostring) + " (last_pr_min=" + ((.last_pr_min // -1) | tostring) + ")"),
+                url: ("https://github.com/atilproject/AtilCalculator/issues/" + (.issue | tostring)),
+                updated_at: $now,
+                context: { issue: .issue, last_pr_min: .last_pr_min, linked_pr: .linked_pr, gate: "STALL_DETECT_AUTO_NOTIFY=0" }
+              }
+            ]')"
+        else
+          # Per-stall events (Issue #1183 spec: peer-poke dev + orchestrator with @mention)
+          dev_stall="$(echo "$stall_json" | jq --arg now "$now" '
+            [ .[] | {
+                id: ("dev-stall-" + (.issue | tostring) + "-" + (.detected_at // $now)),
+                kind: "dev_stall",
+                number: .issue,
+                title: ("Dev-stall: Issue #" + (.issue | tostring) + " (" + (.stall_hours | tostring) + "h, no PR opened, " + (if .linked_pr == null then "no linked PR" else ("last PR #" + (.linked_pr | tostring)) end) + ")"),
+                url: ("https://github.com/atilproject/AtilCalculator/issues/" + (.issue | tostring)),
+                updated_at: $now,
+                context: { issue: .issue, stall_hours: .stall_hours, linked_pr: .linked_pr, last_pr_min: .last_pr_min }
+              }
+            ]')"
+        fi
       fi
     fi
   fi
