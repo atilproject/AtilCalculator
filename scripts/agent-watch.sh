@@ -1958,6 +1958,53 @@ poll_once() {
       fi
     fi
   fi
+
+  # Issue #1183 — Dev-pane pickup stall detection. Orchestrator-only integration.
+  # Sister-pattern to wip_idle (line 1917 above): call scripts/agent-stall-detect.sh
+  # to scan `agent:developer + status:in-progress` issues for stalls (>24h since
+  # claim, no PR opened). RETRO-032 lesson #2 didn't-go-well: Sprint 32 final wave
+  # dev pane went silent ~36h after claiming S32-019 cluster — root cause was tmux
+  # pane on wrong cwd + no recovery signal. This block surfaces stalls as wake
+  # events so orchestrator can peer-poke dev + (optional) auto-claim rescue.
+  # Wave coalesce: ≥3 stalls = single `dev_stall_wave` event (sister to
+  # wip_idle_wave pattern, arch 🟡 #2 on #289).
+  local dev_stall='[]'
+  if [ "$ROLE" = "orchestrator" ]; then
+    local stall_detect_sh="$SCRIPT_DIR/agent-stall-detect.sh"
+    if [ -x "$stall_detect_sh" ]; then
+      local stall_json stall_total
+      stall_json="$(bash "$stall_detect_sh" 2>/dev/null || echo '[]')"
+      stall_total="$(echo "$stall_json" | jq 'length' 2>/dev/null || echo 0)"
+      if [ "$stall_total" -ge 3 ]; then
+        # Wave coalesce: ≥3 dev stalls = single wave event (sister to wip_idle_wave)
+        local stall_bucket
+        stall_bucket=$(( $(date -u +%s) / 300 ))
+        dev_stall="$(echo "$stall_json" | jq --arg now "$now" --argjson bucket "$stall_bucket" '
+          [ {
+            id: ("dev-stall-wave-b" + ($bucket | tostring)),
+            kind: "dev_stall_wave",
+            number: 0,
+            title: ("dev stall wave: " + ([.[].issue | tostring] | join(","))),
+            url: "",
+            updated_at: $now,
+            context: { stall_count: ([.[].issue] | length), issues: [.[]] }
+          } ]')"
+      else
+        # Per-stall events (Issue #1183 spec: peer-poke dev + orchestrator with @mention)
+        dev_stall="$(echo "$stall_json" | jq --arg now "$now" '
+          [ .[] | {
+              id: ("dev-stall-" + (.issue | tostring) + "-" + (.detected_at // $now)),
+              kind: "dev_stall",
+              number: .issue,
+              title: ("Dev-stall: Issue #" + (.issue | tostring) + " (" + (.stall_hours | tostring) + "h, no PR opened, " + (if .linked_pr == null then "no linked PR" else ("last PR #" + (.linked_pr | tostring)) end) + ")"),
+              url: ("https://github.com/atilproject/AtilCalculator/issues/" + (.issue | tostring)),
+              updated_at: $now,
+              context: { issue: .issue, stall_hours: .stall_hours, linked_pr: .linked_pr, last_pr_min: .last_pr_min }
+            }
+          ]')"
+      fi
+    fi
+  fi
   local wake_nudge='[]'
   if [ -n "${REPO:-}" ]; then
     local queue_open cc_open
@@ -2029,6 +2076,7 @@ poll_once() {
     <(echo "$issue_mentions") <(echo "$periodic_scan") \
     <(echo "$proactive_sweep") <(echo "$assigned_any") \
     <(echo "$is_alive_event") <(echo "$wip_idle") \
+    <(echo "$dev_stall") \
     2>/dev/null || echo '[]')"
 
   # Filter out events already in processed_event_ids (Issue #1142 AC2 hardening)
