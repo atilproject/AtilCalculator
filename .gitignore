@@ -74,6 +74,10 @@ state/tasklists/*.md
 CODEOWNERS
 .github/ISSUE_TEMPLATE/config.yml
 .claude/agents/orchestrator.md
+.claude/agents/architect.md
+.claude/agents/developer.md
+.claude/agents/product-manager.md
+.claude/agents/tester.md
 .claude/commands/standup.md
 .claude/commands/sprint-start.md
 scripts/install/systemd/dev-studio-watcher@.service
@@ -83,4 +87,13 @@ systemd/dev-studio-health.service
 # --- Faz 4: BÖL dosyaları rendered outputs (idempotent, edit the .tmpl instead) ---
 README.md
 .claude/CLAUDE.md
+CLAUDE.md
 docs/decisions/INDEX.md
+
+# --- Sprint 33 close hygiene: runtime dirs + repo-root CLAUDE.md ----
+# These never tracked because they're either runtime state (worktrees,
+# dev-studio tmpl cache) or regenerated artifacts (CLAUDE.md at repo
+# root mirrors the .claude/CLAUDE.md sister pattern; .tmpl source is
+# CLAUDE.md.tmpl per scripts/dev-studio-init.sh ADR-0013).
+.worktrees/
+.dev-studio/
