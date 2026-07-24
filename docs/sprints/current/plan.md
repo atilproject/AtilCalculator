@@ -1,39 +1,37 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 33 — Doctrine Refresh + Wave 8+ Close-out** (cycle ~#3965Q, 2026-07-20T19:31+03:00, PM-authored DURING Sprint 32 final wave per RETRO-032 lesson #6 fix)
+> **Active sprint:** **Sprint 34 — AtilCalculator → template/launcher forward-port (audit gap-closing)** (cycle ~#3968Q+320, 2026-07-24T20:39+03:00, post-PR #1218 SQUASH-MERGE)
 >
-> 📄 **Sprint 33 plan source:** [`docs/sprints/sprint-33/00-plan.md`](../sprint-33/00-plan.md) (PM-authored, 6 STORIES / 16 SP, doctrine refresh focus, gated on AC5 soak)
-> 📄 **Sprint 33 kickoff coordination:** [Issue #1186](https://github.com/atilproject/AtilCalculator/issues/1186) (gated on AC5 24h soak GREEN at 2026-07-21T16:07:23Z)
-> 📄 **Sprint 32 closeout:** [Issue #1171](https://github.com/atilcan65/AtilCalculator/issues/1171) — SQUASH-MERGED 2026-07-20T16:07:23Z (commit `a93a586`); cluster-squash 4/4 (PR #194+#195+#196+#1179)
+> 📄 **Sprint 34 plan source:** [`docs/sprints/sprint-34/00-plan.md`](../sprint-34/00-plan.md) (orchestrator-seeded, awaiting PM Lane 1 review + amendment per cadence rule "PM owns the wave plan"; 7 STORIES / 3 WAVES / ~25-30 SP, audit gap-closing focus)
+> 📄 **Sprint 34 audit baseline (PR #1218):** [`docs/sprints/sprint-34/00-audit-template-launcher.md`](../sprint-34/00-audit-template-launcher.md) — SQUASH-MERGED 2026-07-24T17:34:14Z (commit `44246b4`); 3/3 reviewer consensus (PM Lane 1 🟢 + Arch Lane 2 PRIMARY 9-Lens 🟢 + Tester Lane 3 🔵 N/A doc-only per cycle ~#3642H)
+> 📄 **Sprint 33 closeout:** [`docs/sprints/sprint-33/close.md`](../sprint-33/close.md) — MERGED via PR #1216 (commit `74ead05`, 2026-07-24T05:56:53Z)
+> 📄 **Sprint 33 retro (RETRO-033):** [`docs/sprints/sprint-33/RETRO-033.md`](../sprint-33/RETRO-033.md) — 19 NEW doctrine lessons captured
+> 📄 **Sprint 32 closeout:** [Issue #1171](https://github.com/atilproject/AtilCalculator/issues/1171) — SQUASH-MERGED 2026-07-20T16:07:23Z (commit `a93a586`); cluster-squash 4/4 (PR #194+#195+#196+#1179)
 > 📄 **Sprint 32 retro (RETRO-032):** 19 NEW doctrine lessons captured (lessons #1-14 base + #15-19 Wave 8+ evolution), 13 carry-over items in Sprint 33 scope
-> 📄 **Sprint 31 closeout:** [`docs/sprints/sprint-31/close.md`](../sprint-31/close.md) — MERGED via PR #1145 (commit `b5f0a34`, 2026-07-18T06:52:11Z)
-> 📄 **Sprint 31 retro (RETRO-031):** captured via PR #1145 cluster-squash (Issue #1142 closure)
 
 ---
 
 ## Mode
 
-🟢 **SPRINT 32 EXECUTE — INFRASTRUCTURE-FINALIZE ONLY (no AtilCalculator feature work)**
+🟢 **SPRINT 34 EXECUTE — AUDIT GAP-CLOSING (single-direction, scope-locked)**
 
-- **Owner-ratified**: 2026-07-18T10:01+03:00 ("Sprint 32 sadece bu iş olacak, 1 sprintte tamamlıcaz")
-- **Owner GO signal**: 2026-07-18 (cycle ~#3230, "merge ettim, başlayalım" — after PR #126 squash-merge)
+- **Owner-ratified**: 2026-07-24T20:39+03:00 ("ok mergeledim başlayın, tum bu işler sprint 34e yapılacak, başka iş yapılmayacak bu sprinte")
+- **Owner GO signal**: 2026-07-24 (post-PR #1218 squash-merge sha `44246b4`)
 - **Capacity cap**: 4-5 PRs/cluster-squash per day, 5 agents in parallel lanes
-- **Scope boundary**: template finalize (`atilproject/dev-studio-template`) + launcher finalize (`atilcan65/dev-studio-launcher`) + calc forward-port. OUT: any feature work
-- **Sister-repo workstreams** (RETRO-023 cluster, 3 repos): template + launcher + calc
-- **Tag discipline**: template `v1.1.0` target, launcher `v0.4.0` target
+- **Scope boundary**: AtilCalculator → template + launcher forward-port (audit gap-closing sequence steps 2-8 = 7 stories). OUT: any other work, any reverse-direction propagation, any out-of-matrix impl
+- **Sister-repo workstreams** (3 repos): template + launcher + calc (single-direction A→T+L only)
+- **Tag discipline**: launcher `v0.5.0` target (S34-003); template version pending parity matrix approval (S34-001)
+- **Scope-lock supersession**: Owner directive 2026-07-24T20:39Z supersedes 2026-07-21T09:55Z Sprint 34-forbidden directive per cycle ~#3968Q+313 NEW DOCTRINE (owner scope authority: newer directive supersedes)
 
 ---
 
-## Story inventory (24 stories, 6 waves)
+## Story inventory (7 stories, 3 waves)
 
 | Wave | Scope | Stories | Status |
 |---|---|---|---|
-| **Wave 1 — Discovery** | Doctrine diff classification + baseline portage report | S32-001 ARCH + S32-002 DEV | `status:ready` (Wave 1 GO) |
-| **Wave 2 — Template gap-closure** | ADRs port (cluster-squash), soul file sync (+5500B orch + +1440B arch), gap-scan port+d-test, stale URL fix, SHA-pin, Python detect | S32-003..009 | pending Wave 1 close |
-| **Wave 3 — Calc forward-port** | install-env.sh + systemd + tests/INDEX.md + lint-and-test.yml | S32-010..013 | pending Wave 1+2 close |
-| **Wave 4 — Launcher finalize** | CI workflow + d001 d-test + v0.4.0 tag | S32-014..016 | pending Wave 3 close |
-| **Wave 5 — Docs + tag** | new-project-steps.md + CHANGELOG v1.1.0 + tag cut + smoke verify | S32-017..020 | pending Wave 4 close |
-| **Wave 6 — Verify + close** | d-test sweep + portage re-run + close.md + dry-run | S32-021..024 | pending Wave 5 close |
+| **Wave 1 — Foundation** | Parity matrix construction (artifact-by-artifact classification) | S34-001 | `status:ready` (Wave 1 GO) |
+| **Wave 2 — Feature** | Template forward-port + Launcher forward-port + Bootstrap test infra | S34-002 / S34-003 / S34-004 | pending Wave 1 close |
+| **Wave 3 — Polish** | Runner tuple resolution + Verified new-project-steps doc + Sprint 34 close | S34-005 / S34-006 / S34-007 | pending Wave 2 close |
 
 ---
 
@@ -41,110 +39,59 @@
 
 | PR | Repo | Story | State | Test status | Action |
 |---|---|---|---|---|---|
-| **#4** | atilcan65/dev-studio-launcher | S29-003 | ✅ squash-merged @ 10:56:37Z | 6/6 d-test GREEN | ✅ done |
-| **#71** | atilcan65/dev-studio-template | S29-005 | ✅ squash-merged @ 10:56:47Z | 8/8 d-test GREEN | ✅ done |
-| **#1008** | atilcan65/AtilCalculator | Sprint 28 audit-baseline | ✅ squash-merged @ 08:10:31Z (commit `a02110c6`) | n/a (docs) | ✅ done |
-| **#1019** | atilcan65/AtilCalculator | plan.md refresh | ✅ squash-merged @ 10:57:10Z | n/a (docs pointer) | ✅ done |
-| **#1029** | atilcan65/AtilCalculator | S29-002 tag-move verification | ✅ squash-merged @ 13:47:43Z (commit `96205ec6`) | n/a (scripts) | ✅ done |
-| **#72** | atilcan65/dev-studio-template | S29-004 disable status-label-to-board.yml | ✅ squash-merged @ 14:20:32Z (commit `6d9d3f84`) | 7/7 d-test GREEN | ✅ done — board sync freeze ACTIVE |
-| **#1037** | atilcan65/AtilCalculator | Wave 2 PM grooming — 6 STORY files + backlog.json | ✅ squash-merged @ 14:20:41Z (commit `13c2675c`) | n/a (docs/backlog) | ✅ done — Wave 2 files main-resident |
-| (Wave 1) | atilproject/dev-studio-template | audit PR #126 (baseline) | ✅ squash-merged @ 07:58:38Z (commit `52ed8407`) | n/a (docs) | ✅ done — Sprint 32 EXEC UNBLOCKED |
-| (Wave 1) | atilcan65/AtilCalculator | plan.md refresh (S29→S32) | ⏳ IN PROGRESS (this PR) | n/a (docs pointer) | ORCH 4-cat label set, owner merge |
-| (Wave 1) | atilcan65/AtilCalculator | Issue #1146 kickoff status flip | ⏳ IN PROGRESS | n/a (issue) | status:ready → status:in-progress + verdict-by |
+| **#1216** | atilproject/AtilCalculator | Sprint 33 close ceremony | ✅ squash-merged @ 05:56:53Z (commit `74ead05`) | n/a (docs) | ✅ done |
+| **#1218** | atilproject/AtilCalculator | Sprint 34 audit baseline | ✅ squash-merged @ 17:34:14Z (commit `44246b4`) | n/a (docs) | ✅ done — Sprint 34 EXEC UNBLOCKED |
+| (Wave 1) | atilproject/AtilCalculator | Sprint 34 plan.md + kickoff issue | ⏳ IN PROGRESS (this PR + issue chain) | n/a (docs pointer) | ORCH 4-cat label set, PM Lane 1 review pending |
 
 ---
 
-## Sprint 32 active issues
+## Sprint 34 active issues
 
-- **Issue #1146** (atilcan65/AtilCalculator) — Sprint 32 kickoff coordination issue (agent:orchestrator + cc:all agents), transitioned from Sprint 31 HOLD to Sprint 32 EXEC per owner directive cycle ~#3230
-- **S32-001** — ARCH: Full doctrine diff (ADRs, soul files, scripts, workflows) — Wave 1
-- **S32-002** — DEV: Baseline portage report — Wave 1
-- (S32-003..024 — filed in subsequent waves per plan dependency graph)
+- **[Sprint 34] Kickoff** (atilproject/AtilCalculator) — orchestrator opening NOW, 4-cat labels per ADR-0012
+- **S34-001** — Parity matrix construction (architect-led, L effort, Wave 1) — orchestrator opening NOW
+- **S34-002** — Template forward-port impl (developer-led, XL effort, Wave 2) — pending S34-001
+- **S34-003** — Launcher forward-port impl (developer-led, XL effort, Wave 2) — pending S34-001
+- **S34-004** — Disposable bootstrap test infra (developer + owner gate, M effort, Wave 2) — pending S34-002/003
+- **S34-005** — Runner tuple resolution (owner-gated, S effort, Wave 3) — pending S34-002/003
+- **S34-006** — Verified new-project-steps doc (PM-led, M effort, Wave 3) — pending S34-004/005
+- **S34-007** — Sprint 34 close + retro (orchestrator-led, S effort, Wave 3) — pending S34-001..006
 
-## Sister-repo workstreams (RETRO-023 cluster, 3 repos)
+---
 
-- **`atilproject/dev-studio-template`** (v1.0.1 → v1.1.0) — primary Sprint 32 target (template-finalize)
-- **`atilcan65/dev-studio-launcher`** (v0.3.0 → v0.4.0) — secondary target (launcher CI + d-test integration)
-- **`atilcan65/AtilCalculator`** (calc → forward-port surface) — selected gaps only (install-env, systemd, INDEX.md, lint-and-test.yml)
+## Sister-repo workstreams (RETRO-023 cluster, 3 repos, single-direction)
 
-## Doctrine reference (Sprint 32 active)
+- **`atilproject/dev-studio-template`** (target v1.x.x) — primary Sprint 34 target (forward-port from AtilCalculator per parity matrix `equivalent`/`divergent` rows)
+- **`atilproject/dev-studio-launcher`** (target v0.5.0) — secondary target (version contract + tests + docs forward-port)
+- **`atilproject/AtilCalculator`** — source repo (no impl work, only docs/sprints/ artifacts for Sprint 34)
 
+---
+
+## Doctrine reference (Sprint 34 active)
+
+- **ADR-0012** — 4-cat label invariant (every Issue/PR: type + status + agent + cc)
+- **ADR-0015** — Atomic 4-flag handoff (add add remove remove order)
+- **ADR-0017** — Python 3.11+ stack (unchanged)
+- **ADR-0024** — Verdict-by discipline (`verdict-by:<role>:<ts>` convention)
 - **ADR-0031** — Owner merge gate (only human squash-merges)
 - **ADR-0033** — Dual-channel peer-poke (Telegram + tmux pane wake)
 - **ADR-0038** — Auto-Claim WIP cap (2/2 per role)
 - **ADR-0044** — RED-first TDD (tester before dev)
-- **ADR-0045** — 9-Lens pre-publish gate (architect)
+- **ADR-0045** — 9-Lens pre-publish gate (architect Lane 2 PRIMARY)
 - **ADR-0049** — d-test framework (≥5 TCs behavioral, ≥3 TCs hygiene/docs)
 - **ADR-0055** — Cadence Rule 1 atomic (sister-pattern d-test commits with impl)
 - **ADR-0057** — Closes anchor strict format (`Closes #N` vs `Refs #N`)
-- **ADR-0059** — Cluster-squash batch-merge (≤15-sec owner-squash window)
+- **ADR-0059** — Cluster-squash batch-merge (≤60s owner-squash window per cycle ~#3258 cap)
 - **RETRO-018 W6** — Branch-ownership matrix (cross-agent push authority NOT in doctrine)
-- **RETRO-024** — Work-done-elsewhere exception (cross-repo terminal state)
+- **RETRO-024** — Work-done-elsewhere exception (cross-repo terminal state — N/A for Sprint 34 active work)
 - **RETRO-027** — Cadence Rule 2 retroactive-close precondition (PR-persistence + Closes-anchor required)
+- **cycle ~#3642H** — Lane 3 N/A on doc-only PRs
+- **cycle ~#3968Q+186** — 2-lane ack pattern scope: CLUSTER DOCS ONLY (single-file audit exempt)
+- **cycle ~#3968Q+226** — 600s productive-idleness storm-watch baseline
+- **cycle ~#3968Q+244** — Arch verdict cc: auto-pair skipped (orchestrator 2-flag atomic fix post-verdict)
+- **cycle ~#3968Q+277** — 4h+ idle escalation matrix
+- **cycle ~#3968Q+313** — Owner scope authority (newer directive supersedes — Sprint 34 framing NOW valid)
+- **cycle ~#3968Q+3921Q+/~#3922Q** — Post-verdict commit doctrine (verdict-by preserved as historical evidence)
 
 ---
 
-— @orchestrator, 2026-07-18T11:00+03:00 (cycle ~#3230, post-owner-GO, Sprint 32 EXECUTION KICKOFF)
----
-
-## Wave 9 — Carry-over scope (4+13 items, owner directive 2026-07-20T16:14Z)
-
-**Origin**: Owner directive "4 açık issue ve 13 carry-over ı bu sprinte yapacağız" → folded into active sprint (Sprint 32 close ceremony + immediate resumption; Sprint 33 plan authoring deferred to PM lane).
-
-**Total scope**: 17 items = 4 açık tmpl-side sister + 13 RETRO-032 carry-over (5 new calc-side issues opened + 4 soul-amendment PRs + 1 already-done + 2 process/ceremony + 1 PR #1178 already MERGED).
-
-### 4 açık tmpl-side sister (atilproject/dev-studio-template, dev lane)
-
-| Issue | Title | Priority | Action |
-|---|---|---|---|
-| tmpl#176 | Forward-port d-pr-1147-install-test-flake | — | dev claim |
-| tmpl#178 | S32-021 sister: d024 P1 — agent-wake.sh role→pane index map | P1 | dev claim |
-| tmpl#179 | S32-021 sister: d028 P1 — agent-watch.sh queue check filters | P1 | dev claim |
-| tmpl#180 | S32-021 sister: d068b P1 — agent-wake.sh:87 env-override sleep | P1 | dev claim |
-
-### 5 new calc-side issues opened (atilproject/AtilCalculator, all `sprint:current`)
-
-| Issue | Title | Lane | Priority | Carry-over # |
-|---|---|---|---|---|
-| #1180 | tmpl#162 Phase B follow-up | dev+tester+arch+orch | P1 | #3 |
-| #1181 | AC5 24h soak verification follow-up | orch | P1 | #4 |
-| #1182 | Env-dep d-test decoupling pattern | arch+tester | P2 | #9 |
-| #1183 | Dev-pane pickup stall detection | orch | P2 | #10 |
-| #1184 | wake_nudge behavior audit across all 5 roles | orch | P1 | #13 |
-
-### 4 soul-amendment PRs (per agent lane, owner merges per ADR-0031)
-
-| Soul file | Carry-over | Lane | Lesson # |
-|---|---|---|---|
-| `.claude/agents/orchestrator.md` | Wave 8+ doctrine | orch | #15, #17, #18 |
-| `.claude/agents/orchestrator.md` | Sprint 32 doctrine (base) | orch | #1-9, #11, #13-14 |
-| `.claude/agents/tester.md` | Sprint 32 doctrine | tester | #10 |
-| `.claude/agents/architect.md` | Sprint 32 doctrine | architect | #12 |
-
-### 1 already-done item (no-op carry-over)
-
-| Item | Status |
-|---|---|
-| wake_nudge polling-loop bug fix | ✅ PR #1178 MERGED 2026-07-19T18:26:51Z (sha `8018964d`) |
-
-### 2 process/ceremony items
-
-| Item | Lane | Notes |
-|---|---|---|
-| PM authored Sprint 33 plan DURING Sprint 32 final wave | PM+orch | RETRO-032 lesson #6 fix (geçen sefer plan gecikmişti) |
-| Sprint 33 kickoff | PM+orch | After plan authored |
-
-### Lane assignments (peer-poked via dual-channel Telegram + tmux wake per ADR-0033)
-
-- **@product-manager** — Sprint 33 plan authoring + carry-over #11 (PM DURING final wave this time) + carry-over #12 (kickoff) + backlog refresh
-- **@architect** — soul amendment PR for architect.md (carry-over #8) + Issue #1182 env-dep d-test co-design + 9-Lens review of tmpl#176/#178/#179/#180 PRs
-- **@developer** — 4 tmpl-side sister forward-ports (tmpl#176/#178/#179/#180) + Issue #1180 Phase B follow-up co-owner
-- **@tester** — soul amendment PR for tester.md (carry-over #7) + Issue #1182 env-dep d-test co-design + Issue #1180 Phase B tester sign-off
-
-### Coordination record
-
-- Issue #1171 cmt 5024533756 (canonical sprint scope expansion record)
-- 4 peer-poke sent via `scripts/peer-poke.sh` dual-channel (Telegram + tmux pane wake per ADR-0033)
-- 5 new issues opened same turn (Cadence Rule 1 atomic — single-turn scope expansion)
-- Memory anchor: cycle-3964Q-sprint-scope-4-13-expansion (pending write)
-
+— @orchestrator, 2026-07-24T20:39+03:00 (cycle ~#3968Q+320, post-PR #1218 SQUASH-MERGE, Sprint 34 EXECUTION KICKOFF)
