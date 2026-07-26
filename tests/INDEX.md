@@ -10,7 +10,7 @@ Sister-pattern: atilproject/AtilCalculator `scripts/tests/INDEX.md` (calculator-
 
 | ID | File | AC coverage | Sister-pattern | Commit / PR |
 |---|---|---|---|---|
-| d001 | `d001-launcher-self-hosted-runner-patch.sh` | AC1 regex correctness + AC2 idempotency + AC3 warning emit (stderr + ::warning:: env-gate) + AC4 ≥5 TCs + AC5 INDEX.md attestation | AtilCalculator `d097-self-hosted-runner-migration.sh` + `d100-self-hosted-perf-budgets.sh` (mirror SSOT 4-tuple) | Issue #1072 (S29-013) impl PR |
+| d001 | `d001-launcher-self-hosted-runner-patch.sh` | AC1 regex correctness + AC2 idempotency + AC3 warning emit (stderr + ::warning:: env-gate) + AC4 ≥5 TCs + AC5 INDEX.md attestation | AtilCalculator `d097-self-hosted-runner-migration.sh` + `d100-self-hosted-perf-budgets.sh` (mirror SSOT 4-tuple) | Issue #1072 (S29-013) impl PR; **Sprint 34 S34-005 AC2 sister-PR — TC1 verdict Q1 update atilproject→atilcan (per arch verdict option a-decomposed cycle ~#3968Q+460)** |
 
 ## Framework contract (per ADR-0049)
 

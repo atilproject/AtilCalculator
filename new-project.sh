@@ -60,7 +60,7 @@ DEFAULT_OWNER="atilproject"
 # SSOT for generator. CLAUDE.md.tmpl is agent lore (lane discipline), NOT infra
 # config — parsing markdown for 4-tuple is indirect (silent drift surface);
 # reading a bash constant is direct. RETRO-005 #26 structural correctness.
-RUNNER_4TUPLE_LABEL_PATTERN="[self-hosted, Linux, X64, atilproject]"
+RUNNER_4TUPLE_LABEL_PATTERN="[self-hosted, Linux, X64, atilcan]"
 
 # ---------- colors ----------
 if [[ -t 1 ]]; then
@@ -112,7 +112,7 @@ count_self_hosted_runners() {
 }
 
 # apply_self_hosted_runner_patch
-# Transforms `runs-on: ubuntu-latest` → `runs-on: [self-hosted, Linux, X64, atilproject]`
+# Transforms `runs-on: ubuntu-latest` → `runs-on: [self-hosted, Linux, X64, atilcan]`
 # in .github/workflows/*.yml of $CLONE_PATH (or FIXTURE_REPO_ROOT for d-test).
 # Idempotent: only matches the unpatched pattern, never modifies already-patched
 # workflows (per AC2). Per AC1 regex correctness.
@@ -387,7 +387,7 @@ ok "labels seeded"
 
 # ---------- 3.5) Self-hosted runner 4-tuple patch (S29-013, Issue #1072) ----------
 # Per AC1+AC2+AC3: pre-flight count self-hosted runners; patch ubuntu-latest →
-# [self-hosted, Linux, X64, atilproject]; emit stderr WARNING primary +
+# [self-hosted, Linux, X64, atilcan]; emit stderr WARNING primary +
 # ::warning:: conditional on Actions context when 0 runners match.
 step "applying self-hosted runner 4-tuple patch (S29-013)"
 RUNNER_COUNT="$(count_self_hosted_runners "$OWNER" "$PROJECT_NAME")"

@@ -6,7 +6,7 @@
 # TDD + ADR-0049 d-test framework (≥5 TCs baseline).
 #
 # **Acıl path context (architect verdict 2026-07-15T08:14:35Z, cycle 5934):**
-#   - Q1 = launcher constant `RUNNER_4TUPLE_LABEL_PATTERN="[self-hosted, Linux, X64, atilproject]"`
+#   - Q1 = launcher constant `RUNNER_4TUPLE_LABEL_PATTERN="[self-hosted, Linux, X64, atilcan]"`
 #   - Q1.1 = keep S29-013 on atilcan65/dev-studio-launcher this sprint; orchestrator files
 #     follow-up Issue "S29-013-FU — Port new-project.sh to atilproject/dev-studio-template
 #     per S29-001 sister-pattern" (port is separate scope per RETRO-023 cross-repo codifier)
@@ -18,7 +18,7 @@
 # 3 + idempotency/regex/hygiene/docs baseline):
 #
 #   TC1: RED — new-project.sh exports `RUNNER_4TUPLE_LABEL_PATTERN` constant
-#        matching the 4-tuple `[self-hosted, Linux, X64, atilproject]` exactly
+#        matching the 4-tuple `[self-hosted, Linux, X64, atilcan]` exactly
 #        (architect verdict Q1; verified against .github/workflows/*.yml on
 #        AtilCalculator side, 10+ matches)
 #
@@ -37,11 +37,11 @@
 #
 #   TC4: RED (idempotency, AC2) — patch function is idempotent: re-running on
 #        an already-patched workflow (one with `runs-on: [self-hosted, Linux,
-#        X64, atilproject]`) is a no-op. Workflow file content unchanged after
+#        X64, atilcan]`) is a no-op. Workflow file content unchanged after
 #        second patch call.
 #
 #   TC5: RED (regex correctness, AC1) — patch transforms
-#        `runs-on: ubuntu-latest` → `runs-on: [self-hosted, Linux, X64, atilproject]`
+#        `runs-on: ubuntu-latest` → `runs-on: [self-hosted, Linux, X64, atilcan]`
 #        using a regex that matches ONLY the unpatched state. Pre-fix: no patch
 #        function exists, or patch matches too broadly (corrupts custom self-hosted
 #        configs).
@@ -124,19 +124,19 @@ name: already-patched
 on: [push]
 jobs:
   test:
-    runs-on: [self-hosted, Linux, X64, atilproject]
+    runs-on: [self-hosted, Linux, X64, atilcan]
     steps:
       - uses: actions/checkout@v4
 YAML
 
 # TC1: launcher exports RUNNER_4TUPLE_LABEL_PATTERN constant matching the 4-tuple exactly.
 # Source-grep verifies the constant is declared with the exact value
-# `[self-hosted, Linux, X64, atilproject]`. Per architect verdict Q1.
-run_tc "TC1" "new-project.sh exports RUNNER_4TUPLE_LABEL_PATTERN=\"[self-hosted, Linux, X64, atilproject]\" constant" '
-  if grep -qE "^RUNNER_4TUPLE_LABEL_PATTERN=\"\\[self-hosted, Linux, X64, atilproject\\]\"" "'"$NEW_PROJECT_SH"'"; then
+# `[self-hosted, Linux, X64, atilcan]`. Per architect verdict Q1.
+run_tc "TC1" "new-project.sh exports RUNNER_4TUPLE_LABEL_PATTERN=\"[self-hosted, Linux, X64, atilcan]\" constant" '
+  if grep -qE "^RUNNER_4TUPLE_LABEL_PATTERN=\"\\[self-hosted, Linux, X64, atilcan\\]\"" "'"$NEW_PROJECT_SH"'"; then
     echo "PASS"
   else
-    echo "FAIL: constant not found or wrong value — architect verdict Q1 specifies exact pattern [self-hosted, Linux, X64, atilproject]"
+    echo "FAIL: constant not found or wrong value — architect verdict Q1 specifies exact pattern [self-hosted, Linux, X64, atilcan]"
   fi
 '
 
@@ -217,15 +217,15 @@ run_tc "TC4" "patch function idempotent on already-patched workflow (AC2)" '
   fi
 '
 
-# TC5: regex correctness — patch transforms `runs-on: ubuntu-latest` → `runs-on: [self-hosted, Linux, X64, atilproject]`.
+# TC5: regex correctness — patch transforms `runs-on: ubuntu-latest` → `runs-on: [self-hosted, Linux, X64, atilcan]`.
 # Verify on ci.yml (unpatched state) via env-var sourcing. Per AC1.
-run_tc "TC5" "patch transforms runs-on: ubuntu-latest → runs-on: [self-hosted, Linux, X64, atilproject] (AC1 regex correctness)" '
+run_tc "TC5" "patch transforms runs-on: ubuntu-latest → runs-on: [self-hosted, Linux, X64, atilcan] (AC1 regex correctness)" '
   env FIXTURE_MODE=1 FIXTURE_RUNNER_COUNT=3 FIXTURE_REPO_ROOT='"$FIXTURE_ROOT"' bash -c "
     source '"$NEW_PROJECT_SH"' 2>&1 || true
     apply_self_hosted_runner_patch
   " >/dev/null 2>&1
   PATCHED_LINE=$(grep -E "^\\s+runs-on:" "'$FIXTURE_ROOT'/.github/workflows/ci.yml" || true)
-  EXPECTED="    runs-on: [self-hosted, Linux, X64, atilproject]"
+  EXPECTED="    runs-on: [self-hosted, Linux, X64, atilcan]"
   if [ "$PATCHED_LINE" = "$EXPECTED" ]; then
     echo "PASS"
   else
