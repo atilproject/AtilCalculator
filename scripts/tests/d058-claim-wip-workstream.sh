@@ -275,7 +275,7 @@ case "$cmd" in
     flipped=""
     if [ -n "$arg_n" ] && [ -n "${FAKE_FLIPPED_FILE:-}" ] \
        && [ -f "${FAKE_FLIPPED_FILE}" ] \
-       && grep -qx "${arg_n}" "${FAKE_FLIPPED_FILE}" 2>/dev/null; then
+       && grep -qxF "${arg_n}" "${FAKE_FLIPPED_FILE}" 2>/dev/null; then
       flipped=1
     fi
     if [ -n "$flipped" ]; then
@@ -369,9 +369,22 @@ run_claim() {
   # ROLLBACK #402 flip-not-applied. Fix per Issue #1108 option (d): seed FAKE_FLIPPED_FILE
   # with all ready-item issue numbers so verify_post_flip returns status:in-progress
   # regardless of the cmd-parsing path. Test logic (TC1-TC10 assertions) unchanged.
+  # HUB-013 hardening (2026-07-26 cycle ~#3968Q+672): graceful degradation — if jq path
+  # fails (non-zero exit), fall back to grep-based extraction so the seed is robust under
+  # both happy-path + CI env-rot. Both paths use `grep -v '^$'` to filter blanks and
+  # `>> "$flipped_file"` to append (so truncate-at-line-start never erases ready items).
   if [ -n "$ready_json" ] && [ "$ready_json" != "[]" ]; then
-    printf '%s' "$ready_json" | jq -r '.[]? | .number' 2>/dev/null \
-      | grep -v '^$' >> "$flipped_file" || true
+    if ! printf '%s' "$ready_json" | jq -r '.[]? | .number' 2>/dev/null \
+         | grep -v '^$' >> "$flipped_file"; then
+      printf '%s' "$ready_json" | grep -oE '"number":[0-9]+' \
+        | grep -oE '[0-9]+' | grep -v '^$' >> "$flipped_file" 2>/dev/null || true
+    fi
+    # Defensive trailing newline — defensive against fsync-flaky runners that may
+    # leave the last byte mid-write at the moment verify_post_flip reads the file.
+    if [ -s "$flipped_file" ] && [ -n "$(tail -c 1 "$flipped_file")" ] \
+       && [ "$(tail -c 1 "$flipped_file" | wc -l)" = "0" ]; then
+      printf '\n' >> "$flipped_file"
+    fi
   fi
   if [ -n "${D058_DEBUG_FLIPPED:-}" ] || [ "${GITHUB_ACTIONS:-}" = "true" ]; then
     {
