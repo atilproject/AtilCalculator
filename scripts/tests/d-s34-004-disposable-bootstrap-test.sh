@@ -5,7 +5,7 @@
 # Sister-pattern: d-s34-005-runner-label-atilcan.sh (S34-005 workflow-only fix 15/15 GREEN
 # per cluster-squash #22 — same workflow-file d-test pattern).
 #
-# 9 TCs RED-first per ADR-0044 (≥6 baseline per ADR-0049, exceeds by 3):
+# 10 TCs RED-first per ADR-0044 (≥6 baseline per ADR-0049, exceeds by 4):
 #   TC1: workflow file exists at .github/workflows/disposable-bootstrap-test.yml
 #   TC2: bash -n syntactic self-check (YAML tolerated via heredoc-style gate)
 #   TC3: workflow has `workflow_dispatch` trigger (AC1 owner-driven manual trigger)
@@ -15,6 +15,10 @@
 #   TC7: workflow has teardown step in `if: always()` block (AC1 cleanup invariant)
 #   TC8: INDEX.md row present (Cadence Rule 1 atomic attestation per ADR-0055 §1)
 #   TC9: CHANGELOG.md entry present (unique "Sprint 34 S34-004 disposable-bootstrap-test" prefix)
+#   TC10: 'id: create' on both Create disposable public + private repo steps (NIT-1 BLOCKER
+#         fix verification per arch verdict 🟡 cmt 5084623598 + cycle ~#3968Q+847
+#         inline d-test amender pattern — without id: create, ${{ steps.create.outputs.REPO_NAME }}
+#         resolves EMPTY at runtime, workflow FAILS at clone/delete)
 #
 # Doctrinal anchors:
 #   ADR-0044 RED-first TDD (pre-port RED state NON-VACUOUS, post-port GREEN)
@@ -134,13 +138,39 @@ else
   assert_fail "TC9" "CHANGELOG.md entry for Sprint 34 S34-004 disposable-bootstrap-test not found"
 fi
 
+# TC10 (NIT-1 BLOCKER amender per arch verdict 🟡 cmt 5084623598 + cycle ~#3968Q+847
+# owner-override inline d-test amender pattern): verify `id: create` is present on
+# both Create disposable public repo + Create disposable private repo steps.
+# Without id: create, ${{ steps.create.outputs.REPO_NAME }} (referenced at workflow
+# lines 87/105/154 — clone/delete) resolves to EMPTY at runtime → workflow FAILS.
+echo "TC10: workflow has 'id: create' on both Create disposable public + private repo steps"
+PUBLIC_CREATE_LINE=$(grep -n "name: Create disposable public repo" "$WORKFLOW" | head -1 | cut -d: -f1)
+PRIVATE_CREATE_LINE=$(grep -n "name: Create disposable private repo" "$WORKFLOW" | head -1 | cut -d: -f1)
+PUBLIC_HAS_ID=0
+PRIVATE_HAS_ID=0
+if [ -n "$PUBLIC_CREATE_LINE" ]; then
+  if sed -n "${PUBLIC_CREATE_LINE},/env:/p" "$WORKFLOW" | grep -q "id: create"; then
+    PUBLIC_HAS_ID=1
+  fi
+fi
+if [ -n "$PRIVATE_CREATE_LINE" ]; then
+  if sed -n "${PRIVATE_CREATE_LINE},/env:/p" "$WORKFLOW" | grep -q "id: create"; then
+    PRIVATE_HAS_ID=1
+  fi
+fi
+if [ "$PUBLIC_HAS_ID" -eq 1 ] && [ "$PRIVATE_HAS_ID" -eq 1 ]; then
+  assert_pass "TC10"
+else
+  assert_fail "TC10" "expected 'id: create' on both Create disposable public (line ${PUBLIC_CREATE_LINE:-?}) and private (line ${PRIVATE_CREATE_LINE:-?}) repo steps, found public=${PUBLIC_HAS_ID} private=${PRIVATE_HAS_ID}"
+fi
+
 echo ""
 echo "=== Summary ==="
-echo "PASS: $pass / 9"
-echo "FAIL: $fail / 9"
+echo "PASS: $pass / 10"
+echo "FAIL: $fail / 10"
 
 if [ "$fail" -eq 0 ]; then
-  echo "RESULT: GREEN — d-s34-004 9/9 GREEN"
+  echo "RESULT: GREEN — d-s34-004 10/10 GREEN"
   exit 0
 else
   echo "RESULT: RED — d-s34-004 $fail FAIL"

@@ -70,7 +70,9 @@ jobs:
           fetch-depth: 0
 
       # 2. Generate unique disposable repo name + create via API.
+      # id: create propagates REPO_NAME to downstream steps via steps.create.outputs.REPO_NAME.
       - name: Create disposable public repo
+        id: create
         env:
           GH_TOKEN: ${{ secrets.ATILPROJECT_DISPOSABLE_TOKEN }}
         run: |
@@ -135,7 +137,9 @@ jobs:
           echo "Owner authorization verified for private-repo bootstrap (AC2)" >> "$GITHUB_STEP_SUMMARY"
 
       # 3. Generate + create private disposable repo (with secret rotation).
+      # id: create propagates REPO_NAME to downstream steps via steps.create.outputs.REPO_NAME.
       - name: Create disposable private repo (with secret rotation per AC2)
+        id: create
         env:
           GH_TOKEN: ${{ secrets.OWNER_DISPOSABLE_PRIVATE_TOKEN }}
         run: |
