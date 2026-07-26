@@ -60,9 +60,9 @@ Total: **23/23 forward-port + 4 Lane 0 closed + 2 still OPEN (S34-002 umbrella #
 
 ## Sprint metrics
 
-- **Cluster-squash count**: 17 cluster-squashes (CS#22-#37 inclusive, ledger TERMINAL)
-- **Twin-squash count**: 3 twin-squashes (CS#25+#26, CS#36+#37, +1 standalone twin at CS#28)
-- **STANDALONE cluster-squashes**: 2 (CS#34 PR #223, CS#35 PR #224 — gap > 60s per cycle ~#3968Q+3258)
+- **Cluster-squash count**: 16 cluster-squash events covering 18 PRs (CS#22-#37 inclusive, ledger TERMINAL)
+- **Twin-squash count**: 2 IMMEDIATE twin-squash PAIRS (CS#25+#26 PR #17+PR #215 5s gap, CS#36+#37 PR #225+PR #18 11s gap) — 4 PRs in 2 pairs per cycle ~#3968Q+685
+- **STANDALONE cluster-squashes**: 12 (CS#22 PR #214, CS#23 PR #1230, CS#24 PR #16, CS#27 PR #216, CS#28 PR #217, CS#29 PR #218, CS#30 PR #219, CS#31 PR #220, CS#32 PR #221, CS#33 PR #222, CS#34 PR #223, CS#35 PR #224 — gap > 60s per cycle ~#3968Q+3258)
 - **IMMEDIATE twin-squash gap**: 5s (CS#25+#26 PR #17+PR #215) + 11s (CS#36+#37 PR #225+PR #18)
 - **Total verdict-by PRESERVED**: 57 (CS#34) + 58 + 59 (CS#36+#37) + 56 + 55 + ... (per cycle ~#3968Q+407 conditional preservation ledger)
 - **Cadence**: all cluster-squashes within 8min-9h17min window per cycle ~#3968Q+337
@@ -75,7 +75,7 @@ Total: **23/23 forward-port + 4 Lane 0 closed + 2 still OPEN (S34-002 umbrella #
 2. **cycle ~#3968Q+933** — Lane 3 re-query arch verdict COMMENT content (not just verdict-by timestamp label) before 5-flag atomic
 3. **cycle ~#3968Q+940** — Investigate before framing anomaly as hallucination (NEW DOCTRINE candidate, deferred to Sprint 35 backlog)
 4. **cycle ~#3968Q+941** — Multi-remote awareness STRIKE 2 (`git push tmpl-official` for cross-repo PRs to atilproject/dev-studio-template)
-5. **cycle ~#3968Q+959** — PR-self-blocking CI on cross-repo successful squash-merge (cluster-squash batch-lag FAILURE is expected, non-blocking)
+5. **cycle ~#3968Q+414** — PR-self-blocking CI on cross-repo successful squash-merge (cluster-squash batch-lag FAILURE is expected, non-blocking; PR #214 sha `18e374c` canonical instance)
 
 ### Doctrine refinements
 
