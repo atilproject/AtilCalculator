@@ -15,7 +15,7 @@
 | # | Question | Verdict | Confidence | Evidence section |
 |---|---|---|---|---|
 | **Q1** | Can `dev-studio-template` currently create and run any private project in `atilproject`? | **READY-PENDING-FIRST-EXECUTION** | MEDIUM | §1 |
-| **Q2** | Have all non-calculator scripts/processes/doctrine/agents been transferred from AtilCalculator to template/launcher? | **MOSTLY CLEAN — 1 vestigial cleanup only** (5 stale `.md.tmpl` files in AC) | HIGH | §2 |
+| **Q2** | Have all non-calculator scripts/processes/doctrine/agents been transferred from AtilCalculator to template/launcher? | **2 forward-ports ready + 1 UNRESOLVED doctrinal conflict** (D8: S21-006 soul-`.tmpl` contract vs AC-downstream doctrine) | HIGH | §2 |
 | **Q3** | Is self-hosted-runner migration 100% complete? Do any GitHub-hosted runner paths remain? | **NOT 100%** — 2 specific gaps | HIGH | §3 |
 | **Q4** | If template is complete, what else should be added now that focus is template-only? | See §4 — 4 recommended additions | MEDIUM | §4 |
 | **Q5** | Is `dev-studio-launcher` still ready to create a new fully featured project? | **READY, with caveats** | HIGH | §5 |
@@ -64,27 +64,62 @@ The structural chain (`is_template=true` → launcher `--private` flag → `gh r
 | Operational files (after exclusion of `src/atilcalc/**`, `tests/{api,cli,engine,integration,web,docs}/`, calculator docs, `.dev-studio/`, worktrees, runtime state) | 282 | 268 | 12 |
 | Files with AC equivalent (after `.tmpl` normalization) | — | 112 / 268 (41.8%) | 6 / 12 (50.0%) |
 
-### Vestigial bootstrap debris (correct direction: **delete from AC**, NOT back-port)
+### Soul `.md.tmpl` files in AC — **deliberate tracked contract, NOT vestigial debris** (corrected 2026-07-27T10:38Z)
 
-> **Owner's architectural correction (2026-07-27T09:43Z+03):** AtilCalculator is a **downstream project bootstrapped FROM the template**. It is not a re-renderable canonical source. The audit's original P0/P1 framing of "back-port TPL → AC" was technically wrong-headed — AC should never receive template-source files. The correct fix is **delete vestigial files from AC**.
+> **Owner's architectural correction (2026-07-27T09:43Z+03):** AtilCalculator is a **downstream project bootstrapped FROM the template**. It is not a re-renderable canonical source. The audit's original P0/P1 framing of "back-port TPL → AC" was technically wrong-headed — AC should never receive template-source files.
+>
+> **⚠️ HONESTY CORRECTION (orchestrator, 2026-07-27T10:38Z):** the first application of that correction was **also wrong**. This audit previously claimed the 5 `.claude/agents/*.md.tmpl` files were "vestigial bootstrap debris from `f6c2a9c0` partial cleanup" and should be **deleted**. Git history disproves both halves of that claim. Corrected below with evidence. This correction supersedes the V0-2 row that PM/architect/tester/developer verdicts were issued against.
 
-| # | Item | Current state in AC | Correct action |
-|---|---|---|---|
-| **V0-1** | `.claude/CLAUDE.md.tmpl` | **404 NOT_FOUND** (correctly absent, deleted in `f6c2a9c0`) | **No action** — already correct |
-| **V0-2** | 5 `.claude/agents/*.md.tmpl` files | **EXISTS but STALE** (vestigial bootstrap debris from `f6c2a9c0` partial cleanup; smaller than TPL canonical, missing Issue #287 ARCHIVE-CALL block) | **DELETE from AC** — vestigial; AC shouldn't carry template sources |
-| **V0-3** | `.claude/CLAUDE.md` (rendered) | **EXISTS sha `9bfac438ad`, 25144 bytes** | **Verify currency only** (currently rendered output looks current; no action if up-to-date) |
+**Git-history evidence (verified locally, `git log` + `git show` on AC `origin/main`):**
 
-**Vestigial file inventory** (REST-verified 2026-07-27T09:43Z+03):
+| Commit | What it actually did |
+|---|---|
+| `f6c2a9c0` "chore: render templates and bootstrap project" | **Renamed** 4 soul `.md.tmpl` → `.md` (`R099`) and **deleted** `orchestrator.md.tmpl`. Net effect: **zero** `.md.tmpl` files remained under `.claude/agents/`. So the current files cannot be "debris left behind by `f6c2a9c0`" — that commit removed them all. |
+| `bc90cb86` "feat(soul-files): STORY-S21-006 — 5 soul .tmpl files + .gitignore contract (**Closes #638**, d096 5/5 GREEN)" | **Deliberately re-created all 5 `.md.tmpl` files**, deleted the rendered `.md` files (−2432 lines), added the `.gitignore` exclusion for rendered `.md`, and shipped `scripts/tests/d096-soul-files-template.sh` (309 lines) to **enforce their presence**. |
+| `3f6dd58a`, `43e2b8be` | Subsequent **intentional amendments** to those same `.tmpl` files (§Peer-Poke Discipline, §Path-Verify Doctrine). |
+
+**Therefore:** the 5 `.md.tmpl` files are a **deliberate, tested, story-backed artifact of STORY-S21-006 / Issue #638** — the template-grade "Faz 3" contract in which AC tracks `.tmpl` sources and *gitignores* the rendered `.md`. They are the opposite of vestigial.
+
+**Deleting them would break a green d-test.** `d096-soul-files-template.sh` TC1 asserts all 5 `.tmpl` files exist. Verified locally at `f862051b`:
 
 ```
-AC .claude/agents/orchestrator.md.tmpl     → EXISTS sha e8241ee3ec, 12571 bytes  (VESTIGIAL → delete)
-AC .claude/agents/developer.md.tmpl        → EXISTS sha d433ecc63e,  6229 bytes  (VESTIGIAL → delete)
-AC .claude/agents/architect.md.tmpl        → EXISTS sha 989efe814e,  5817 bytes  (VESTIGIAL → delete)
-AC .claude/agents/tester.md.tmpl           → EXISTS sha dc3a2ed179,  9530 bytes  (VESTIGIAL → delete)
-AC .claude/agents/product-manager.md.tmpl  → EXISTS sha ceeb9b8e04,  4660 bytes  (VESTIGIAL → delete)
-AC .claude/CLAUDE.md                       → EXISTS sha 9bfac438ad, 25144 bytes  (verify currency only)
+$ bash scripts/tests/d096-soul-files-template.sh --self-test
+  Soul .tmpl files expected:  5 (orch/pm/arch/dev/tester)
+  Soul .tmpl files present:   5
+  PASS: 5   FAIL: 0   INFO: 1
+  GREEN state: all 5 TCs PASS — S21-006 soul-files-template impl complete
+```
+
+A "delete 5 vestigial files" story turns d096 **RED**. Per `.claude/CLAUDE.md §Things agents must NEVER do` ("disable failing tests to make CI green" / by extension: do not land changes that knowingly red a passing d-test), that story must not be dispatched as written.
+
+**What IS true — the staleness finding survives:**
+
+| # | Item | Verified state in AC `main` | Correct action |
+|---|---|---|---|
+| **V0-1** | `.claude/CLAUDE.md.tmpl` | **404 NOT_FOUND** | **No action** — correctly absent |
+| **V0-2** | 5 `.claude/agents/*.md.tmpl` | **EXISTS + TRACKED + d096-enforced**, but **STALE**: template commit `cd37b63d` (d033 §Doctrine Reminder port to 5 `.tmpl`, template PR #189) is **NOT an ancestor of AC `main`** (`git merge-base --is-ancestor` → false); grep for `Doctrine Reminder`/`ARCHIVE-CALL`/`no self-standby` in AC's `.tmpl` files → **0 matches** | **⚠️ OWNER DECISION D8** — see §8. Do **NOT** delete. |
+| **V0-3** | `.claude/CLAUDE.md` (rendered) | **EXISTS sha `9bfac438ad`, 25144 bytes**; gitignored per line 85 | **Verify currency only** |
+
+**Verified inventory** (REST + `git ls-tree origin/main`, 2026-07-27T10:38Z):
+
+```
+AC .claude/agents/orchestrator.md.tmpl     → TRACKED sha e8241ee3ec, 12571 B  (S21-006 contract, STALE)
+AC .claude/agents/developer.md.tmpl        → TRACKED sha d433ecc63e,  6229 B  (S21-006 contract, STALE)
+AC .claude/agents/architect.md.tmpl        → TRACKED sha 989efe814e,  5817 B  (S21-006 contract, STALE)
+AC .claude/agents/tester.md.tmpl           → TRACKED sha dc3a2ed179,  9530 B  (S21-006 contract, STALE)
+AC .claude/agents/product-manager.md.tmpl  → TRACKED sha ceeb9b8e04,  4660 B  (S21-006 contract, STALE)
+AC .claude/CLAUDE.md                       → TRACKED sha 9bfac438ad, 25144 B  (rendered; gitignore L85)
 AC .claude/CLAUDE.md.tmpl                  → 404 (correctly absent)
 ```
+
+### ⚠️ Genuine doctrinal conflict surfaced — needs owner adjudication (D8)
+
+The owner correction ("AC is downstream; never back-port TPL → AC") and **STORY-S21-006 / Issue #638** (which *deliberately* made AC track 5 soul `.tmpl` sources, enforced by d096) are **in direct conflict**. Both cannot hold:
+
+- If AC must never carry template sources → S21-006 must be revoked and d096 retired. That is a **doctrine change**, not a cleanup.
+- If the S21-006 contract stands → the 5 `.tmpl` files are legitimate in AC, and refreshing their content from canonical TPL is a **legitimate maintenance action**, not a forbidden reverse-direction back-port.
+
+This audit **cannot resolve that on the owner's behalf.** Escalated as **D8** in §8.
 
 ### Items CORRECTLY absent in AC (NOT gaps — keep absent)
 
@@ -115,13 +150,17 @@ The original audit flagged these as P1 back-port gaps. **They are correct.** AC 
 
 ### Q2 binary verdict
 
-**VERDICT: MOSTLY CLEAN — 1 vestigial cleanup + 2 forward-port candidates.**
+**VERDICT: 2 forward-ports ready + 1 UNRESOLVED doctrinal conflict (D8) blocking any `.claude/agents/*.md.tmpl` action.**
 
-The original P0/P1 framing of "back-port TPL → AC" was a misread. AC is a downstream project, not a re-renderable source. The only real Sprint 35 work is:
-- **V0-2**: Delete 5 vestigial `.md.tmpl` files from AC (1 commit, ~5 file deletes)
-- **FP-1 + FP-2**: Forward-port 2 scripts from AC → TPL (2 commits, with d-tests)
+The original P0/P1 framing of "back-port TPL → AC" was a misread — AC is a downstream project, not a re-renderable source. But the *first correction* of that misread was also wrong: it labelled the 5 soul `.md.tmpl` files "vestigial" and slated them for deletion. Git history shows they are a deliberate, d096-enforced artifact of STORY-S21-006 / Issue #638.
 
-Plus a new ADR-NNNN documenting "AC downstream rationale" (architect lane) to prevent recurrence of the audit's reverse-direction framing.
+Sprint 35 Q2 work that is **unambiguously ready**:
+- **FP-1 + FP-2**: Forward-port 2 scripts from AC → TPL (2 commits, with d-tests) — correctly directed, no conflict.
+
+Sprint 35 Q2 work that is **BLOCKED pending owner D8**:
+- **V0-2**: the 5 soul `.tmpl` files. Deleting them reds d096; refreshing them from canonical TPL is a TPL → AC content flow. Which is correct depends on whether the S21-006 / Issue #638 contract still stands. **Owner call, not audit call.**
+
+Plus a new ADR (S35-001) codifying the AC-downstream rationale — whose scope now *also* has to reconcile S21-006, so it cannot be drafted until D8 is answered.
 
 ---
 
@@ -181,7 +220,7 @@ Since the user's directive locked Sprint 35 scope to **finalize** `dev-studio-te
 ### Recommended Sprint 35 in-scope additions (post-GO)
 
 1. **First `gh workflow run disposable-bootstrap-test.yml -f run_private=true`** by owner → produces the missing end-to-end proof of the private path. Closes the MEDIUM confidence gap from Q1. **Owner action**, not agent action.
-2. **Vestigial cleanup + 2 forward-ports** (Q2, reframed per owner correction 2026-07-27T09:43Z+03): (a) delete 5 stale `.claude/agents/*.md.tmpl` from AC (vestigial bootstrap debris), (b) forward-port 2 scripts from AC → TPL (`agent-stall-detect.sh` + `install-git-hooks.sh`). NO back-port TPL → AC (architectural correction).
+2. **2 forward-ports ready; soul-`.tmpl` work GATED** (Q2): (a) forward-port 2 scripts from AC → TPL (`agent-stall-detect.sh` + `install-git-hooks.sh`) — clean, correctly directed; (b) the 5 `.claude/agents/*.md.tmpl` files are **BLOCKED on owner D8** — they are a d096-enforced S21-006 contract, not vestigial debris, so neither deleting nor refreshing them can proceed until the S21-006-vs-AC-downstream conflict is adjudicated.
 3. **Fix `dev-studio-launcher/ci.yml` self-hosted label** (Q3 gap G1) — single-commit chore forward-port.
 4. **Refresh `d097` expected-label set** (Q3 gap G2) — single-line test contract update.
 5. **Tag launcher `v0.5.0`** (Q5 — current README claims v0.5.1, latest tag is v0.4.0, no v0.5.0 tag exists).
@@ -303,25 +342,28 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 | # | Decision | Options | Owner | Required before GO |
 |---|---|---|---|---|
 | **D1** | Sprint 34 vs Sprint 35 framing — directive says "Sprint 35" then "Sprint 34 ... GO verince Sprint 35." Sprint 34 is already terminal (CS#38 PR #1232 squash-merged 2026-07-26T20:09:08Z sha `4793fea`). | A: Treat audit as pre-GO for Sprint 35 execution. B: Treat as pre-GO for Sprint 34 (re-open?) — implausible, Sprint 34 is closed. C: Treat as organizational readiness milestone (no sprint). | @atilcan65 | ✅ REQUIRED |
-| **D2** | Sprint 35 scope acceptance — confirm Sprint 35 is locked to (a) delete 5 vestigial `.md.tmpl` files from AC (Q2 V0-2), (b) forward-port 2 scripts AC → TPL (Q2 FP-1/2), (c) fix `dev-studio-launcher/ci.yml` self-hosted label, (d) refresh `d097`, (e) tag launcher v0.5.0, (f) publish template v1.1.0 release, (g) first-time private disposable run. **Reframed per owner correction (2026-07-27T09:43Z+03): NO back-port TPL → AC; AC is downstream.** | A: Accept as drafted. B: Add/remove stories. C: Defer parity to Sprint 36. | @atilcan65 | ✅ REQUIRED |
+| **D2** | Sprint 35 scope acceptance — confirm Sprint 35 is locked to (a) **GATED ON D8:** soul-`.tmpl` work (Q2 V0-2), (b) forward-port 2 scripts AC → TPL (Q2 FP-1/2), (c) fix `dev-studio-launcher/ci.yml` self-hosted label, (d) refresh `d097`, (e) tag launcher v0.5.0, (f) publish template v1.1.0 release, (g) first-time private disposable run. **8 of 10 stories are clean; S35-001 + S35-002 are gated on D8.** | A: Accept 8 clean stories now, D8 decides the other 2. B: Add/remove stories. C: Defer all Q2 work to Sprint 36. | @atilcan65 | ✅ REQUIRED |
 | **D3** | First disposable private E2E run — owner must trigger `gh workflow run disposable-bootstrap-test.yml -f run_private=true` once and observe green run, OR accept MEDIUM confidence and defer to Sprint 35+ post-impl. | A: Owner runs it now (recommended). B: Defer to Sprint 35 W1. C: Skip and accept MEDIUM. | @atilcan65 | ✅ RECOMMENDED |
-| **D4** | Sprint 35 story routing — vestigial cleanup lands in `atilproject/AtilCalculator` (5 deletes), forward-ports land in `atilproject/dev-studio-template` (2 scripts), Q3 fixes land in `atilproject/dev-studio-launcher` (1 file), NOT `dev-studio-launcher` for parity/doctrine work (launcher is operator-side). | A: Per file-ownership matrix above. B: Bundle into single mega-PR. C: Defer per-item. | @atilcan65 | ✅ REQUIRED |
+| **D4** | Sprint 35 story routing — forward-ports land in `atilproject/dev-studio-template` (2 scripts), Q3 fixes land in `atilproject/dev-studio-launcher` (1 file), soul-`.tmpl` work (if D8 authorizes any) lands in `atilproject/AtilCalculator`. | A: Per file-ownership matrix above. B: Bundle into single mega-PR. C: Defer per-item. | @atilcan65 | ✅ REQUIRED |
 | **D5** | Release-discipline — confirm Sprint 35 in-scope to publish `v1.1.0` GitHub Release for template and `v0.5.0` for launcher. | A: Yes. B: Defer to Sprint 36. | @atilcan65 | RECOMMENDED |
 | **D6** | This audit document — approve as Sprint 35 kickoff baseline (with §2 reframing + §9 10-story plan per owner correction 2026-07-27T09:43Z+03), or amend. | A: Approve. B: Amend (add/remove/correct). C: Reject (different scope). | @atilcan65 | ✅ REQUIRED |
-| **D7** | **Vestigial cleanup approval** (replaces original reverse-direction override D7 — that D7 is moot per owner architectural correction 2026-07-27T09:43Z+03). Confirm Sprint 35 V0-2 work: delete 5 stale `.claude/agents/*.md.tmpl` files from AtilCalculator (vestigial bootstrap debris from `f6c2a9c0` partial cleanup). | A: Approve vestigial cleanup (recommended — 1 commit, 5 file deletes, no doctrine risk). B: Defer to Sprint 36+ (5 files stay in AC, doctrinal reminder missing but AC is reference repo so low impact). | @atilcan65 | ✅ REQUIRED |
+| **D7** | ~~Vestigial cleanup approval~~ — **WITHDRAWN 2026-07-27T10:38Z.** This decision was built on the false premise that the 5 soul `.md.tmpl` files are vestigial debris. They are a d096-enforced S21-006 contract (see §2). Superseded by **D8**. | — (no action; do not answer) | — | ❌ WITHDRAWN |
+| **D8** | **Doctrinal conflict — S21-006 soul `.tmpl` contract vs "AC is downstream, never back-port".** AC tracks 5 `.claude/agents/*.md.tmpl` files, deliberately created by STORY-S21-006 / Issue #638 and enforced GREEN by `d096-soul-files-template.sh` TC1. Their **content is stale**: template commit `cd37b63d` (d033 §Doctrine Reminder port) is not an ancestor of AC `main`; 0 grep matches for `Doctrine Reminder`/`ARCHIVE-CALL` in AC's copies. The two doctrines cannot both hold. | **A: S21-006 contract STANDS** → the 5 `.tmpl` are legitimate in AC; refreshing their content from canonical TPL is legitimate maintenance, not a forbidden back-port. Sprint 35 gets a "refresh 5 soul .tmpl from TPL" story (developer/architect lane, d096 stays GREEN). **B: S21-006 REVOKED** → AC must carry no template sources; requires deleting 5 `.tmpl` **and** retiring d096 **and** an ADR revoking Issue #638 (architect lane, doctrine change — NOT a cleanup). **C: DEFER to Sprint 36+** → files stay as-is, stale; no Sprint 35 story; accept that AC's `.tmpl` sources drift from canonical. | @atilcan65 | ✅ REQUIRED — **blocks S35-001 + S35-002** |
 
 ---
 
 ## 9. One-sprint forward-only closure plan (post-GO) — REFRAMED per owner correction 2026-07-27T09:43Z+03
 
-> **Architectural correction applied:** Sprint 35 reduced from 17 stories to **10 stories**. The original P0/P1 "back-port TPL → AC" framing was technically wrong-headed — AC is a downstream project bootstrapped FROM the template, not a re-renderable canonical source. The correct fix is **delete vestigial bootstrap debris from AC**, not back-port. All 8 reverse-direction stories removed; forward-port + cleanup + release + secrets + disposable test remain.
+> **Architectural correction applied:** Sprint 35 reduced from 17 stories to **10 stories**. AC is a downstream project bootstrapped FROM the template, not a re-renderable canonical source; all 8 reverse-direction stories were removed.
+>
+> **⚠️ HONESTY CORRECTION (orchestrator, 2026-07-27T10:38Z):** two of the 10 stories below are **BLOCKED on owner decision D8**, not ready. S35-002 as originally written ("delete 5 vestigial `.md.tmpl`") would turn `d096-soul-files-template.sh` **RED** — those files are a deliberate S21-006 / Issue #638 contract, not debris (evidence in §2). S35-001's ADR scope also depends on D8. **8 of 10 stories are clean; 2 are gated.**
 
-### Wave 1 — Foundation (vestigial cleanup + Q3 + ADR + forward-port start)
+### Wave 1 — Foundation (Q3 + forward-port start; 2 stories GATED on D8)
 
 | Story | Lane | Story ID | Description | Closes |
 |---|---|---|---|---|
-| S35-001 | architect (Lane 2) | ADR-NNNN | **File new ADR-NNNN** "AC intentionally downstream of TPL — no reverse-direction parity" (architect lane). Codifies owner correction + prevents audit-style back-port framing from recurring. Closes DoF for Q2 misframing. | Q2 P0/P1 misframing |
-| S35-002 | developer (Lane 3) | AC-V0-2 | **Delete 5 vestigial `.claude/agents/*.md.tmpl` files** from AtilCalculator (`orchestrator.md.tmpl` 12571B, `developer.md.tmpl` 6229B, `architect.md.tmpl` 5817B, `tester.md.tmpl` 9530B, `product-manager.md.tmpl` 4660B). Vestigial bootstrap debris from `f6c2a9c0` partial cleanup. Single commit, 5 file deletes. | Q2 V0-2 |
+| S35-001 ⛔ | architect (Lane 2) | ADR-NNNN | **GATED ON D8.** File ADR-NNNN on AC-vs-TPL direction doctrine. Scope depends on the D8 answer: under D8-A the ADR must codify "AC downstream **except** the S21-006 soul-`.tmpl` contract"; under D8-B it must additionally **revoke Issue #638** and retire d096. Cannot be drafted before D8. | Q2 framing + D8 |
+| S35-002 ⛔ | developer (Lane 3) | AC-V0-2 | **GATED ON D8 — do NOT dispatch as originally written.** Original text ("delete 5 vestigial `.md.tmpl`") is **factually wrong and would turn `d096` RED** (TC1 asserts all 5 exist; verified GREEN 5/5 at `f862051b`). Under D8-A this story becomes "**refresh** 5 soul `.tmpl` from canonical TPL, d096 stays GREEN"; under D8-B it becomes "delete 5 `.tmpl` **+** retire d096 **+** ADR revoking #638"; under D8-C it is **dropped**. | Q2 V0-2 + D8 |
 | S35-003 | developer (Lane 3) | LCH-001 | Fix `dev-studio-launcher/ci.yml` 2 jobs to use `[self-hosted, Linux, X64, atilcan]` (quota leak). | Q3 G1 |
 | S35-004 | tester (Lane 3) | TPL-001 | Update `d097` expected-label set to include both `[...,atilcan]` and `[...,atilproject]`. | Q3 G2 |
 
@@ -346,7 +388,7 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 | Story | Target repo | Lane | Direction |
 |---|---|---|---|
 | S35-001 (ADR-NNNN) | `atilproject/dev-studio-template` (ADR in canonical home per file-ownership matrix) | architect | docs (doctrine) |
-| S35-002 (5 vestigial deletes) | `atilproject/AtilCalculator` | developer | delete (NOT back-port) |
+| S35-002 ⛔ (soul `.tmpl`) | `atilproject/AtilCalculator` | developer | **GATED ON D8** — direction undetermined (delete vs refresh vs drop) |
 | S35-003 (ci.yml fix) | `atilproject/dev-studio-launcher` | developer | intra-launcher fix |
 | S35-004 (d097 refresh) | `atilproject/dev-studio-template` | tester | intra-template d-test |
 | S35-005 (agent-stall-detect forward-port) | `atilproject/dev-studio-template` | developer | forward-port AC → TPL |
@@ -383,7 +425,7 @@ Sprint 35 sprint-level "Done" additionally requires:
 8. ✅ `disposable-bootstrap-test.yml` has at least one successful private-path run in CI history (closes Q1 confidence).
 9. ✅ `dev-studio-launcher/ci.yml` 100% self-hosted on 4-tuple (closes Q3 G1).
 10. ✅ `v0.5.0` launcher tag + `v1.1.0` template release published (closes Q5 + Q7).
-11. ✅ V0-2 vestigial cleanup + FP-1/FP-2 forward-ports landed; no reverse-direction (TPL → AC) commits in the sprint (closes Q2).
+11. ✅ FP-1/FP-2 forward-ports landed; owner D8 answered and the resulting soul-`.tmpl` disposition executed (or explicitly deferred); `d096-soul-files-template.sh` still GREEN at sprint close (closes Q2).
 12. ✅ First-cycle Sprint 35 close ceremony + RETRO-035 filed.
 
 ---
@@ -398,7 +440,7 @@ This audit PR is **DRAFT**, **NOT IMPLEMENTATION-AUTHORIZED**. Full-team review 
 | @architect | 9-Lens (ADR-0045) | Is the Q2 vestigial-vs-forward-port reclassification correct (per owner architectural correction)? Any sister-patterns missed? Is the file-ownership matrix respected? |
 | @developer | Feasibility / sequencing | Are the 10 stories reasonable? Anything in target-repo routing that breaks single-direction discipline? |
 | @tester | Acceptance / E2E / runner | Are ACs testable? What's the d-test contract for each story? |
-| @owner (gate) | Scope approval | Decisions D1-D7 above (D7 raised by @developer parity-row review cmt 5089352460). |
+| @owner (gate) | Scope approval | Decisions **D1–D6 + D8** above. **D7 is WITHDRAWN** (built on a false premise — do not answer it). **D8 is new and blocks S35-001 + S35-002.** |
 
 ### Review routing (PR open)
 
