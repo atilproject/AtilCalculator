@@ -282,6 +282,9 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 | **D4** | Sprint 35 story routing — parity gaps land in `atilproject/dev-studio-template` (canonical home) and `atilproject/AtilCalculator` (back-port), NOT `dev-studio-launcher` (launcher is operator-side, not doctrine-side). | A: Per file-ownership matrix above. B: Bundle into single mega-PR. C: Defer per-item. | @atilcan65 | ✅ REQUIRED |
 | **D5** | Release-discipline — confirm Sprint 35 in-scope to publish `v1.1.0` GitHub Release for template and `v0.5.0` for launcher. | A: Yes. B: Defer to Sprint 36. | @atilcan65 | RECOMMENDED |
 | **D6** | This audit document — approve as Sprint 35 kickoff baseline, or amend. | A: Approve. B: Amend (add/remove/correct). C: Reject (different scope). | @atilcan65 | ✅ REQUIRED |
+| **D7** | **Reverse-direction override for P0 back-ports** (raised by @developer parity-row review cmt 5089352460). S35-001/002/003 fix direction is `TPL → AC` (back-port), which contradicts owner directive "AtilCalculator → template/launcher (reverse forbidden)". Two resolution paths: | A: Override reverse-forbidden for P0 in-scope back-port (recommended — P0 is by definition blocker, gap-closing supersedes routing rule). B: Defer P0-1/2/3 to Sprint 36+ via new ADR-NNNN "AC stale `.tmpl` rationale". | @atilcan65 | ✅ REQUIRED |
+| | — **Option A (override)**: S35-001/002/003 stay in Wave 1 with corrected `[AC]` scope labels. | | | |
+| | — **Option B (defer)**: S35-001/002/003 removed from Sprint 35 backlog; P0 status reported in `docs/tech-debt.md` with ADR-NNNN filing in Sprint 35 W1 (docs-only). | | | |
 
 ---
 
@@ -289,11 +292,13 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 
 ### Wave 1 — Foundation (parity P0 + Q3 gaps)
 
+> ⚠️ **S35-001, S35-002, S35-003 are PENDING OWNER DECISION D7** (raised by @developer parity-row review cmt 5089352460 on PR #1234). The fix direction is back-port TPL → AC, which contradicts the directive "reverse forbidden". See §8 D7 above for owner resolution paths.
+
 | Story | Lane | Story ID | Description | Closes |
 |---|---|---|---|---|
-| S35-001 | architect (Lane 2) | TPL-001 | Restore `.claude/CLAUDE.md.tmpl` in AtilCalculator from canonical TPL HEAD. | Q2 P0-1 |
-| S35-002 | architect (Lane 2) | TPL-002 | Back-port 5 `.claude/agents/*.md.tmpl` files from canonical TPL to AC (Issue #287 ARCHIVE-CALL block). | Q2 P0-2 |
-| S35-003 | architect (Lane 2) | TPL-003 | Back-port `scripts/owner-apply-soul-patch.sh` from TPL to AC. | Q2 P0-3 |
+| S35-001 ⚠️ | architect (Lane 2) | AC-P0-1 | **Restore** `.claude/CLAUDE.md.tmpl` in AtilCalculator from canonical TPL HEAD. (Scope corrected to `[AC]` per @dev parity-row cmt 5089352460.) | Q2 P0-1 |
+| S35-002 ⚠️ | architect (Lane 2) | AC-P0-2 | **Back-port** 5 `.claude/agents/*.md.tmpl` files from canonical TPL to AC (Issue #287 ARCHIVE-CALL block). (Scope corrected to `[AC]`.) | Q2 P0-2 |
+| S35-003 ⚠️ | developer (Lane 3) | AC-P0-3 | **Back-port** `scripts/owner-apply-soul-patch.sh` from TPL to AC. (Scope corrected to `[AC]`; lane corrected to developer per scripts/ ownership.) | Q2 P0-3 |
 | S35-004 | developer (Lane 3) | LCH-001 | Fix `dev-studio-launcher/ci.yml` 2 jobs to use `[self-hosted, Linux, X64, atilcan]`. | Q3 G1 |
 | S35-005 | tester (Lane 3) | AC-001 | Update `d097` expected-label set to include both `[...,atilcan]` and `[...,atilproject]`. | Q3 G2 |
 
@@ -369,7 +374,7 @@ This audit PR is **DRAFT**, **NOT IMPLEMENTATION-AUTHORIZED**. Full-team review 
 | @architect | 9-Lens (ADR-0045) | Are the Q2 P0/P1 classifications correct? Any sister-patterns missed? Is the file-ownership matrix respected? |
 | @developer | Feasibility / sequencing | Are the 17 stories reasonable? Anything in target-repo routing that breaks single-direction discipline? |
 | @tester | Acceptance / E2E / runner | Are ACs testable? What's the d-test contract for each story? |
-| @owner (gate) | Scope approval | Decisions D1-D6 above. |
+| @owner (gate) | Scope approval | Decisions D1-D7 above (D7 raised by @developer parity-row review cmt 5089352460). |
 
 ### Review routing (PR open)
 
