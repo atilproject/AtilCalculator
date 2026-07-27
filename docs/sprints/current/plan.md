@@ -1,8 +1,12 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 34 — AtilCalculator → template/launcher forward-port (audit gap-closing)** (cycle ~#3968Q+320, 2026-07-24T20:39+03:00, post-PR #1218 SQUASH-MERGE)
+> **Active sprint:** **Sprint 35 — New-Project Bootstrap Preflight Audit** (cycle ~#3968Q+10XX, 2026-07-27T18:45+03:00, owner-ratified)
 >
-> 📄 **Sprint 34 plan source:** [`docs/sprints/sprint-34/00-plan.md`](../sprint-34/00-plan.md) (orchestrator-seeded, awaiting PM Lane 1 review + amendment per cadence rule "PM owns the wave plan"; 7 STORIES / 3 WAVES / ~25-30 SP, audit gap-closing focus)
+> 📄 **Sprint 35 plan source:** [`docs/sprints/sprint-35/00-plan.md`](../sprint-35/00-plan.md) (orchestrator-seeded from owner directive, awaiting PM Lane 1 review + amendment per cadence rule "PM owns the wave plan"; 7 STORIES / 4 WAVES, audit-first + surgical-fix-second focus)
+>
+> 📄 **Previous sprint — Sprint 34 closeout (HISTORICAL):** [`docs/sprints/sprint-34/close.md`](../sprint-34/close.md) — MERGED via PR #1232 (commit `4793fea1`, 2026-07-26T20:09:08Z); 23/23 forward-port SHIPPED-functional + S34-001/003/004/005/006 Lane 0 closed; S34-007 close ceremony + RETRO-034 retrospective.
+>
+> 📄 **Previous sprint — Sprint 34 retro (HISTORICAL):** [`docs/sprints/sprint-34/RETRO-034.md`](../sprint-34/RETRO-034.md) — 4 retro lessons + 5 NEW DOCTRINE codified mid-sprint + 7 carry-over items in Sprint 35 backlog (NEW DOCTRINE: cycle ~#3968Q+911 owner-squash-witness, cycle ~#3968Q+933 Lane 3 re-query arch verdict COMMENT, cycle ~#3968Q+940 investigate before framing anomaly, cycle ~#3968Q+941 multi-remote awareness STRIKE 2, cycle ~#3968Q+414 PR-self-blocking CI)
 > 📄 **Sprint 34 audit baseline (PR #1218):** [`docs/sprints/sprint-34/00-audit-template-launcher.md`](../sprint-34/00-audit-template-launcher.md) — SQUASH-MERGED 2026-07-24T17:34:14Z (commit `44246b4`); 3/3 reviewer consensus (PM Lane 1 🟢 + Arch Lane 2 PRIMARY 9-Lens 🟢 + Tester Lane 3 🔵 N/A doc-only per cycle ~#3642H)
 > 📄 **Sprint 33 closeout:** [`docs/sprints/sprint-33/close.md`](../sprint-33/close.md) — MERGED via PR #1216 (commit `74ead05`, 2026-07-24T05:56:53Z)
 > 📄 **Sprint 33 retro (RETRO-033):** [`docs/sprints/sprint-33/RETRO-033.md`](../sprint-33/RETRO-033.md) — 19 NEW doctrine lessons captured
