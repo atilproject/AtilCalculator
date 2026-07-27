@@ -155,7 +155,7 @@ Since the user's directive locked Sprint 35 scope to **finalize** `dev-studio-te
 ### Recommended Sprint 35 in-scope additions (post-GO)
 
 1. **First `gh workflow run disposable-bootstrap-test.yml -f run_private=true`** by owner → produces the missing end-to-end proof of the private path. Closes the MEDIUM confidence gap from Q1. **Owner action**, not agent action.
-2. **Back-port 3 P0 + 12 P1 parity items** (Q2) to AtilCalculator, organized as Sprint 35 stories.
+2. **Close 3 P0 + 12 P1 parity items** (Q2) per direction pending D7 owner adjudication, organized as Sprint 35 stories.
 3. **Fix `dev-studio-launcher/ci.yml` self-hosted label** (Q3 gap G1) — single-commit chore forward-port.
 4. **Refresh `d097` expected-label set** (Q3 gap G2) — single-line test contract update.
 5. **Tag launcher `v0.5.0`** (Q5 — current README claims v0.5.1, latest tag is v0.4.0, no v0.5.0 tag exists).
@@ -277,14 +277,14 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 | # | Decision | Options | Owner | Required before GO |
 |---|---|---|---|---|
 | **D1** | Sprint 34 vs Sprint 35 framing — directive says "Sprint 35" then "Sprint 34 ... GO verince Sprint 35." Sprint 34 is already terminal (CS#38 PR #1232 squash-merged 2026-07-26T20:09:08Z sha `4793fea`). | A: Treat audit as pre-GO for Sprint 35 execution. B: Treat as pre-GO for Sprint 34 (re-open?) — implausible, Sprint 34 is closed. C: Treat as organizational readiness milestone (no sprint). | @atilcan65 | ✅ REQUIRED |
-| **D2** | Sprint 35 scope acceptance — confirm Sprint 35 is locked to (a) back-port 3 P0 + 12 P1 parity items from TPL → AC, (b) fix `dev-studio-launcher/ci.yml` self-hosted label, (c) refresh `d097`, (d) tag launcher v0.5.0, (e) first-time private disposable run. | A: Accept as drafted. B: Add/remove stories. C: Defer parity to Sprint 36. | @atilcan65 | ✅ REQUIRED |
+| **D2** | Sprint 35 scope acceptance — confirm Sprint 35 is locked to (a) close 3 P0 + 12 P1 parity gaps (direction TBD per D7), (b) fix `dev-studio-launcher/ci.yml` self-hosted label, (c) refresh `d097`, (d) tag launcher v0.5.0, (e) first-time private disposable run. Direction language ("back-port") replaced with neutral "close parity gaps" pending D7 adjudication. | A: Accept as drafted. B: Add/remove stories. C: Defer parity to Sprint 36. | @atilcan65 | ✅ REQUIRED |
 | **D3** | First disposable private E2E run — owner must trigger `gh workflow run disposable-bootstrap-test.yml -f run_private=true` once and observe green run, OR accept MEDIUM confidence and defer to Sprint 35+ post-impl. | A: Owner runs it now (recommended). B: Defer to Sprint 35 W1. C: Skip and accept MEDIUM. | @atilcan65 | ✅ RECOMMENDED |
-| **D4** | Sprint 35 story routing — parity gaps land in `atilproject/dev-studio-template` (canonical home) and `atilproject/AtilCalculator` (back-port), NOT `dev-studio-launcher` (launcher is operator-side, not doctrine-side). | A: Per file-ownership matrix above. B: Bundle into single mega-PR. C: Defer per-item. | @atilcan65 | ✅ REQUIRED |
+| **D4** | Sprint 35 story routing — parity gaps land in `atilproject/dev-studio-template` (canonical home) and `atilproject/AtilCalculator` (back-port direction, pending D7 adjudication), NOT `dev-studio-launcher` (launcher is operator-side, not doctrine-side). | A: Per file-ownership matrix above. B: Bundle into single mega-PR. C: Defer per-item. | @atilcan65 | ✅ REQUIRED |
 | **D5** | Release-discipline — confirm Sprint 35 in-scope to publish `v1.1.0` GitHub Release for template and `v0.5.0` for launcher. | A: Yes. B: Defer to Sprint 36. | @atilcan65 | RECOMMENDED |
 | **D6** | This audit document — approve as Sprint 35 kickoff baseline, or amend. | A: Approve. B: Amend (add/remove/correct). C: Reject (different scope). | @atilcan65 | ✅ REQUIRED |
-| **D7** | **Reverse-direction override for P0 back-ports** (raised by @developer parity-row review cmt 5089352460). S35-001/002/003 fix direction is `TPL → AC` (back-port), which contradicts owner directive "AtilCalculator → template/launcher (reverse forbidden)". Two resolution paths: | A: Override reverse-forbidden for P0 in-scope back-port (recommended — P0 is by definition blocker, gap-closing supersedes routing rule). B: Defer P0-1/2/3 to Sprint 36+ via new ADR-NNNN "AC stale `.tmpl` rationale". | @atilcan65 | ✅ REQUIRED |
-| | — **Option A (override)**: S35-001/002/003 stay in Wave 1 with corrected `[AC]` scope labels. | | | |
-| | — **Option B (defer)**: S35-001/002/003 removed from Sprint 35 backlog; P0 status reported in `docs/tech-debt.md` with ADR-NNNN filing in Sprint 35 W1 (docs-only). | | | |
+| **D7** | **Reverse-direction override for parity items** (raised by @developer parity-row review cmt 5089352460 + expanded by @architect 9-Lens NIT cmt 5089409150). **8 of 17 §9 stories + D2 option text + §4 #2 + §9 Target-repo routing table** reference `TPL → AC` (back-port) direction, which contradicts owner directive *"AtilCalculator → template/launcher (reverse forbidden)"*. Two resolution paths: | A: Override reverse-forbidden for in-scope parity (recommended — gap-closing supersedes routing rule). B: Defer all parity to Sprint 36+ via new ADR-NNNN "AC intentionally stale, not re-renderable canonical source" (matches audit §2 P0 alternative disposition language). | @atilcan65 | ✅ REQUIRED |
+| | — **Option A (override)**: S35-001/002/003 + S35-008/009/010/011/012 stay in §9 Wave 1+2 with corrected `[AC]` scope labels; §4 #2 + §8 D2 option text reframed to neutral language; §9 Target-repo routing unchanged. | | | |
+| | — **Option B (defer)**: 8 stories removed from Sprint 35 backlog; P0+P1 status reported in `docs/tech-debt.md`; new ADR-NNNN "AC stale rationale" filed in Sprint 35 W1 (docs-only); Sprint 35 reduced to forward-port subset (S35-006/007 + S35-004/005 + S35-013/014/015 + S35-016/017). | | | |
 
 ---
 
@@ -292,7 +292,7 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 
 ### Wave 1 — Foundation (parity P0 + Q3 gaps)
 
-> ⚠️ **S35-001, S35-002, S35-003 are PENDING OWNER DECISION D7** (raised by @developer parity-row review cmt 5089352460 on PR #1234). The fix direction is back-port TPL → AC, which contradicts the directive "reverse forbidden". See §8 D7 above for owner resolution paths.
+> ⚠️ **S35-001, S35-002, S35-003 (Wave 1) + S35-008, S35-009, S35-010, S35-011, S35-012 (Wave 2) = 8 stories PENDING OWNER DECISION D7** (raised by @developer parity-row cmt 5089352460 + expanded by @architect 9-Lens NIT cmt 5089409150 + concurred by @product-manager Lane 1 NIT-1 P0 BLOCKER). Fix direction is TPL → AC (back-port), which contradicts the directive "reverse forbidden". See §8 D7 above for owner resolution paths (Option A override vs Option B defer).
 
 | Story | Lane | Story ID | Description | Closes |
 |---|---|---|---|---|
@@ -304,15 +304,17 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 
 ### Wave 2 — Feature (parity P1 back-port + ops follow-ups)
 
+> ⚠️ **S35-008, S35-009, S35-010, S35-011, S35-012 are PENDING OWNER DECISION D7** (raised by @architect 9-Lens NIT cmt 5089409150, expanded from @dev parity-row cmt 5089352460). S35-006 and S35-007 are forward-port AC → TPL and **CORRECTLY DIRECTED** — no D7 gate. See §8 D7 above.
+
 | Story | Lane | Story ID | Description | Closes |
 |---|---|---|---|---|
-| S35-006 | developer (Lane 3) | TPL-004 | Forward-port `scripts/agent-stall-detect.sh` from AC → TPL (with d-stall-detect d-test). | Q2 P1-2 |
-| S35-007 | developer (Lane 3) | TPL-005 | Forward-port `scripts/install/install-git-hooks.sh` from AC → TPL. | Q2 P1-3 |
-| S35-008 | architect + developer | TPL-006 | Back-port 11 `.github/workflows/*.yml` to TPL canonical (or document intentional divergence). | Q2 P1-4 |
-| S35-009 | developer (Lane 3) | TPL-007 | Back-port `systemd/dev-studio-health.service.tmpl` to AC. | Q2 P1-5 |
-| S35-010 | developer (Lane 3) | TPL-008 | Back-port `.github/LABEL-TAXONOMY.md` to AC. | Q2 P1-6 |
-| S35-011 | developer (Lane 3) | AC-002 | Refresh 5 `.claude/agents/*.md` rendered files in AC to include Issue #972 SOUL AMEND block. | Q2 P1-1 |
-| S35-012 | developer (Lane 3) | AC-003 | Sister-test port-parity: back-port latest `scripts/agent-state.sh`, `agent-watch.sh`, `deploy-runner.sh`, `dev-studio-init.sh`, `init-template-repo.sh`, `notify.sh`, etc. — sister d-test verifies. | Q2 P1-7/8 |
+| S35-006 | developer (Lane 3) | TPL-004 | Forward-port `scripts/agent-stall-detect.sh` from AC → TPL (with d-stall-detect d-test). ✅ correctly directed. | Q2 P1-2 |
+| S35-007 | developer (Lane 3) | TPL-005 | Forward-port `scripts/install/install-git-hooks.sh` from AC → TPL. ✅ correctly directed. | Q2 P1-3 |
+| S35-008 ⚠️ | architect + developer | TPL-006 | **Refresh AC's 11 `.github/workflows/*.yml`** to match canonical TPL (or document intentional divergence). (Scope label `[AC]` per architect correction; direction ambiguity resolved.) | Q2 P1-4 |
+| S35-009 ⚠️ | developer (Lane 3) | AC-P1-5 | **Refresh AC** to include `systemd/dev-studio-health.service.tmpl` (currently `.timer`-only). (Scope label `[AC]`.) | Q2 P1-5 |
+| S35-010 ⚠️ | developer (Lane 3) | AC-P1-6 | **Refresh AC** to include `.github/LABEL-TAXONOMY.md`. (Scope label `[AC]`.) | Q2 P1-6 |
+| S35-011 ⚠️ | developer (Lane 3) | AC-P1-1 | **Refresh 5 `.claude/agents/*.md` rendered files** in AC to include Issue #972 SOUL AMEND block. (Scope label `[AC]` per file-ownership matrix docs/souls lane.) | Q2 P1-1 |
+| S35-012 ⚠️ | developer (Lane 3) | AC-P1-7/8 | **Sister-test port-parity**: refresh AC's `scripts/agent-state.sh`, `agent-watch.sh`, `deploy-runner.sh`, `dev-studio-init.sh`, `init-template-repo.sh`, `notify.sh`, etc. — sister d-test verifies. (Scope label `[AC]`. 14 scripts + 5 sister d-tests.) | Q2 P1-7/8 |
 
 ### Wave 3 — Polish (release + observability)
 
@@ -328,9 +330,10 @@ Delivered as sibling file: **`docs/sprints/sprint-35/new-project-steps.md`** (th
 
 | Story | Target repo | Lane |
 |---|---|---|
-| S35-001, S35-002, S35-003, S35-011, S35-012, S35-016 (orchestration), S35-017 (org-level) | `atilproject/AtilCalculator` | back-port |
+| **⚠️ PENDING D7** S35-001, S35-002, S35-003, S35-008, S35-009, S35-010, S35-011, S35-012 | `atilproject/AtilCalculator` | back-port (per D7 Option A) OR removed from backlog (per D7 Option B) |
+| S35-016 (orchestration), S35-017 (org-level) | `atilproject/AtilCalculator` | orchestration / secrets (owner-only) |
 | S35-004, S35-005, S35-013, S35-015 | `atilproject/dev-studio-launcher` | launcher |
-| S35-006, S35-007, S35-008, S35-009, S35-010, S35-014, S35-016 (workload) | `atilproject/dev-studio-template` | forward-port / canonical refresh |
+| S35-006, S35-007, S35-014 | `atilproject/dev-studio-template` | forward-port / canonical refresh |
 
 ### Capacity & cadence
 
