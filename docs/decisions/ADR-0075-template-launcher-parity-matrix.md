@@ -204,21 +204,29 @@ AtilCalc ADR count is higher because of calculator product ADRs (ADR-0019-API-co
 
 ## §F. `.github/workflows/` (11 AtilCalc vs 12 template)
 
-| Workflow | AtilCalc | Template | Class | Notes |
-|---|---|---|---|---|
-| `ai-pr-review.yml` | ✓ | ✓ | `equivalent` | Same |
-| `ci.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments; runner labels AtilCalc-side differ |
-| `cross-repo-close.yml` | ✓ | ✓ | `equivalent` | Same |
-| `d050b-dispatch.yml` | ✓ | ✓ | `equivalent` | Same |
-| `deploy.yml` | ✓ | ✓ (+ `.tmpl`) | `divergent` | AtilCalc has Sprint 33 deploy amendments; template has both forms |
-| `label-check.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments (RETRO-024 silent-skip, cycle ~#3968Q+214 atomic-only-status, etc.) |
-| `label-cleanup.yml` | ✓ | ✓ | `equivalent` | Same |
-| `lint-and-test.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments (d-test runner, etc.) |
-| `post-squash.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments |
-| `secret-canary.yml` | ✓ | ✓ | `equivalent` | Same |
-| `status-label-to-board.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments |
+| Workflow | AtilCalc | Template | Class | Notes | Status |
+|---|---|---|---|---|---|
+| `ai-pr-review.yml` | ✓ | ✓ | `equivalent` | Same | — |
+| `ci.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments; runner labels AtilCalc-side differ | PROPOSED |
+| `cross-repo-close.yml` | ✓ | ✓ | `equivalent` | Same | — |
+| `d050b-dispatch.yml` | ✓ | ✓ | `equivalent` | Same | — |
+| `deploy.yml` | ✓ | ✓ (+ `.tmpl`) | `divergent` | AtilCalc has Sprint 33 deploy amendments; template has both forms | PROPOSED |
+| `label-check.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments (RETRO-024 silent-skip, cycle ~#3968Q+214 atomic-only-status, etc.) | **APPLIED-2026-07-27** (PR #226) |
+| `label-cleanup.yml` | ✓ | ✓ | `equivalent` | Same | — |
+| `lint-and-test.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments (d-test runner, etc.) | PROPOSED |
+| `post-squash.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments | PROPOSED |
+| `secret-canary.yml` | ✓ | ✓ | `equivalent` | Same | — |
+| `status-label-to-board.yml` | ✓ | ✓ | `divergent` | AtilCalc has Sprint 33 amendments | PROPOSED |
 
 **Verdict:** 5 workflows `equivalent` (S34-002 sync trivial). 6 workflows `divergent` (S34-002 forward-port AtilCalc amendments to template). No `missing` (workflow layer already in parity structurally).
+
+### §F.1 Sprint 35 row updates
+
+| Date | Workflow | Status transition | PR | Cluster | Doctrine layers |
+|---|---|---|---|---|---|
+| 2026-07-27 | `label-check.yml` | PROPOSED → **APPLIED-2026-07-27** | [atilcan65/dev-studio-template#226](https://github.com/atilcan65/dev-studio-template/pull/226) | cluster 1 (S35-003 G1f) | Issue #213 TEST-WAKE-ENFORCE Layer 3 + Issue #423 ADR-0012 §Cascade-strip Part 1 + owner-override clause + closed event in pull_request_target + concurrency serialization per cycle ~#3968Q+414 PR self-blocking CI doctrine |
+
+**Cluster-squash grouping** per ADR-0059 + Issue #1238 lane routing AC4 (architect reviewer): cluster 1 = label-check.yml (1 PR, owner-squashed 2026-07-27T20:21:26Z sha `82e557c`, 3 verdict-bys PRESERVED per cycle ~#3968Q+407 conditional preservation). Sister-clusters (status-label-to-board, label-cleanup, lint-and-test, deploy) GATED on cluster 1 squash per cycle ~#311+8 PR-seq squash conflict CONDITIONAL.
 
 ---
 
