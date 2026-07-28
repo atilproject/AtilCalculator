@@ -26,8 +26,8 @@
 
 - Sprint 34 CLOSED 2026-07-26 (close.md PR #1232 merged, RETRO-034 filed)
 - 23/23 forward-port SHIPPED across 3 repos
-- S34-002 umbrella #1222 STILL OPEN (terminal Closes anchor RESERVED for row 280 same-repo PR per RETRO-024)
-- RETRO-034: 19 lessons, 5 NEW DOCTRINE carry-overs to Sprint 35
+- S34-002 umbrella #1222 CLOSED 2026-07-27T07:25:35Z (owner-direct close, no terminal PR; row 280 same-repo PR deferred per RETRO-024 spirit — work tracked elsewhere via sister-PR PR #1244 cluster-squash chain)
+- RETRO-034: 19 lessons, 4 NEW DOCTRINE + 1 backlog item (= 4+1 carry-over; see S35-001 AC2 below for breakdown)
 
 ## Story inventory (7 stories, 4 waves)
 
@@ -35,9 +35,9 @@
 
 #### Story S35-001: Sprint 34 residual verification
 
-**AC1**: Verify S34-002 umbrella #1222 status — either close via RETRO-024 owner-directive OR document why deferred
-**AC2**: Verify RETRO-034 5 NEW DOCTRINE carry-overs — spawn ADR drafts (or file as backlog issues) per lesson
-**AC3**: Verify NO Sprint 34 story left in "in_progress" state anywhere (issue label audit)
+**AC1**: Verify S34-002 umbrella #1222 status — either close via RETRO-024 owner-directive OR document why deferred — **RESOLVED 2026-07-27T07:25:35Z**: owner-direct close verified; no terminal Closes anchor PR needed (RETRO-024 spirit preserved)
+**AC2**: Verify RETRO-034 carry-overs — 4 NEW DOCTRINE (cycle ~#3968Q+911 owner-squash-witness, cycle ~#3968Q+933 Lane 3 re-query, cycle ~#3968Q+941 multi-remote STRIKE 2, cycle ~#3968Q+414 PR-self-blocking CI) + 1 backlog item (Retro Lesson 4: ADR-0012 label-check enforcement evolution) = **4+1 carry-over** (orchestrator 4-vs-5 refinement per cycle ~#3968Q+940 — RETRO-034 line 12 self-summary "5 NEW DOCTRINE" counts cycle ~#940 as candidate not yet ratified, hence 4 filed + 1 backlog = 4+1; sibling ADR-0012 enforcement evolution is Lesson 4 backlog action item, NOT a NEW DOCTRINE draft) — spawn ADR drafts (or file as backlog issues) per lesson
+**AC3**: Verify NO Sprint 34 story left in "in_progress" state anywhere (issue label audit) — **PASS 2026-07-28**: verified all Sprint 34 stories #1220-#1227 CLOSED; 2 stale labels on #1222 + #1227 flagged + orchestrator-fixed via 4-cat repair per ADR-0015 + RETRO-024 silent-skip doctrine
 **Owner lane**: PM Lane 1
 **Story-issue labels**: `sprint-35`, `type:audit`
 
@@ -184,6 +184,7 @@
 ## Deliverables inventory (Sprint 35 exit state)
 
 - `docs/sprints/sprint-35/00-plan.md` (this file — PM Lane 1 seed + amendment)
+- `docs/sprints/sprint-35/01-s35-001-pm-lane1-audit-report.md` (S35-001 PM Lane 1 audit report — AC1+AC2+AC3 evidence per architect cmt 5096534025 Lane 2 PRIMARY 9-Lens approval)
 - `docs/sprints/sprint-35/00-parity-refresh.json` (S35-002 evidence)
 - `docs/sprints/sprint-35/01-parity-audit-report.md` (S35-002 gap table)
 - `docs/sprints/sprint-35/02-live-smoke-report.md` (S35-005 30-min soak evidence)
