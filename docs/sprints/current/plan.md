@@ -1,9 +1,13 @@
 # Current Sprint — Pointer
 
-> **Active sprint:** **Sprint 35 — New-Project Bootstrap Preflight Audit** (cycle ~#3968Q+10XX, 2026-07-27T18:45+03:00, owner-ratified)
+> **Active sprint:** **Sprint 35 — New-Project Bootstrap Preflight Audit** (cycle ~#3968Q+1109, 2026-07-27 owner-ratified → 2026-07-29 close ceremony prepared, awaiting owner verbatim close marker on Issue #1241)
 >
 > 📄 **Sprint 35 plan source:** [`docs/sprints/sprint-35/00-plan.md`](../sprint-35/00-plan.md) (orchestrator-seeded from owner directive, awaiting PM Lane 1 review + amendment per cadence rule "PM owns the wave plan"; 7 STORIES / 4 WAVES, audit-first + surgical-fix-second focus)
 >
+> 📄 **Sprint 35 close ceremony (close.md — S35-007):** [`docs/sprints/sprint-35/close.md`](../sprint-35/close.md) — 7 stories ledger + cluster #41 9-layer cascade record (orchestrator-prepared 2026-07-29T07:34Z)
+> 📄 **Sprint 35 retro (RETRO-035 — S35-007):** [`docs/sprints/sprint-35/RETRO-035.md`](../sprint-35/RETRO-035.md) — 5 NEW DOCTRINE formalizations + 9 deferred items
+> 📄 **Sprint 35 green-light checklist (S35-006):** [`docs/sprints/sprint-35/03-green-light-checklist.md`](../sprint-35/03-green-light-checklist.md) — 24/24 sections verified, owner-delegated per chat 2026-07-29
+> 📄 **Sprint 35 parity audit report (S35-001/002):** [`docs/sprints/sprint-35/01-parity-audit-report.md`](../sprint-35/01-parity-audit-report.md) — PM Lane 1 audit adjudication complete
 > 📄 **Previous sprint — Sprint 34 closeout (HISTORICAL):** [`docs/sprints/sprint-34/close.md`](../sprint-34/close.md) — MERGED via PR #1232 (commit `4793fea1`, 2026-07-26T20:09:08Z); 23/23 forward-port SHIPPED-functional + S34-001/003/004/005/006 Lane 0 closed; S34-007 close ceremony + RETRO-034 retrospective.
 >
 > 📄 **Previous sprint — Sprint 34 retro (HISTORICAL):** [`docs/sprints/sprint-34/RETRO-034.md`](../sprint-34/RETRO-034.md) — 4 retro lessons + 5 NEW DOCTRINE codified mid-sprint + 7 carry-over items in Sprint 35 backlog (NEW DOCTRINE: cycle ~#3968Q+911 owner-squash-witness, cycle ~#3968Q+933 Lane 3 re-query arch verdict COMMENT, cycle ~#3968Q+940 investigate before framing anomaly, cycle ~#3968Q+941 multi-remote awareness STRIKE 2, cycle ~#3968Q+414 PR-self-blocking CI)
@@ -17,85 +21,27 @@
 
 ## Mode
 
-🟢 **SPRINT 34 EXECUTE — AUDIT GAP-CLOSING (single-direction, scope-locked)**
+🟢 **SPRINT 35 CLOSE CEREMONY PREPARED — AWAITS OWNER VERBATIM CLOSE MARKER**
 
-- **Owner-ratified**: 2026-07-24T20:39+03:00 ("ok mergeledim başlayın, tum bu işler sprint 34e yapılacak, başka iş yapılmayacak bu sprinte")
-- **Owner GO signal**: 2026-07-24 (post-PR #1218 squash-merge sha `44246b4`)
+- **Owner-ratified**: 2026-07-27T18:45+03:00 ("Sprint 35 — New-Project Bootstrap Preflight Audit")
+- **Outcome target**: New PRIVATE project green-light (5-agent soul + panels + watchdog + reprime + task-list + stall-detect + Sprint 30-34 doctrine)
+- **Cluster #41 9-layer cascade**: PR #232 + #234 + #236 + #238 + #240 SQUASHED, Run #10/#11/#12 GREEN (cycle ~#1109 RECURSIVE LIVE VALIDATION)
+- **Cluster #40 Sprint 33 forward-port**: PR #226 + #227 SQUASHED, parity matrix complete
+- **All 6 stories DONE** (S35-001 → S35-006); **S35-007 close ceremony** prepared by orchestrator, awaits owner verbatim `SPRINT 35 CLOSED — NEW PROJECT GREEN-LIGHT` on Issue #1241
 - **Capacity cap**: 4-5 PRs/cluster-squash per day, 5 agents in parallel lanes
-- **Scope boundary**: AtilCalculator → template + launcher forward-port (audit gap-closing sequence steps 2-8 = 7 stories). OUT: any other work, any reverse-direction propagation, any out-of-matrix impl
-- **Sister-repo workstreams** (3 repos): template + launcher + calc (single-direction A→T+L only)
-- **Tag discipline**: launcher `v0.5.0` target (S34-003); template version pending parity matrix approval (S34-001)
-- **Scope-lock supersession**: Owner directive 2026-07-24T20:39Z supersedes 2026-07-21T09:55Z Sprint 34-forbidden directive per cycle ~#3968Q+313 NEW DOCTRINE (owner scope authority: newer directive supersedes)
 
 ---
 
-## Story inventory (7 stories, 3 waves)
+## Transition
 
-| Wave | Scope | Stories | Status |
-|---|---|---|---|
-| **Wave 1 — Foundation** | Parity matrix construction (artifact-by-artifact classification) | S34-001 | `status:ready` (Wave 1 GO) |
-| **Wave 2 — Feature** | Template forward-port + Launcher forward-port + Bootstrap test infra | S34-002 / S34-003 / S34-004 | pending Wave 1 close |
-| **Wave 3 — Polish** | Runner tuple resolution + Verified new-project-steps doc + Sprint 34 close | S34-005 / S34-006 / S34-007 | pending Wave 2 close |
+**Sprint 36 plan**: NOT YET drafted. Owner decision pending:
 
----
+- **Option A — Open new private project**: spawn Sprint 36 in the new project (template + launcher applied via `new-project.sh`). AtilCalculator remains as the template-evolution repo.
+- **Option B — Continue in AtilCalculator**: Sprint 36 = retrospective codification (4 ADR drafts #1247-#1250, 3 pre-existing RETRO candidates, 2 hygiene items). Use sprint cadence for clean-up.
+- **Option C — Transitional**: Sprint 35 close + Sprint 36 plan + Sprint 36 kickoff all in one cycle (cluster-squash 3-PR per ADR-0059).
 
-## Owner merge gate queue (TIER 1 — ADR-0031 blocking)
-
-| PR | Repo | Story | State | Test status | Action |
-|---|---|---|---|---|---|
-| **#1216** | atilproject/AtilCalculator | Sprint 33 close ceremony | ✅ squash-merged @ 05:56:53Z (commit `74ead05`) | n/a (docs) | ✅ done |
-| **#1218** | atilproject/AtilCalculator | Sprint 34 audit baseline | ✅ squash-merged @ 17:34:14Z (commit `44246b4`) | n/a (docs) | ✅ done — Sprint 34 EXEC UNBLOCKED |
-| (Wave 1) | atilproject/AtilCalculator | Sprint 34 plan.md + kickoff issue | ⏳ IN PROGRESS (this PR + issue chain) | n/a (docs pointer) | ORCH 4-cat label set, PM Lane 1 review pending |
+Owner decides; orchestrator dispatches per choice.
 
 ---
 
-## Sprint 34 active issues
-
-- **[Sprint 34] Kickoff** (atilproject/AtilCalculator) — orchestrator opening NOW, 4-cat labels per ADR-0012
-- **S34-001** — Parity matrix construction (architect-led, L effort, Wave 1) — orchestrator opening NOW
-- **S34-002** — Template forward-port impl (developer-led, XL effort, Wave 2) — pending S34-001
-- **S34-003** — Launcher forward-port impl (developer-led, XL effort, Wave 2) — pending S34-001
-- **S34-004** — Disposable bootstrap test infra (developer + owner gate, M effort, Wave 2) — pending S34-002/003
-- **S34-005** — Runner tuple resolution (owner-gated, S effort, Wave 3) — pending S34-002/003
-- **S34-006** — Verified new-project-steps doc (PM-led, M effort, Wave 3) — pending S34-004/005
-- **S34-007** — Sprint 34 close + retro (orchestrator-led, S effort, Wave 3) — pending S34-001..006
-
----
-
-## Sister-repo workstreams (RETRO-023 cluster, 3 repos, single-direction)
-
-- **`atilproject/dev-studio-template`** (target v1.x.x) — primary Sprint 34 target (forward-port from AtilCalculator per parity matrix `equivalent`/`divergent` rows)
-- **`atilproject/dev-studio-launcher`** (target v0.5.0) — secondary target (version contract + tests + docs forward-port)
-- **`atilproject/AtilCalculator`** — source repo (no impl work, only docs/sprints/ artifacts for Sprint 34)
-
----
-
-## Doctrine reference (Sprint 34 active)
-
-- **ADR-0012** — 4-cat label invariant (every Issue/PR: type + status + agent + cc)
-- **ADR-0015** — Atomic 4-flag handoff (add add remove remove order)
-- **ADR-0017** — Python 3.11+ stack (unchanged)
-- **ADR-0024** — Verdict-by discipline (`verdict-by:<role>:<ts>` convention)
-- **ADR-0031** — Owner merge gate (only human squash-merges)
-- **ADR-0033** — Dual-channel peer-poke (Telegram + tmux pane wake)
-- **ADR-0038** — Auto-Claim WIP cap (2/2 per role)
-- **ADR-0044** — RED-first TDD (tester before dev)
-- **ADR-0045** — 9-Lens pre-publish gate (architect Lane 2 PRIMARY)
-- **ADR-0049** — d-test framework (≥5 TCs behavioral, ≥3 TCs hygiene/docs)
-- **ADR-0055** — Cadence Rule 1 atomic (sister-pattern d-test commits with impl)
-- **ADR-0057** — Closes anchor strict format (`Closes #N` vs `Refs #N`)
-- **ADR-0059** — Cluster-squash batch-merge (≤60s owner-squash window per cycle ~#3258 cap)
-- **RETRO-018 W6** — Branch-ownership matrix (cross-agent push authority NOT in doctrine)
-- **RETRO-024** — Work-done-elsewhere exception (cross-repo terminal state — N/A for Sprint 34 active work)
-- **RETRO-027** — Cadence Rule 2 retroactive-close precondition (PR-persistence + Closes-anchor required)
-- **cycle ~#3642H** — Lane 3 N/A on doc-only PRs
-- **cycle ~#3968Q+186** — 2-lane ack pattern scope: CLUSTER DOCS ONLY (single-file audit exempt)
-- **cycle ~#3968Q+226** — 600s productive-idleness storm-watch baseline
-- **cycle ~#3968Q+244** — Arch verdict cc: auto-pair skipped (orchestrator 2-flag atomic fix post-verdict)
-- **cycle ~#3968Q+277** — 4h+ idle escalation matrix
-- **cycle ~#3968Q+313** — Owner scope authority (newer directive supersedes — Sprint 34 framing NOW valid)
-- **cycle ~#3968Q+3921Q+/~#3922Q** — Post-verdict commit doctrine (verdict-by preserved as historical evidence)
-
----
-
-— @orchestrator, 2026-07-24T20:39+03:00 (cycle ~#3968Q+320, post-PR #1218 SQUASH-MERGE, Sprint 34 EXECUTION KICKOFF)
+*Last updated: 2026-07-29T07:42Z by @orchestrator (S35-007 close ceremony — rebase-resolved against origin/main per cycle ~#940 PROCESS-GAP, integrating PM Lane 1 mid-sprint pointer + close-prep additions)*

@@ -1,0 +1,152 @@
+{
+  "metadata": {
+    "sprint": 35,
+    "story": "S35-002",
+    "issue": 1236,
+    "ac": "AC1",
+    "executed_at_utc": "2026-07-27T16:08:30Z",
+    "executed_by": "architect",
+    "sister_patterns": [
+      "ADR-0075",
+      "Issue #651",
+      "ADR-0047 Part 2"
+    ],
+    "owner_ratification_utc": "2026-07-27T15:45:00Z",
+    "doctrine_lock": "Sprint 35 EXECUTE mode per docs/sprints/sprint-35/00-plan.md"
+  },
+  "audit_project_refs": {
+    "tool": "scripts/audit-project-refs.sh",
+    "args": [
+      "--json"
+    ],
+    "target_dir": "/home/atilcan/projects/AtilCalculator",
+    "exit_code": 1,
+    "raw_status": "FAIL",
+    "raw_hits": 550,
+    "summary": {
+      "total_hits": 550,
+      "unique_files_with_hits": 102,
+      "file_extension_distribution": {
+        "sh": 330,
+        "json": 157,
+        "py": 24,
+        "tmpl": 12,
+        "yml": 9,
+        "toml": 5,
+        "js": 4,
+        "css": 4,
+        "github/CODEOWNERS": 3,
+        "html": 1
+      },
+      "topdir_distribution": {
+        "scripts": 330,
+        "docs": 157,
+        "src": 23,
+        ".github": 12,
+        ".claude": 10,
+        "tests": 10,
+        "pyproject.toml": 5,
+        "CLAUDE.md.tmpl": 2
+      },
+      "tmpl_related_hits": 12,
+      "tmpl_related_pct": 2.2,
+      "top_15_files_by_hits": [
+        {
+          "file": "docs/backlog.json",
+          "hits": 126
+        },
+        {
+          "file": "scripts/tests/d095-post-org-migration-clone-urls.sh",
+          "hits": 61
+        },
+        {
+          "file": "scripts/tests/d116-td-038-scripts-lane-drift.sh",
+          "hits": 52
+        },
+        {
+          "file": "scripts/tests/d114-url-hygiene-atilcan65-to-atilproject.sh",
+          "hits": 21
+        },
+        {
+          "file": "scripts/tests/d642-scripts-parameterized.sh",
+          "hits": 18
+        },
+        {
+          "file": "scripts/tests/d297-closes-format-check.sh",
+          "hits": 14
+        },
+        {
+          "file": "docs/sprints/sprint-02/backlog.json",
+          "hits": 12
+        },
+        {
+          "file": "scripts/tests/d067c-open-time-label-strip.sh",
+          "hits": 11
+        },
+        {
+          "file": "scripts/tests/d091-tmpl-source-files.sh",
+          "hits": 10
+        },
+        {
+          "file": "scripts/tests/d105-audit-project-refs.sh",
+          "hits": 10
+        },
+        {
+          "file": "scripts/tests/d1142-agent-watch-hygiene.sh",
+          "hits": 10
+        },
+        {
+          "file": "scripts/tests/d035-cross-repo-close.sh",
+          "hits": 9
+        },
+        {
+          "file": "scripts/verify-portage.sh",
+          "hits": 9
+        },
+        {
+          "file": "docs/sprints/sprint-05/backlog.json",
+          "hits": 8
+        },
+        {
+          "file": "scripts/tests/d040-deploy-path-guard.sh",
+          "hits": 7
+        }
+      ]
+    },
+    "interpretation": "AtilCalculator is the POST-init render of dev-studio-template. FAIL with 550 hits is EXPECTED: hits concentrate in d-test fixtures (.sh = 330 hits) that intentionally embed 'AtilCalculator' / 'atilcan65' to assert cleanup works, backlog.json (.json = 157 hits) which IS this project so self-references are correct, and 12 .tmpl hits which are template source-of-truth (NEVER rendered). Real 'un-rendered' placeholder leak = unknown \u2014 requires deep-dive to detect which would be AC2 territory (file SHA parity vs template)."
+  },
+  "cross_repo_scan": {
+    "tool": "scripts/cross-repo-scan.sh",
+    "args": [
+      "--once"
+    ],
+    "env": {
+      "AGENT_CROSS_REPOS": "atilcan65/dev-studio-template,atilcan65/dev-studio-launcher",
+      "CROSS_REPO_SCAN_LOG": "/tmp/sprint-35-cross-repo-scan.log"
+    },
+    "exit_code": 0,
+    "events": [
+      {
+        "ts": "2026-07-27T16:08:18Z",
+        "event": "cross_repo_scan_complete",
+        "repos_scanned": 2,
+        "prs_total": 0,
+        "dispatches": 0,
+        "duration_sec": 2
+      }
+    ],
+    "summary": {
+      "repos_scanned": 2,
+      "prs_total": 0,
+      "dispatches": 0,
+      "duration_sec": 2
+    },
+    "interpretation": "0 open PRs on dev-studio-template + dev-studio-launcher. 0 dispatches = no peer-poke side effect per cycle ~#3968Q+218 verdict-by preapply bug. Template + launcher are quiet post-Sprint 34 close (W4 final row #1219 + #1228 cluster-squash). Implication: any forward-port gap detected by AC2-AC4 must be opened as NEW PRs in target repos."
+  },
+  "ac2_ac5_implications": {
+    "ac2_equivalent_rows": "AC2 SHA-drift detection requires reading ADR-0075 \u00a7B.1 (38 shared scripts) and comparing calc vs tmpl file content. audit-project-refs FAIL is NOT a direct SHA-drift signal \u2014 it's a placeholder-leak detector. AC2 must use `gh api repos/{owner}/{repo}/contents/{path} --jq .sha` for byte-identity.",
+    "ac3_divergent_rows": "AC3 patch verification requires reading ADR-0075 \u00a7B.2 (9 forward-port candidates) and grep'ing template content for Sprint 33+34 patch patterns (RETRO-026/027/030/032/033/034).",
+    "ac4_missing_rows": "AC4 forward-port verification compares ADR-0075 missing rows \u00a7B.2 (9 scripts) + \u00a7C (~150 d-tests) + \u00a7D (~14 ADRs) against Sprint 34 PR list (#210-#225). audit-project-refs FAIL d-test count (330 hits in scripts/) suggests d-tests DO exist (in calc) but their forward-port status to template is unknown.",
+    "ac5_gap_table": "AC5 GAP TABLE publishes 01-parity-audit-report.md where actual \u2260 ADR-0075 claim. GATE 1 STOP after AC5 \u2014 owner reviews before Wave 2 begins."
+  }
+}
