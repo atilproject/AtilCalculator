@@ -1,0 +1,163 @@
+{
+  "metadata": {
+    "sprint": 35,
+    "story": "S35-002",
+    "issue": 1236,
+    "ac": "AC4",
+    "executed_at_utc": "2026-07-27T16:14:14Z",
+    "executed_by": "architect",
+    "method": "gh api repos/<repo>/contents/<path> existence check + dir listing + Sprint 34 PR list",
+    "calc_repo": "atilcan65/AtilCalculator",
+    "tmpl_repo": "atilcan65/dev-studio-template",
+    "row_source": "ADR-0075 \u00a7B.2 (9 scripts) + \u00a7C (~150 d-tests) + \u00a7D (~14 ADRs) classified as missing"
+  },
+  "b2_scripts_missing": {
+    "total_rows": 9,
+    "forward_ported_count": 2,
+    "still_missing_count": 7,
+    "rows": [
+      {
+        "path": "scripts/agent-stall-detect.sh",
+        "exists_in_tmpl": false,
+        "tmpl_sha": null,
+        "verdict": "STILL_MISSING"
+      },
+      {
+        "path": "scripts/d-test-network-abstraction.sh",
+        "exists_in_tmpl": false,
+        "tmpl_sha": null,
+        "verdict": "STILL_MISSING"
+      },
+      {
+        "path": "scripts/d-test-reconcile-live.sh",
+        "exists_in_tmpl": false,
+        "tmpl_sha": null,
+        "verdict": "STILL_MISSING"
+      },
+      {
+        "path": "scripts/d-test-target-os.sh",
+        "exists_in_tmpl": false,
+        "tmpl_sha": null,
+        "verdict": "STILL_MISSING"
+      },
+      {
+        "path": "scripts/dev-studio-dryrun.sh",
+        "exists_in_tmpl": false,
+        "tmpl_sha": null,
+        "verdict": "STILL_MISSING"
+      },
+      {
+        "path": "scripts/wip-idle-detect.sh",
+        "exists_in_tmpl": true,
+        "tmpl_sha": "6657c785d33d",
+        "verdict": "FORWARD_PORTED"
+      },
+      {
+        "path": "scripts/verify-portage.sh",
+        "exists_in_tmpl": true,
+        "tmpl_sha": "7d66e1d43eb1",
+        "verdict": "FORWARD_PORTED"
+      },
+      {
+        "path": "scripts/s29-002-tag-move.sh",
+        "exists_in_tmpl": false,
+        "tmpl_sha": null,
+        "verdict": "STILL_MISSING"
+      },
+      {
+        "path": "scripts/install/install-git-hooks.sh",
+        "exists_in_tmpl": false,
+        "tmpl_sha": null,
+        "verdict": "STILL_MISSING"
+      }
+    ]
+  },
+  "c_dtests_missing": {
+    "calc_dtest_total": 155,
+    "tmpl_dtest_total": 68,
+    "calc_unique_to_calc": 141,
+    "tmpl_unique_to_tmpl": 63,
+    "intersection": 23,
+    "examples_missing_from_tmpl_first_20": [
+      "ci-detects-pyproject.sh",
+      "d-agent-watch-stall-wiring.sh",
+      "d-retro-024-4cat-repair-silent-skip.sh",
+      "d-stall-detect-pr-driven.sh",
+      "d-stall-detect.sh",
+      "d-wake-nudge-audit.sh",
+      "d006-stable-event-ids.sh",
+      "d007-api-observability.sh",
+      "d011-status-action-driver.sh",
+      "d012-stale-verdict-schema.sh",
+      "d013-issue-assigneeship-authority.sh",
+      "d014-rca-9-preflight-venv-create.sh",
+      "d016-rca-11-runtime-deps-explicit.sh",
+      "d017-rca-12-cross-user-port-8000.sh",
+      "d018-rca-14-uvicorn-orphan-kill.sh",
+      "d019-e2e-deploy-verify.sh",
+      "d020a-claim-next-ready-form-c.sh",
+      "d022-proactive-board-detections.sh",
+      "d023-rca18-buffer-ttl.sh",
+      "d030-cmd-set-quoting-guard.sh"
+    ],
+    "examples_extra_in_tmpl_first_10": [
+      "d-apply-vm-hardening-port.sh",
+      "d-cadence-rule-2-orphan-impl-dispatch.sh",
+      "d-init-sh-tmpl-preservation.sh",
+      "d-orchestrator-gap-scan-port.sh",
+      "d-s32-024-new-project-bootstrap-dry-run.sh",
+      "d-s34-002-agent-context-monitor-byte-equivalence.sh",
+      "d-s34-002-agent-doctor-byte-equivalence.sh",
+      "d-s34-002-agent-journal-byte-equivalence.sh",
+      "d-s34-002-agent-wake-byte-equivalence.sh",
+      "d-s34-002-apply-reprime-protocol-byte-equivalence.sh"
+    ]
+  },
+  "d_adrs_missing": {
+    "calc_adr_total": 79,
+    "tmpl_adr_total": 59,
+    "missing_from_tmpl_count": 28,
+    "missing_from_tmpl_first_20": [
+      "ADR-0002-amendment-1-stale-verdict-filter-scope.md",
+      "ADR-0007-label-cleanup-and-revert-doctrine.md",
+      "ADR-0018-front-end-framework.md",
+      "ADR-0019-amendment-2-decimal-and-envelope.md",
+      "ADR-0019-amendment-3-lazy-import-and-self-hosted-multiplier.md",
+      "ADR-0019-amendment-4-conftest-env-var-precedence.md",
+      "ADR-0019-amendment-5-evaluate-persist-env-var-gate.md",
+      "ADR-0019-api-contract.md",
+      "ADR-0022-persistence-layer.md",
+      "ADR-0023-frontend-architecture.md",
+      "ADR-0024-amendment-auto-verdict-by-hook.md",
+      "ADR-0024-amendment-stale-verdict-supersede.md",
+      "ADR-0038-amendment-watcher-enforcement.md",
+      "ADR-0038-amendment-workstream-awareness.md",
+      "ADR-0046-load-bearing-adr-implementation-guide.md",
+      "ADR-0047-cross-repo-watcher.md",
+      "ADR-0048-amendment-3-initial-trigger-verdict-state-guard.md",
+      "ADR-0048-amendment-initial-add-defensive-guard.md",
+      "ADR-0048-amendment-verdict-state-aware.md",
+      "ADR-0049-amendment-subcheck-k.md"
+    ],
+    "extra_in_tmpl_count": 8,
+    "extra_in_tmpl_first_10": [
+      "ADR-0024-amendment-work-done-elsewhere-predicate.md",
+      "ADR-0046-d-test-convention.md",
+      "ADR-0047-deploy-automation-pattern.md",
+      "ADR-0060-claude-code-2.1.207-agent-flag.md",
+      "ADR-0072-s32-026-soul-sync-state-correction.md",
+      "ADR-0073-tasklist-persistence-and-watchdog-tuning-revision.md",
+      "ADR-0077-s34-002-row-017-deploy-runner-divergent-amendment.md",
+      "ADR-0078-deploy-failure-root-cause-analysis.md"
+    ],
+    "spot_check_adr_0074": false,
+    "spot_check_adr_0072": false
+  },
+  "sprint34_pr_crossref": {
+    "search_query": "Sprint 34 in tmpl repo",
+    "matched_count": 0,
+    "in_range_210_225": [],
+    "in_range_210_225_count": 0
+  },
+  "interpretation": "\u00a7B.2 9 scripts: 2/9 forward-ported, 7/9 STILL_MISSING. \u00a7C d-tests: calc has 155, tmpl has 68, 141 calc d-tests NOT in tmpl (potential forward-port candidates). \u00a7D ADRs: calc has 79, tmpl has 59, 28 ADRs in calc NOT in tmpl. Sprint 34 PR list (#210-#225) in tmpl: 0 found \u2014 if range is empty, Sprint 34 forward-port PRs landed OUTSIDE #210-#225 range (likely higher numbers)."
+}
